@@ -1,0 +1,3067 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evenement Tool</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c8442a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Evenement Tool">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f1ea; --bg-card: #fbf8f2; --ink: #1a1612; --ink-soft: #5c544a;
+    --accent: #c8442a; --accent-soft: #e8d5cd; --line: #d9cfc1;
+    --gold: #b8923a; --green: #4a6b3a; --amber: #c08a2e; --whatsapp: #25d366;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter Tight', 'Helvetica Neue', system-ui, sans-serif; }
+  .font-display { font-family: 'Fraunces', 'Playfair Display', Georgia, serif; font-weight: 600; letter-spacing: -0.02em; }
+  .font-body { font-family: 'Inter Tight', 'Helvetica Neue', system-ui, sans-serif; }
+  .tab-btn { padding: 0.6rem 1.1rem; border: none; background: transparent; color: var(--ink-soft); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; text-transform: uppercase; }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 4px; padding: 1.5rem; }
+  .input, .select, .textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--line); background: white; border-radius: 3px; font-family: 'Inter Tight', sans-serif; font-size: 0.9rem; color: var(--ink); }
+  .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 0.35rem; }
+  .btn { padding: 0.55rem 1rem; border-radius: 3px; border: none; font-family: 'Inter Tight', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s; letter-spacing: 0.01em; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #a8341f; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: var(--bg); border-color: var(--ink-soft); }
+  .btn-danger { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-danger:hover { background: var(--accent); color: white; }
+  .btn-whatsapp { background: var(--whatsapp); color: white; }
+  .btn-whatsapp:hover { background: #1ebe57; }
+  .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.78rem; }
+  .badge { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge-open { background: #ede4d3; color: var(--ink-soft); }
+  .badge-bezig { background: #f4e4c5; color: var(--amber); }
+  .badge-ok { background: #dde7d3; color: var(--green); }
+  .badge-pasok { background: var(--accent-soft); color: var(--accent); }
+  .stat-num { font-family: 'Fraunces', serif; font-size: 2.5rem; font-weight: 600; color: var(--ink); line-height: 1; letter-spacing: -0.03em; }
+  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-top: 0.4rem; font-weight: 500; }
+  .alert-bar { padding: 1rem 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .alert-amber { background: #f4e4c5; border-left: 4px solid var(--amber); }
+  .alert-red { background: var(--accent-soft); border-left: 4px solid var(--accent); }
+  .alert-green { background: #dde7d3; border-left: 4px solid var(--green); }
+  .pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; font-size: 0.78rem; color: var(--ink); margin: 0.15rem; cursor: pointer; }
+  .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .pill.warn { border-color: var(--amber); background: #fdf6e3; }
+  a.link { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a.link:hover { color: #a8341f; }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  .chevron { display: inline-block; transition: transform 0.2s; }
+  details[open] .chevron { transform: rotate(90deg); }
+  .grid-2 { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+  .switch { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+  .switch-track { width: 36px; height: 20px; background: var(--line); border-radius: 999px; position: relative; transition: background 0.2s; }
+  .switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; }
+  .switch.on .switch-track { background: var(--accent); }
+  .switch.on .switch-track::after { transform: translateX(16px); }
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 0.7rem 1.2rem; border-radius: 4px; font-size: 0.85rem; z-index: 1000; }
+  .dict-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+  .dict-row:last-child { border-bottom: none; }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .lang-toggle button { background: transparent; border: none; padding: 0.4rem 0.7rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--ink-soft); }
+  .lang-toggle button.active { background: var(--accent); color: white; }
+  .send-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.7rem; align-items: center; padding: 0.6rem 0.8rem; border: 1px solid var(--line); background: white; border-radius: 3px; margin-bottom: 0.4rem; }
+  .send-row.sent-today { background: #dde7d3; border-color: var(--green); }
+  .send-row.sent-week { background: #f4e4c5; border-color: var(--amber); }
+  .info-box { background: #fdf6e3; border-left: 3px solid var(--gold); padding: 0.8rem 1rem; border-radius: 3px; font-size: 0.85rem; margin: 1rem 0; color: var(--ink); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+const STORAGE_KEY = "evenement_beheer_data_v4";
+const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
+
+// ============================================================
+// I18N — Vertalingen voor de UI
+// ============================================================
+const T = {
+  nl: {
+    app_subtitle: "Evenementbeheer",
+    no_event: "Naamloos evenement",
+    template: "⬇ Sjabloon",
+    import_merge: "⬆ Importeer (samenvoegen)",
+    import_replace: "⬆ Importeer (vervang alles)",
+    export: "⬇ Exporteer Excel",
+    reset: "Reset",
+    help_button: "Werking", help_close: "Sluiten",
+    nieuw_evenement: "Nieuw evenement",
+    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Bulk-zendgeschiedenis\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaal\n• Sjablonen + woordenboek\n• Externe contacten\n\nMaak eerst een Excel-export als backup van het huidige evenement!",
+    nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
+    tab_dashboard: "Dashboard", tab_event: "Event", tab_vrijwilligers: "Vrijwilligers",
+    tab_taken: "Taken", tab_berichten: "Berichten", tab_bulk: "Bulk Send",
+    tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal",
+    mat_title: "Materiaal", mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
+    mat_naam: "Materiaal", mat_aantal: "Aantal", mat_oorsprong: "Oorsprong", mat_verant: "Verantwoordelijke",
+    mat_add: "+ Materiaal toevoegen", mat_no_items: "Nog geen materiaal. Voeg er één toe om te beginnen.",
+    mat_choose: "— Kies —", mat_other: "Andere…", mat_other_ph: "Vrije tekst",
+    mat_new_loc: "+ Nieuwe locatie", mat_new_loc_prompt: "Naam van de nieuwe locatie?",
+    mat_remove_loc: "Locatie verwijderen?", mat_export: "⬇ Exporteer materiaal",
+    mat_manage_loc: "⚙ Beheer locaties",
+    mat_loc_inuse: (locatie, n) => `"${locatie}" wordt nog gebruikt bij ${n} materiaal-${n === 1 ? "rij" : "rijen"}. Pas die eerst aan.`,
+    mat_remove_loc_q: (locatie) => `Locatie "${locatie}" verwijderen?`,
+    days_left: "Dagen te gaan", day_left: "Dag te gaan",
+    no_date: "Geen datum", past: "Voorbij",
+    volunteers: "Vrijwilligers", workunits: "Werkeenheden", unassigned: "Niet toegewezen",
+    status_open: "Open", status_bezig: "Bezig", status_ok: "Ok", status_pasok: "Pas ok",
+    quick_nav: "Snelle navigatie", edit_event: "Event-info bewerken",
+    manage_volunteers: "Vrijwilligers beheren", manage_tasks: "Taken & toewijzingen",
+    wa_messages: "WhatsApp-berichten →",
+    event_today: "Het evenement is vandaag! 🎉",
+    event_past: (n) => `Het evenement is voorbij (${n} dag${n === 1 ? "" : "en"} geleden).`,
+    event_in_days: (n) => `Nog ${n} dag${n === 1 ? "" : "en"} tot het evenement.`,
+    to_messages: "Naar berichten →",
+    week_reminder_time: "Tijd voor de week-herinneringen.",
+    day_reminder_time: "Tijd voor de dag-vooraf-herinneringen.",
+    basic_info: "Basisinfo", event_name: "Eventnaam", date: "Datum", description: "Beschrijving",
+    location: "Locatie", location_name: "Locatienaam", street: "Straat", number: "Nummer",
+    postcode: "Postcode", city: "Gemeente",
+    accessibility: "Bereikbaarheid",
+    fill_address_first: "Vul eerst het adres in om links te genereren.",
+    by_car: "🚗 Met de wagen", by_pt: "🚌 Openbaar vervoer (Google)", by_train: "🚆 Trein (NMBS)",
+    open_in_maps: "Open in Google Maps", nmbs_planner: "Routeplanner NMBS",
+    full_address: "Volledig adres",
+    search_volunteer: "Zoek op naam, email, gemeente…",
+    add_volunteer: "+ Vrijwilliger toevoegen",
+    remove_dups: "🧹 Verwijder dubbels",
+    no_volunteers: "Nog geen vrijwilligers. Voeg er één toe of importeer een Excel.",
+    no_results: "Geen resultaten.",
+    firstname: "Voornaam", lastname: "Naam", gender: "Geslacht", lang: "Taal",
+    gsm1: "GSM 1 (WhatsApp)", gsm2: "GSM 2 (info)", email: "E-mail",
+    street_nr: "Straat + nr",
+    availability: "Beschikbaarheid", avail_full: "Hele dag", avail_morning: "Voormiddag (tot 12u)",
+    avail_afternoon: "Namiddag (12u–18u)", avail_evening: "Avond (vanaf 17u)", avail_custom: "Aangepast tijdvak",
+    avail_from: "Beschikbaar van", avail_to: "Beschikbaar tot",
+    note: "Opmerking", remove_volunteer: "Verwijder vrijwilliger",
+    no_phone: "geen telefoon", whole_day: "hele dag",
+    address_link: "📍 Adres op Google Maps",
+    task_intro: "Voeg een taak toe en wijs meteen vrijwilligers toe. Heeft een taak meerdere onderdelen (zoals aanvoer + afvoer)? Zet dan",
+    task_intro2: "aan.",
+    has_subtasks: "Heeft subtaken",
+    taak_verant: "Verantwoordelijke voor deze taak",
+    taak_verant_none: "— Geen verantwoordelijke —",
+    taak_verant_msg: (naam) => `Verantwoordelijke: ${naam}`,
+    taak_verant_msg_fr: (naam) => `Responsable : ${naam}`,
+    add_task: "+ Taak toevoegen",
+    no_tasks: "Nog geen taken. Voeg er een toe om te beginnen.",
+    name_nl: "Naam (NL)", name_fr: "Nom (FR)", category: "Categorie",
+    category_ph: "Logistiek, Onthaal…",
+    remove: "Verwijder",
+    on_off_direct: { on: "(aan)", off: "(uit — directe toewijzing)" },
+    subtasks: "Subtaken",
+    add_subtask: "+ Subtaak",
+    no_subtasks: "Nog geen subtaken. Voeg er één toe of zet subtaken uit voor directe toewijzing.",
+    from: "Van", to: "Tot", daypart: "Dagdeel",
+    daypart_morning: "Voormiddag", daypart_afternoon: "Namiddag", daypart_evening: "Avond", daypart_full: "Hele dag",
+    status: "Status:",
+    assigned_to: "Toegewezen aan",
+    add_volunteers_first: "Eerst vrijwilligers toevoegen.",
+    outside_avail: "⚠ Buiten beschikbaarheid van deze vrijwilliger",
+    note_optional: "Opmerking (optioneel)",
+    msg_intro: "Kies een sjabloon en stuur het via WhatsApp of kopieer het bericht. Werkt de WhatsApp-knop niet?",
+    msg_intro2: "en plak het zelf in WhatsApp.",
+    no_templates: "Geen sjablonen beschikbaar. Voeg er een toe in het tabblad",
+    no_volunteers_w_tasks: "Geen vrijwilligers met toegewezen taken. Wijs eerst taken toe in het tabblad",
+    copy_msg: "📋 Kopieer bericht",
+    open_wa: "📱 Open WhatsApp",
+    show_msg: "Toon bericht",
+    no_assigned_tasks: "(geen taken toegewezen)",
+    sjab_title: "Berichtsjablonen",
+    sjab_intro: "Voeg nieuwe sjablonen toe — ze verschijnen automatisch als keuzeknop in het tabblad",
+    sjab_intro2: "Beschikbare placeholders:",
+    new_sjabloon: "+ Nieuw sjabloon",
+    no_sjablonen: "Geen sjablonen. Klik op \"+ Nieuw sjabloon\" om er een toe te voegen.",
+    sjabloon_title: "Titel (verschijnt als keuzeknop in Berichten)",
+    sjabloon_title_ph: "bv. Bedankt na het event",
+    confirm_remove_template: (titel) => `Sjabloon "${titel || "(zonder titel)"}" verwijderen?`,
+    woord_title: "Woordenboek NL ↔ FR",
+    woord_intro: "Wanneer je een taaknaam invult in NL, vult de app automatisch FR in (en omgekeerd). Werkt de vertaling niet voor jouw term? Voeg ze hier toe — de volgende keer wordt ze automatisch gebruikt.",
+    new_term: "Nieuwe term toevoegen",
+    dutch: "Nederlands", french: "Français",
+    add: "+ Toevoegen",
+    search_dict: "Zoek in woordenboek…",
+    restore_default: "Herstel standaardlijst",
+    terms: "termen",
+    no_terms: "Geen termen gevonden.",
+    fill_both: "Vul beide velden in.",
+    confirm_remove_term: (nl) => `Verwijder "${nl}" uit het woordenboek?`,
+    confirm_restore_dict: "Woordenboek terugzetten naar de standaardlijst? Eigen toevoegingen gaan verloren.",
+    bulk_title: "Bulk verzenden",
+    bulk_intro: "Stuur hetzelfde bericht naar meerdere mensen. WhatsApp opent per persoon — jij drukt zelf op verzenden.",
+    select_recipients: "Ontvangers selecteren",
+    filter_by_lang: "Filter op taal",
+    all_langs: "Alle talen",
+    select_all: "Selecteer alle",
+    deselect_all: "Deselecteer alle",
+    sent_today: "Verzonden vandaag",
+    sent_week_ago: "Verzonden",
+    not_sent: "Nog niet verzonden",
+    mark_unsent: "↩ Markeer als niet verzonden",
+    external_contacts: "Externe contacten",
+    add_external: "+ Externe persoon toevoegen",
+    name_ph: "Naam",
+    no_external: "Nog geen externe contacten.",
+    compose: "Bericht opstellen",
+    use_template: "Start vanuit sjabloon (optioneel)",
+    none: "Geen",
+    msg_nl: "🇳🇱 Bericht in het Nederlands",
+    msg_fr: "🇫🇷 Bericht in het Frans",
+    placeholders_avail: "Placeholders:",
+    image: "Afbeelding meesturen",
+    image_none: "Geen", image_attach: "Bijlage (handmatig plakken)", image_url: "URL (linkje in bericht)",
+    image_help: "❓ Hoe?",
+    image_url_label: "URL van afbeelding",
+    image_url_ph: "https://drive.google.com/...",
+    upload_image: "Kies afbeelding",
+    image_loaded: "Afbeelding geladen",
+    copy_image: "📋 Kopieer afbeelding",
+    preview: "Voorbeeld voor",
+    no_recipients: "Nog niemand geselecteerd.",
+    send_to: "Verzendlijst",
+    progress: "Voortgang:",
+    sent_count: (n, total) => `${n} / ${total} verzonden`,
+    new_campaign: "Begin nieuwe campagne",
+    confirm_new_campaign: "Voortgang resetten? Markeringen 'verzonden' worden gewist.",
+    dup_warning: (n) => `⚠ ${n} geselecteerde ${n === 1 ? "persoon kreeg" : "personen kregen"} vandaag al een bericht.`,
+    deselect_dups: "Deselecteer dubbels",
+    confirm_resend: (naam, tijd) => `${naam} kreeg vandaag om ${tijd} al een bericht. Toch versturen?`,
+    image_help_title: "Hoe een afbeelding via URL versturen?",
+    image_help_body: "1. Upload je afbeelding naar Google Drive of Dropbox.\n2. Klik rechts op het bestand → 'Delen' (Share).\n3. Zet de toegang op 'Iedereen met de link kan zien'.\n4. Kopieer de link.\n5. Plak die link in het URL-veld hierboven.\n\nWhatsApp toont dan een preview van de afbeelding in het bericht. Let op: iedereen met die link kan de afbeelding zien.",
+    image_attach_help: "Klik 'Open WhatsApp' om de tekst te versturen. Klik dan 'Kopieer afbeelding' en plak (Ctrl+V) in WhatsApp voor je verzendt.",
+    no_wa_number: "geen WhatsApp-nummer",
+    1: "1", taken_assigned: (n) => n === 1 ? "1 taak toegewezen" : `${n} taken toegewezen`,
+    confirm_dedup: (n) => `${n} dubbel${n === 1 ? "e vrijwilliger" : "e vrijwilligers"} gevonden. Verwijderen?`,
+    no_dups_found: "Geen dubbels gevonden",
+    dups_removed: (n) => `${n} dubbel${n === 1 ? "" : "s"} verwijderd`,
+    confirm_reset: "Alle gegevens wissen? Maak eerst een Excel-export als backup.",
+    msg_copied: (naam) => `Bericht voor ${naam} gekopieerd`,
+    img_copied: "Afbeelding gekopieerd",
+    img_copy_failed: "Kon afbeelding niet kopiëren. Sleep het bestand zelf in WhatsApp.",
+    cant_copy: "Kon niet kopiëren. Selecteer de tekst handmatig.",
+    import_ok: (parts) => `Import gelukt — ${parts}`,
+    import_failed: "Import mislukt",
+    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink}",
+    placeholder_help_bulk: "{voornaam} {eventnaam} {eventdatum} {locatie} {mapslink}",
+    storage_note: "Lokale opslag in deze browser · Export naar Excel voor backup",
+  },
+  fr: {
+    app_subtitle: "Gestion d'événement",
+    no_event: "Événement sans nom",
+    template: "⬇ Modèle",
+    import_merge: "⬆ Importer (fusionner)",
+    import_replace: "⬆ Importer (tout remplacer)",
+    export: "⬇ Exporter Excel",
+    reset: "Réinitialiser",
+    help_button: "Fonctionnement", help_close: "Fermer",
+    nieuw_evenement: "Nouvel événement",
+    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Historique des envois groupés\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Matériel\n• Modèles + dictionnaire\n• Contacts externes\n\nFaites d'abord une exportation Excel comme sauvegarde de l'événement actuel !",
+    nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
+    tab_dashboard: "Tableau de bord", tab_event: "Événement", tab_vrijwilligers: "Bénévoles",
+    tab_taken: "Tâches", tab_berichten: "Messages", tab_bulk: "Envoi groupé",
+    tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel",
+    mat_title: "Matériel", mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
+    mat_naam: "Matériel", mat_aantal: "Quantité", mat_oorsprong: "Source", mat_verant: "Responsable",
+    mat_add: "+ Ajouter du matériel", mat_no_items: "Pas encore de matériel. Ajoutez-en un pour commencer.",
+    mat_choose: "— Choisir —", mat_other: "Autre…", mat_other_ph: "Texte libre",
+    mat_new_loc: "+ Nouvelle source", mat_new_loc_prompt: "Nom de la nouvelle source ?",
+    mat_remove_loc: "Supprimer la source ?", mat_export: "⬇ Exporter matériel",
+    mat_manage_loc: "⚙ Gérer les sources",
+    mat_loc_inuse: (locatie, n) => `"${locatie}" est encore utilisé par ${n} ${n === 1 ? "ligne" : "lignes"} de matériel. Modifiez-les d'abord.`,
+    mat_remove_loc_q: (locatie) => `Supprimer la source "${locatie}" ?`,
+    days_left: "Jours restants", day_left: "Jour restant",
+    no_date: "Pas de date", past: "Passé",
+    volunteers: "Bénévoles", workunits: "Unités de travail", unassigned: "Non assignées",
+    status_open: "Ouverte", status_bezig: "En cours", status_ok: "Ok", status_pasok: "Pas ok",
+    quick_nav: "Navigation rapide", edit_event: "Modifier l'événement",
+    manage_volunteers: "Gérer les bénévoles", manage_tasks: "Tâches et assignations",
+    wa_messages: "Messages WhatsApp →",
+    event_today: "L'événement est aujourd'hui ! 🎉",
+    event_past: (n) => `L'événement est passé (il y a ${n} jour${n === 1 ? "" : "s"}).`,
+    event_in_days: (n) => `Plus que ${n} jour${n === 1 ? "" : "s"} avant l'événement.`,
+    to_messages: "Vers les messages →",
+    week_reminder_time: "Il est temps d'envoyer les rappels de la semaine.",
+    day_reminder_time: "Il est temps d'envoyer les rappels de la veille.",
+    basic_info: "Informations", event_name: "Nom de l'événement", date: "Date", description: "Description",
+    location: "Lieu", location_name: "Nom du lieu", street: "Rue", number: "Numéro",
+    postcode: "Code postal", city: "Commune",
+    accessibility: "Accessibilité",
+    fill_address_first: "Veuillez d'abord remplir l'adresse pour générer les liens.",
+    by_car: "🚗 En voiture", by_pt: "🚌 Transports en commun (Google)", by_train: "🚆 Train (SNCB)",
+    open_in_maps: "Ouvrir dans Google Maps", nmbs_planner: "Planificateur SNCB",
+    full_address: "Adresse complète",
+    search_volunteer: "Rechercher par nom, email, commune…",
+    add_volunteer: "+ Ajouter un bénévole",
+    remove_dups: "🧹 Supprimer doublons",
+    no_volunteers: "Pas encore de bénévoles. Ajoutez-en un ou importez un fichier Excel.",
+    no_results: "Aucun résultat.",
+    firstname: "Prénom", lastname: "Nom", gender: "Genre", lang: "Langue",
+    gsm1: "GSM 1 (WhatsApp)", gsm2: "GSM 2 (info)", email: "E-mail",
+    street_nr: "Rue + numéro",
+    availability: "Disponibilité", avail_full: "Toute la journée", avail_morning: "Matinée (jusqu'à 12h)",
+    avail_afternoon: "Après-midi (12h–18h)", avail_evening: "Soirée (à partir de 17h)", avail_custom: "Plage personnalisée",
+    avail_from: "Disponible de", avail_to: "Disponible jusqu'à",
+    note: "Remarque", remove_volunteer: "Supprimer le bénévole",
+    no_phone: "pas de téléphone", whole_day: "toute la journée",
+    address_link: "📍 Adresse sur Google Maps",
+    task_intro: "Ajoutez une tâche et assignez directement des bénévoles. La tâche a-t-elle plusieurs parties (comme livraison aller + retour) ? Activez alors",
+    task_intro2: ".",
+    has_subtasks: "A des sous-tâches",
+    taak_verant: "Responsable de cette tâche",
+    taak_verant_none: "— Aucun responsable —",
+    taak_verant_msg: (naam) => `Verantwoordelijke: ${naam}`,
+    taak_verant_msg_fr: (naam) => `Responsable : ${naam}`,
+    add_task: "+ Ajouter une tâche",
+    no_tasks: "Pas encore de tâches. Ajoutez-en une pour commencer.",
+    name_nl: "Naam (NL)", name_fr: "Nom (FR)", category: "Catégorie",
+    category_ph: "Logistique, Accueil…",
+    remove: "Supprimer",
+    on_off_direct: { on: "(activé)", off: "(désactivé — assignation directe)" },
+    subtasks: "Sous-tâches",
+    add_subtask: "+ Sous-tâche",
+    no_subtasks: "Pas encore de sous-tâches. Ajoutez-en une ou désactivez les sous-tâches pour une assignation directe.",
+    from: "De", to: "À", daypart: "Moment",
+    daypart_morning: "Matinée", daypart_afternoon: "Après-midi", daypart_evening: "Soirée", daypart_full: "Toute la journée",
+    status: "Statut :",
+    assigned_to: "Assigné à",
+    add_volunteers_first: "Ajoutez d'abord des bénévoles.",
+    outside_avail: "⚠ Hors de la disponibilité de ce bénévole",
+    note_optional: "Remarque (optionnel)",
+    msg_intro: "Choisissez un modèle et envoyez-le via WhatsApp ou copiez le message. Le bouton WhatsApp ne fonctionne pas ?",
+    msg_intro2: "et collez-le vous-même dans WhatsApp.",
+    no_templates: "Aucun modèle disponible. Ajoutez-en un dans l'onglet",
+    no_volunteers_w_tasks: "Aucun bénévole avec des tâches assignées. Assignez d'abord des tâches dans l'onglet",
+    copy_msg: "📋 Copier le message",
+    open_wa: "📱 Ouvrir WhatsApp",
+    show_msg: "Afficher le message",
+    no_assigned_tasks: "(aucune tâche assignée)",
+    sjab_title: "Modèles de messages",
+    sjab_intro: "Ajoutez de nouveaux modèles — ils apparaîtront automatiquement comme bouton dans l'onglet",
+    sjab_intro2: "Placeholders disponibles :",
+    new_sjabloon: "+ Nouveau modèle",
+    no_sjablonen: "Aucun modèle. Cliquez sur \"+ Nouveau modèle\" pour en ajouter un.",
+    sjabloon_title: "Titre (apparaît comme bouton dans Messages)",
+    sjabloon_title_ph: "ex. Merci après l'événement",
+    confirm_remove_template: (titel) => `Supprimer le modèle "${titel || "(sans titre)"}" ?`,
+    woord_title: "Dictionnaire NL ↔ FR",
+    woord_intro: "Quand vous saisissez un nom de tâche en NL, l'app remplit automatiquement le FR (et vice versa). La traduction ne fonctionne pas pour votre terme ? Ajoutez-le ici — la prochaine fois, il sera utilisé automatiquement.",
+    new_term: "Ajouter un nouveau terme",
+    dutch: "Néerlandais", french: "Français",
+    add: "+ Ajouter",
+    search_dict: "Rechercher dans le dictionnaire…",
+    restore_default: "Rétablir la liste par défaut",
+    terms: "termes",
+    no_terms: "Aucun terme trouvé.",
+    fill_both: "Remplissez les deux champs.",
+    confirm_remove_term: (nl) => `Supprimer "${nl}" du dictionnaire ?`,
+    confirm_restore_dict: "Rétablir le dictionnaire par défaut ? Vos ajouts seront perdus.",
+    bulk_title: "Envoi groupé",
+    bulk_intro: "Envoyez le même message à plusieurs personnes. WhatsApp s'ouvre par personne — vous appuyez sur envoyer vous-même.",
+    select_recipients: "Sélectionner les destinataires",
+    filter_by_lang: "Filtrer par langue",
+    all_langs: "Toutes",
+    select_all: "Tout sélectionner",
+    deselect_all: "Tout désélectionner",
+    sent_today: "Envoyé aujourd'hui",
+    sent_week_ago: "Envoyé",
+    not_sent: "Pas encore envoyé",
+    mark_unsent: "↩ Marquer non envoyé",
+    external_contacts: "Contacts externes",
+    add_external: "+ Ajouter un contact externe",
+    name_ph: "Nom",
+    no_external: "Pas encore de contacts externes.",
+    compose: "Rédiger le message",
+    use_template: "Partir d'un modèle (optionnel)",
+    none: "Aucun",
+    msg_nl: "🇳🇱 Message en néerlandais",
+    msg_fr: "🇫🇷 Message en français",
+    placeholders_avail: "Placeholders :",
+    image: "Joindre une image",
+    image_none: "Aucune", image_attach: "Pièce jointe (coller manuellement)", image_url: "URL (lien dans le message)",
+    image_help: "❓ Comment ?",
+    image_url_label: "URL de l'image",
+    image_url_ph: "https://drive.google.com/...",
+    upload_image: "Choisir une image",
+    image_loaded: "Image chargée",
+    copy_image: "📋 Copier l'image",
+    preview: "Aperçu pour",
+    no_recipients: "Personne sélectionnée.",
+    send_to: "Liste d'envoi",
+    progress: "Progression :",
+    sent_count: (n, total) => `${n} / ${total} envoyés`,
+    new_campaign: "Nouvelle campagne",
+    confirm_new_campaign: "Réinitialiser la progression ? Les marques 'envoyé' seront effacées.",
+    dup_warning: (n) => `⚠ ${n} ${n === 1 ? "personne sélectionnée a" : "personnes sélectionnées ont"} déjà reçu un message aujourd'hui.`,
+    deselect_dups: "Désélectionner doublons",
+    confirm_resend: (naam, tijd) => `${naam} a déjà reçu un message aujourd'hui à ${tijd}. Renvoyer quand même ?`,
+    image_help_title: "Comment envoyer une image via URL ?",
+    image_help_body: "1. Téléchargez votre image vers Google Drive ou Dropbox.\n2. Clic droit sur le fichier → 'Partager'.\n3. Mettez l'accès sur 'Toute personne ayant le lien peut voir'.\n4. Copiez le lien.\n5. Collez ce lien dans le champ URL ci-dessus.\n\nWhatsApp affichera un aperçu de l'image dans le message. Attention : toute personne ayant ce lien peut voir l'image.",
+    image_attach_help: "Cliquez 'Ouvrir WhatsApp' pour envoyer le texte. Cliquez ensuite 'Copier l'image' et collez (Ctrl+V) dans WhatsApp avant d'envoyer.",
+    no_wa_number: "pas de numéro WhatsApp",
+    1: "1", taken_assigned: (n) => n === 1 ? "1 tâche assignée" : `${n} tâches assignées`,
+    confirm_dedup: (n) => `${n} doublon${n === 1 ? "" : "s"} trouvé${n === 1 ? "" : "s"}. Supprimer ?`,
+    no_dups_found: "Aucun doublon trouvé",
+    dups_removed: (n) => `${n} doublon${n === 1 ? "" : "s"} supprimé${n === 1 ? "" : "s"}`,
+    confirm_reset: "Effacer toutes les données ? Faites d'abord un export Excel comme sauvegarde.",
+    msg_copied: (naam) => `Message pour ${naam} copié`,
+    img_copied: "Image copiée",
+    img_copy_failed: "Impossible de copier l'image. Glissez-déposez le fichier dans WhatsApp.",
+    cant_copy: "Impossible de copier. Sélectionnez le texte manuellement.",
+    import_ok: (parts) => `Import réussi — ${parts}`,
+    import_failed: "Import échoué",
+    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink}",
+    placeholder_help_bulk: "{voornaam} {eventnaam} {eventdatum} {locatie} {mapslink}",
+    storage_note: "Stockage local dans ce navigateur · Exportez vers Excel pour sauvegarder",
+  },
+};
+
+// ============================================================
+// WOORDENBOEK NL <-> FR
+// ============================================================
+const defaultDictionary = {
+  "vervoer": "transport", "vervoer materiaal": "transport du matériel",
+  "aanvoer": "livraison aller", "afvoer": "retour", "ophalen": "récupération", "leveren": "livraison",
+  "logistiek": "logistique", "materiaal": "matériel", "laden": "chargement", "lossen": "déchargement",
+  "opbouw": "montage", "afbouw": "démontage", "opzetten": "installation", "afbreken": "démontage",
+  "tent opzetten": "installation de la tente", "podium opbouwen": "montage de la scène", "tafels en stoelen": "tables et chaises",
+  "onthaal": "accueil", "inschrijving": "inscriptions", "inschrijvingen": "inscriptions",
+  "kassa": "caisse", "vestiaire": "vestiaire", "garderobe": "vestiaire", "toegangscontrole": "contrôle d'accès", "badges": "badges",
+  "catering": "catering", "ontbijt": "petit-déjeuner", "ontbijt klaarzetten": "préparer le petit-déjeuner",
+  "lunch": "déjeuner", "avondmaal": "dîner", "diner": "dîner", "koffiepauze": "pause café",
+  "drankbedeling": "service des boissons", "bar": "bar", "afwas": "vaisselle", "keuken": "cuisine", "broodjes": "sandwiches",
+  "geluid": "son", "licht": "éclairage", "techniek": "technique", "podium": "scène",
+  "scherm": "écran", "projector": "projecteur", "micro": "micro", "microfoon": "microphone", "kabels": "câbles",
+  "veiligheid": "sécurité", "ehbo": "premiers secours", "eerste hulp": "premiers secours",
+  "verkeersregelaar": "régulateur de circulation", "parkeerwacht": "agent de parking",
+  "communicatie": "communication", "pers": "presse", "persmoment": "moment presse",
+  "fotografie": "photographie", "fotograaf": "photographe", "social media": "médias sociaux",
+  "voormiddag": "matinée", "namiddag": "après-midi", "avond": "soirée", "hele dag": "journée entière",
+  "opkuis": "nettoyage", "schoonmaak": "nettoyage", "evaluatie": "évaluation",
+  "briefing": "briefing", "debriefing": "débriefing", "vergadering": "réunion",
+  "coördinator": "coordinateur", "verantwoordelijke": "responsable", "vrijwilliger": "bénévole", "vrijwilligers": "bénévoles",
+};
+
+const buildReverseDict = (dict) => {
+  const rev = {};
+  Object.entries(dict).forEach(([nl, fr]) => { rev[fr.toLowerCase()] = nl; });
+  return rev;
+};
+
+const matchCase = (original, translated) => {
+  if (!original) return translated;
+  if (original[0] === original[0].toUpperCase()) {
+    return translated.charAt(0).toUpperCase() + translated.slice(1);
+  }
+  return translated;
+};
+
+// Forceer lowercase voor opslag (gebruikt voor materiaal-, taak-, woordenboek-namen)
+const normalizeName = (s) => (s || "").toString().trim().toLowerCase();
+
+// Eerste letter hoofdletter voor weergave
+const capitalize = (s) => {
+  if (!s) return "";
+  const str = s.toString();
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const translateText = (text, from, to, dict) => {
+  if (!text) return "";
+  const lower = text.trim().toLowerCase();
+  const lookup = from === "nl" ? dict : buildReverseDict(dict);
+  if (lookup[lower]) return matchCase(text, lookup[lower]);
+  const tokens = text.split(/(\s+|[,;.])/);
+  let foundAny = false;
+  const translated = tokens.map((tok) => {
+    if (!tok.trim() || /^[\s,;.]+$/.test(tok)) return tok;
+    const lt = tok.toLowerCase();
+    if (lookup[lt]) { foundAny = true; return matchCase(tok, lookup[lt]); }
+    return tok;
+  }).join("");
+  return foundAny ? translated : "";
+};
+
+// ============================================================
+// DEFAULT DATA
+// ============================================================
+const defaultSjablonen = [
+  {
+    id: "welkomst", titel: "Welkomstbericht",
+    nl: "Dag {voornaam},\n\nBedankt om mee te helpen op {eventnaam} op {eventdatum} in {locatie}.\n\nJouw taken:\n{takenlijst}\n\n📍 Locatie: {mapslink}\n\nLaat ons weten als er iets niet lukt!",
+    fr: "Bonjour {voornaam},\n\nMerci de nous aider lors de {eventnaam} le {eventdatum} à {locatie}.\n\nTes tâches :\n{takenlijst}\n\n📍 Lieu : {mapslink}\n\nN'hésite pas à nous prévenir en cas de souci !",
+  },
+  {
+    id: "week", titel: "Herinnering 1 week vooraf",
+    nl: "Hallo {voornaam}, nog een week tot {eventnaam}! Hierbij een herinnering aan jouw taken:\n{takenlijst}\n\n📍 {mapslink}",
+    fr: "Bonjour {voornaam}, plus qu'une semaine avant {eventnaam} ! Petit rappel de tes tâches :\n{takenlijst}\n\n📍 {mapslink}",
+  },
+  {
+    id: "dag", titel: "Herinnering 1 dag vooraf",
+    nl: "Hoi {voornaam}! Morgen is het zover. Jouw taken:\n{takenlijst}\n\n📍 {mapslink}\n\nTot morgen!",
+    fr: "Salut {voornaam} ! C'est demain. Tes tâches :\n{takenlijst}\n\n📍 {mapslink}\n\nÀ demain !",
+  },
+];
+
+const defaultData = {
+  taal: "nl",
+  event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
+  vrijwilligers: [],
+  taken: [],
+  woordenboek: defaultDictionary,
+  sjablonen: defaultSjablonen,
+  externeContacten: [],
+  bulkGeschiedenis: {}, // {personId: [{datum: "2026-05-04T14:23", bericht: "..."}, ...]}
+  materiaal: [], // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij}]
+  oorsprongLijst: ["Leuven", "Vilvoorde"],
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+const formatDate = (iso, lang = "nl") => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+};
+
+const buildAddressString = (e) =>
+  [e.locatieNaam, `${e.straat || ""} ${e.nummer || ""}`.trim(), `${e.postcode || ""} ${e.gemeente || ""}`.trim()]
+    .filter(Boolean).join(", ");
+
+const buildVrijwilligerAdres = (v) => {
+  return [v.straat || "", `${v.postcode || ""} ${v.gemeente || ""}`.trim()].filter((x) => x.trim()).join(", ");
+};
+
+const buildMapsLink = (e, mode = "driving") => {
+  const addr = buildAddressString(e);
+  if (!addr) return "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=${mode}`;
+};
+
+const buildMapsSearchLink = (addr) => {
+  if (!addr) return "";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+};
+
+const buildNmbsLink = (e) => {
+  const addr = `${e.gemeente || ""}`.trim();
+  if (!addr) return "";
+  return `https://www.belgiantrain.be/nl/travel-info/routeplanner?to=${encodeURIComponent(addr)}`;
+};
+
+const daysUntil = (iso) => {
+  if (!iso) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(iso);
+  target.setHours(0, 0, 0, 0);
+  return Math.round((target - today) / (1000 * 60 * 60 * 24));
+};
+
+const isAvailable = (v, item) => {
+  if (!v || !item) return true;
+  const av = v.beschikbaarheid;
+  if (!av || av === "hele_dag") return true;
+  if (!item.start || !item.eind) return true;
+  const startH = parseInt(item.start.split(":")[0], 10);
+  const eindH = parseInt(item.eind.split(":")[0], 10);
+  if (av === "voormiddag") return eindH <= 12;
+  if (av === "namiddag") return startH >= 12 && eindH <= 18;
+  if (av === "avond") return startH >= 17;
+  if (av === "aangepast") {
+    if (!v.beschikbaarVan || !v.beschikbaarTot) return true;
+    return item.start >= v.beschikbaarVan && item.eind <= v.beschikbaarTot;
+  }
+  return true;
+};
+
+const cleanPhone = (raw) => {
+  if (!raw) return "";
+  let tel = String(raw).replace(/[\s\-().]/g, "");
+  if (tel.startsWith("+")) tel = tel.slice(1);
+  if (tel.startsWith("00")) tel = tel.slice(2);
+  if (tel.startsWith("0")) tel = "32" + tel.slice(1);
+  return tel.replace(/[^\d]/g, "");
+};
+
+const isToday = (iso) => {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const t = new Date();
+  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+};
+
+const isThisWeek = (iso) => {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const t = new Date();
+  const diff = (t - d) / (1000 * 60 * 60 * 24);
+  return diff >= 0 && diff < 7;
+};
+
+const formatTimeShort = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" });
+};
+
+const formatDateShort = (iso, lang = "nl") => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE", { day: "numeric", month: "short" });
+};
+
+// Veilige normalisatie van geladen data
+const normalizeData = (raw) => {
+  if (!raw || typeof raw !== "object") return defaultData;
+  const safe = { ...defaultData };
+  safe.taal = (raw.taal === "fr" ? "fr" : "nl");
+
+  if (raw.event && typeof raw.event === "object") safe.event = { ...defaultData.event, ...raw.event };
+
+  if (Array.isArray(raw.vrijwilligers)) {
+    safe.vrijwilligers = raw.vrijwilligers.map((v) => ({
+      id: v.id || uid(),
+      voornaam: v.voornaam || "", naam: v.naam || "",
+      geslacht: v.geslacht || "", taal: (v.taal || "nl").toString().toLowerCase(),
+      // Migratie: oud 'telefoon' wordt gsm1
+      gsm1: v.gsm1 || v.telefoon || "",
+      gsm2: v.gsm2 || "",
+      email: v.email || "",
+      straat: v.straat || "", postcode: String(v.postcode || ""), gemeente: v.gemeente || "",
+      beschikbaarheid: v.beschikbaarheid || "hele_dag",
+      beschikbaarVan: v.beschikbaarVan || "", beschikbaarTot: v.beschikbaarTot || "",
+      opmerking: v.opmerking || "",
+    }));
+  }
+
+  if (Array.isArray(raw.taken)) {
+    safe.taken = raw.taken.map((t) => ({
+      id: t.id || uid(),
+      naamNl: normalizeName(t.naamNl), naamFr: normalizeName(t.naamFr), categorie: t.categorie || "",
+      heeftSubtaken: !!t.heeftSubtaken,
+      start: t.start || "", eind: t.eind || "", dagdeel: t.dagdeel || "voormiddag",
+      toegewezen: Array.isArray(t.toegewezen) ? t.toegewezen : [],
+      status: t.status || "open", opmerking: t.opmerking || "",
+      verantwoordelijkeId: t.verantwoordelijkeId || "",
+      verantwoordelijkeVrij: t.verantwoordelijkeVrij || "",
+      subtaken: Array.isArray(t.subtaken) ? t.subtaken.map((s) => ({
+        id: s.id || uid(),
+        naamNl: normalizeName(s.naamNl), naamFr: normalizeName(s.naamFr),
+        start: s.start || "", eind: s.eind || "", dagdeel: s.dagdeel || "voormiddag",
+        toegewezen: Array.isArray(s.toegewezen) ? s.toegewezen : [],
+        status: s.status || "open", opmerking: s.opmerking || "",
+      })) : [],
+    }));
+  }
+
+  if (raw.woordenboek && typeof raw.woordenboek === "object" && !Array.isArray(raw.woordenboek)) {
+    const normalized = {};
+    Object.entries(raw.woordenboek).forEach(([k, v]) => {
+      if (typeof k === "string" && typeof v === "string") {
+        normalized[normalizeName(k)] = normalizeName(v);
+      }
+    });
+    safe.woordenboek = { ...defaultDictionary, ...normalized };
+  }
+
+  if (Array.isArray(raw.sjablonen)) {
+    const cleaned = raw.sjablonen
+      .filter((s) => s && typeof s === "object")
+      .map((s) => ({
+        id: s.id || uid(),
+        titel: s.titel || "Sjabloon",
+        nl: typeof s.nl === "string" ? s.nl : "",
+        fr: typeof s.fr === "string" ? s.fr : "",
+      }));
+    safe.sjablonen = cleaned.length > 0 ? cleaned : defaultSjablonen;
+  } else if (raw.sjablonen && typeof raw.sjablonen === "object") {
+    const titels = { welkomst: "Welkomstbericht", week: "Herinnering 1 week vooraf", dag: "Herinnering 1 dag vooraf" };
+    const ids = new Set();
+    Object.keys(raw.sjablonen).forEach((k) => {
+      const m = k.match(/^(.+)_(nl|fr)$/);
+      if (m) ids.add(m[1]);
+    });
+    if (ids.size > 0) {
+      safe.sjablonen = Array.from(ids).map((id) => ({
+        id, titel: titels[id] || id,
+        nl: raw.sjablonen[`${id}_nl`] || "",
+        fr: raw.sjablonen[`${id}_fr`] || "",
+      }));
+    }
+  }
+
+  if (Array.isArray(raw.externeContacten)) {
+    safe.externeContacten = raw.externeContacten.map((c) => ({
+      id: c.id || uid(),
+      naam: c.naam || "",
+      gsm1: c.gsm1 || c.telefoon || "",
+      taal: (c.taal || "nl").toString().toLowerCase(),
+    }));
+  }
+
+  if (raw.bulkGeschiedenis && typeof raw.bulkGeschiedenis === "object") {
+    safe.bulkGeschiedenis = raw.bulkGeschiedenis;
+  }
+
+  if (Array.isArray(raw.materiaal)) {
+    safe.materiaal = raw.materiaal.map((m) => ({
+      id: m.id || uid(),
+      naamNl: normalizeName(m.naamNl),
+      naamFr: normalizeName(m.naamFr),
+      aantal: m.aantal || "",
+      oorsprong: m.oorsprong || "",
+      verantwoordelijkeId: m.verantwoordelijkeId || "",
+      verantwoordelijkeVrij: m.verantwoordelijkeVrij || "",
+    }));
+  }
+
+  if (Array.isArray(raw.oorsprongLijst) && raw.oorsprongLijst.length > 0) {
+    safe.oorsprongLijst = raw.oorsprongLijst.filter((x) => typeof x === "string" && x.trim());
+  }
+
+  return safe;
+};
+
+// Slimme merge: bestaande data + nieuwe data (matchen op id)
+const mergeData = (oldData, newData) => {
+  const result = { ...oldData };
+
+  // Event: alleen overschrijven als de nieuwe een naam heeft
+  if (newData.event && newData.event.naam) {
+    result.event = newData.event;
+  }
+
+  // Vrijwilligers: matchen op id, anders toevoegen
+  if (Array.isArray(newData.vrijwilligers) && newData.vrijwilligers.length > 0) {
+    const existingById = new Map(oldData.vrijwilligers.map((v) => [v.id, v]));
+    newData.vrijwilligers.forEach((v) => {
+      if (v.id && existingById.has(v.id)) {
+        existingById.set(v.id, { ...existingById.get(v.id), ...v });
+      } else {
+        existingById.set(v.id || uid(), v);
+      }
+    });
+    result.vrijwilligers = Array.from(existingById.values());
+  }
+
+  // Taken: matchen op id
+  if (Array.isArray(newData.taken) && newData.taken.length > 0) {
+    const existingById = new Map(oldData.taken.map((t) => [t.id, t]));
+    newData.taken.forEach((t) => {
+      if (t.id && existingById.has(t.id)) {
+        const old = existingById.get(t.id);
+        // Behoud subtaken merge
+        const oldSubsById = new Map(old.subtaken.map((s) => [s.id, s]));
+        (t.subtaken || []).forEach((s) => {
+          if (s.id && oldSubsById.has(s.id)) {
+            oldSubsById.set(s.id, { ...oldSubsById.get(s.id), ...s });
+          } else {
+            oldSubsById.set(s.id || uid(), s);
+          }
+        });
+        existingById.set(t.id, { ...old, ...t, subtaken: Array.from(oldSubsById.values()) });
+      } else {
+        existingById.set(t.id || uid(), t);
+      }
+    });
+    result.taken = Array.from(existingById.values());
+  }
+
+  // Woordenboek: samenvoegen, nieuwe waarden winnen
+  if (newData.woordenboek && Object.keys(newData.woordenboek).length > 0) {
+    result.woordenboek = { ...oldData.woordenboek, ...newData.woordenboek };
+  }
+
+  // Sjablonen: matchen op id
+  if (Array.isArray(newData.sjablonen) && newData.sjablonen.length > 0) {
+    const existingById = new Map(oldData.sjablonen.map((s) => [s.id, s]));
+    newData.sjablonen.forEach((s) => {
+      if (s.id && existingById.has(s.id)) {
+        existingById.set(s.id, { ...existingById.get(s.id), ...s });
+      } else {
+        existingById.set(s.id || uid(), s);
+      }
+    });
+    result.sjablonen = Array.from(existingById.values());
+  }
+
+  // Materiaal: matchen op id, anders toevoegen
+  if (Array.isArray(newData.materiaal) && newData.materiaal.length > 0) {
+    const existingById = new Map((oldData.materiaal || []).map((m) => [m.id, m]));
+    newData.materiaal.forEach((m) => {
+      if (m.id && existingById.has(m.id)) {
+        existingById.set(m.id, { ...existingById.get(m.id), ...m });
+      } else {
+        existingById.set(m.id || uid(), m);
+      }
+    });
+    result.materiaal = Array.from(existingById.values());
+  }
+
+  // OorsprongLijst: samenvoegen (uniek)
+  if (Array.isArray(newData.oorsprongLijst) && newData.oorsprongLijst.length > 0) {
+    const merged = [...(oldData.oorsprongLijst || [])];
+    newData.oorsprongLijst.forEach((loc) => {
+      if (!merged.includes(loc)) merged.push(loc);
+    });
+    result.oorsprongLijst = merged;
+  }
+
+  return result;
+};
+
+// ============================================================
+// HELP MODAL — Werking / Fonctionnement
+// ============================================================
+function HelpModal({ onClose, t }) {
+  const isFr = t.help_button === "Fonctionnement";
+
+  const content = isFr ? helpContentFr : helpContentNl;
+
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, background: "rgba(26, 22, 18, 0.55)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 2000, padding: "1rem",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: "var(--bg-card)", borderRadius: 4, maxWidth: 800, width: "100%",
+        maxHeight: "90vh", display: "flex", flexDirection: "column",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+      }}>
+        <div style={{ padding: "1.2rem 1.5rem", borderBottom: "1px solid var(--line)",
+          display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 className="font-display" style={{ margin: 0, fontSize: "1.4rem" }}>
+            ❓ {isFr ? "Fonctionnement" : "Werking"}
+          </h2>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>{t.help_close}</button>
+        </div>
+        <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1, lineHeight: 1.6 }}>
+          {content.map((section, idx) => (
+            <div key={idx} style={{ marginBottom: "1.5rem" }}>
+              <h3 className="font-display" style={{
+                fontSize: "1.1rem", marginTop: 0, marginBottom: "0.6rem",
+                color: "var(--accent)", borderBottom: "1px solid var(--line)", paddingBottom: "0.3rem",
+              }}>{section.titel}</h3>
+              {section.intro && (
+                <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginTop: 0, marginBottom: "0.7rem" }}>
+                  {section.intro}
+                </p>
+              )}
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                {section.items.map((item, i) => (
+                  <div key={i} style={{ fontSize: "0.88rem" }}>
+                    <strong style={{ color: "var(--ink)" }}>{item.naam}</strong>
+                    <span style={{ color: "var(--ink-soft)" }}> — {item.uitleg}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ background: "#fdf6e3", borderLeft: "3px solid var(--gold)",
+            padding: "1rem", borderRadius: 3, fontSize: "0.88rem", marginTop: "1rem" }}>
+            {isFr
+              ? <><strong>💡 Conseil de travail :</strong> Quand vous travaillez à deux sur des PC séparés, suivez la règle « celui qui importe en dernier, exporte aussi en dernier ». Cela évite la perte de modifications. Faites une exportation Excel comme sauvegarde après chaque session importante.</>
+              : <><strong>💡 Werkafspraak:</strong> Wanneer jullie met twee op aparte PC's werken, volg de regel "wie laatst importeert, exporteert ook als laatste". Dat voorkomt verlies van wijzigingen. Maak na elke belangrijke werksessie een Excel-export als backup.</>
+            }
+          </div>
+        </div>
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid var(--line)",
+          display: "flex", justifyContent: "flex-end" }}>
+          <button className="btn btn-primary" onClick={onClose}>{t.help_close}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const helpContentNl = [
+  {
+    titel: "Hoofdknoppen (header)",
+    intro: "Beschikbaar bovenaan elke pagina, ongeacht welk tabblad je bekijkt.",
+    items: [
+      { naam: "🇳🇱 NL / 🇫🇷 FR", uitleg: "Schakelt de hele app tussen Nederlands en Frans. Persoonlijke voorkeur per browser — beïnvloedt geen data, alleen de schermtaal." },
+      { naam: "❓ Werking", uitleg: "Opent dit hulpvenster." },
+      { naam: "⬇ Sjabloon", uitleg: "Downloadt een leeg Excel-sjabloon met de juiste structuur. Handig om te zien hoe de import-bestanden eruit moeten zien." },
+      { naam: "⬆ Importeer (samenvoegen)", uitleg: "Leest een Excel-bestand in en VOEGT TOE aan wat er al staat. Bestaande data blijft behouden, nieuwe items komen erbij. Aanbevolen voor PC-naar-PC overdracht." },
+      { naam: "⬆ Importeer (vervang alles)", uitleg: "VERVANGT ALLE data door wat in de Excel staat. Gebruik enkel als je opnieuw wil beginnen of een verse start wil. Je huidige werk gaat verloren!" },
+      { naam: "⬇ Exporteer Excel", uitleg: "Downloadt alle data als één Excel-bestand. Gebruik voor backup of om te delen met je vrouw op de andere PC." },
+      { naam: "🆕 Nieuw evenement", uitleg: "Start een nieuw evenement zonder de stamlijsten kwijt te raken. Wist event-info, taaktoewijzingen, statussen, verantwoordelijken en bulk-zendgeschiedenis. Behoudt vrijwilligers, taken, materiaal, sjablonen, woordenboek en externe contacten. Maak eerst een Excel-export als archief van het vorige evenement!" },
+      { naam: "⚠️ Reset", uitleg: "Wist ALLE gegevens uit deze browser. Vraagt eerst bevestiging. Maak eerst een Excel-export voor je dit doet!" },
+    ],
+  },
+  {
+    titel: "Tabbladen",
+    items: [
+      { naam: "Dashboard", uitleg: "Overzicht: dagen tot het evenement, aantal vrijwilligers, taakstatussen, en herinneringen wanneer het tijd is om berichten te sturen." },
+      { naam: "Event", uitleg: "Basisinfo van het evenement: naam, datum, locatie. Genereert automatisch links naar Google Maps en de NMBS-routeplanner." },
+      { naam: "Vrijwilligers", uitleg: "Beheer alle vrijwilligers met contactinfo, taal (NL/FR), beschikbaarheid en adres. GSM 1 wordt gebruikt voor WhatsApp, GSM 2 is enkel ter info." },
+      { naam: "Taken", uitleg: "Maak taken aan en wijs vrijwilligers toe. Een taak met meerdere onderdelen kan je opsplitsen in subtaken via de schakelaar 'Heeft subtaken'. Naam wordt automatisch vertaald via het woordenboek." },
+      { naam: "Materiaal", uitleg: "Beheer alle materiaal met aantal, oorsprong (Leuven, Vilvoorde, of zelf toegevoegd) en verantwoordelijke. Lijst blijft beschikbaar voor volgende evenementen via Excel-export." },
+      { naam: "Berichten", uitleg: "Genereert per vrijwilliger een persoonlijk bericht met zijn/haar taken in zijn taal. Klik 'Open WhatsApp' om met één klik een chat te openen met de tekst voorgevuld." },
+      { naam: "Bulk Send", uitleg: "Stuur hetzelfde bericht naar meerdere mensen tegelijk. Selecteer ontvangers (vrijwilligers + externe contacten), filter op taal, optioneel een afbeelding meesturen. App houdt bij wie al een bericht kreeg vandaag (groene markering)." },
+      { naam: "Sjablonen", uitleg: "Beheer voorgedefinieerde berichten zoals welkomst, week-herinnering, dag-herinnering. Gebruik placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Sjablonen verschijnen automatisch als knoppen in de Berichten- en Bulk Send-tab." },
+      { naam: "Woordenboek", uitleg: "Lijst van NL↔FR vertalingen voor termen die in taken en materiaal voorkomen. Wordt automatisch toegepast wanneer je een NL-naam invult (FR wordt voorgesteld) en omgekeerd." },
+    ],
+  },
+  {
+    titel: "Belangrijke werkwijze",
+    items: [
+      { naam: "Hoofdletters/kleine letters", uitleg: "Doet er niet toe! De app slaat alles intern op in kleine letters voor consistente vertaling, en toont met hoofdletter aan begin." },
+      { naam: "WhatsApp-knop = verzonden", uitleg: "Wanneer je op 'Open WhatsApp' klikt, markeert de app dat als verzonden. Heb je per ongeluk geklikt? Gebruik '↩ Markeer niet verzonden' om te corrigeren." },
+      { naam: "Dubbel-detectie (Bulk Send)", uitleg: "🟢 Vandaag al verzonden, 🟡 deze week verzonden, ⚪ nog niet. Bij selectie van iemand die vandaag al een bericht kreeg verschijnt een waarschuwing." },
+      { naam: "Lokale opslag per browser", uitleg: "Data blijft bewaard in deze browser, maar wordt NIET gedeeld met andere browsers of PC's. Gebruik Excel-export/import om data te verplaatsen." },
+      { naam: "Automatische vertaling taken/materiaal", uitleg: "Vul je een NL-naam in en klik buiten het veld? De app zoekt in het woordenboek naar de FR-vertaling. Werkt ook omgekeerd. Term niet gevonden? Voeg toe in het Woordenboek-tabblad." },
+    ],
+  },
+];
+
+const helpContentFr = [
+  {
+    titel: "Boutons principaux (en-tête)",
+    intro: "Disponibles en haut de chaque page, quel que soit l'onglet affiché.",
+    items: [
+      { naam: "🇳🇱 NL / 🇫🇷 FR", uitleg: "Bascule toute l'application entre néerlandais et français. Préférence personnelle par navigateur — n'affecte pas les données, seulement la langue d'affichage." },
+      { naam: "❓ Fonctionnement", uitleg: "Ouvre cette fenêtre d'aide." },
+      { naam: "⬇ Modèle", uitleg: "Télécharge un modèle Excel vide avec la bonne structure. Pratique pour voir à quoi doivent ressembler les fichiers d'import." },
+      { naam: "⬆ Importer (fusionner)", uitleg: "Lit un fichier Excel et AJOUTE à ce qui existe déjà. Les données existantes sont conservées, les nouveaux éléments s'ajoutent. Recommandé pour le transfert d'un PC à l'autre." },
+      { naam: "⬆ Importer (tout remplacer)", uitleg: "REMPLACE TOUTES les données par celles de l'Excel. À utiliser uniquement pour repartir de zéro. Votre travail actuel sera perdu !" },
+      { naam: "⬇ Exporter Excel", uitleg: "Télécharge toutes les données dans un fichier Excel unique. À utiliser pour sauvegarde ou pour partager avec votre conjoint(e) sur l'autre PC." },
+      { naam: "🆕 Nouvel événement", uitleg: "Démarrer un nouvel événement sans perdre les listes de base. Efface les infos de l'événement, les assignations, statuts, responsables et l'historique des envois groupés. Conserve les bénévoles, tâches, matériel, modèles, dictionnaire et contacts externes. Faites d'abord une exportation Excel comme archive de l'événement précédent !" },
+      { naam: "⚠️ Réinitialiser", uitleg: "Efface TOUTES les données de ce navigateur. Demande d'abord confirmation. Faites d'abord une exportation Excel avant de cliquer !" },
+    ],
+  },
+  {
+    titel: "Onglets",
+    items: [
+      { naam: "Tableau de bord", uitleg: "Aperçu : jours avant l'événement, nombre de bénévoles, statut des tâches, et rappels pour envoyer les messages." },
+      { naam: "Événement", uitleg: "Informations de base : nom, date, lieu. Génère automatiquement des liens vers Google Maps et le planificateur SNCB." },
+      { naam: "Bénévoles", uitleg: "Gérez tous les bénévoles avec coordonnées, langue (NL/FR), disponibilité et adresse. GSM 1 est utilisé pour WhatsApp, GSM 2 est uniquement informatif." },
+      { naam: "Tâches", uitleg: "Créez des tâches et assignez des bénévoles. Une tâche à plusieurs parties peut être divisée en sous-tâches via l'interrupteur 'A des sous-tâches'. Le nom est traduit automatiquement via le dictionnaire." },
+      { naam: "Matériel", uitleg: "Gérez tout le matériel avec quantité, source (Leuven, Vilvoorde, ou ajoutée par vous) et responsable. La liste reste disponible pour les événements suivants via l'export Excel." },
+      { naam: "Messages", uitleg: "Génère par bénévole un message personnel avec ses tâches dans sa langue. Cliquez 'Ouvrir WhatsApp' pour ouvrir une conversation avec le texte pré-rempli." },
+      { naam: "Envoi groupé", uitleg: "Envoyez le même message à plusieurs personnes à la fois. Sélectionnez les destinataires (bénévoles + contacts externes), filtrez par langue, joignez optionnellement une image. L'app suit qui a déjà reçu un message aujourd'hui (marquage vert)." },
+      { naam: "Modèles", uitleg: "Gérez des messages prédéfinis comme bienvenue, rappel semaine, rappel jour. Utilisez les placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Les modèles apparaissent automatiquement comme boutons dans Messages et Envoi groupé." },
+      { naam: "Dictionnaire", uitleg: "Liste de traductions NL↔FR pour les termes utilisés dans les tâches et le matériel. Appliqué automatiquement quand vous remplissez un nom NL (FR proposé) et inversement." },
+    ],
+  },
+  {
+    titel: "Procédures importantes",
+    items: [
+      { naam: "Majuscules/minuscules", uitleg: "Aucune importance ! L'app stocke tout en minuscules en interne pour une traduction cohérente, et affiche avec une majuscule au début." },
+      { naam: "Bouton WhatsApp = envoyé", uitleg: "Quand vous cliquez sur 'Ouvrir WhatsApp', l'app marque comme envoyé. Cliqué par erreur ? Utilisez '↩ Marquer non envoyé' pour corriger." },
+      { naam: "Détection de doublons (Envoi groupé)", uitleg: "🟢 Envoyé aujourd'hui, 🟡 envoyé cette semaine, ⚪ pas encore. À la sélection d'une personne ayant déjà reçu un message aujourd'hui, un avertissement apparaît." },
+      { naam: "Stockage local par navigateur", uitleg: "Les données sont conservées dans ce navigateur, mais NE SONT PAS partagées avec d'autres navigateurs ou PC. Utilisez l'export/import Excel pour déplacer les données." },
+      { naam: "Traduction automatique tâches/matériel", uitleg: "Saisissez un nom NL et cliquez hors du champ ? L'app cherche la traduction FR dans le dictionnaire. Fonctionne aussi dans l'autre sens. Terme introuvable ? Ajoutez-le dans l'onglet Dictionnaire." },
+    ],
+  },
+];
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [data, setData] = useState(defaultData);
+  const [tab, setTab] = useState("dashboard");
+  const [loaded, setLoaded] = useState(false);
+  const [toast, setToast] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  const t = T[data.taal] || T.nl;
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2200);
+  };
+
+  // Initial load: probeer v4, daarna oudere keys voor migratie
+  useEffect(() => {
+    try {
+      let raw = localStorage.getItem(STORAGE_KEY);
+      let migrated = false;
+      if (!raw) {
+        // Probeer migratie van oudere versies
+        for (const oldKey of OLD_KEYS) {
+          const oldRaw = localStorage.getItem(oldKey);
+          if (oldRaw) { raw = oldRaw; migrated = true; break; }
+        }
+      }
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const normalized = normalizeData(parsed);
+        setData(normalized);
+        if (migrated) console.log("Data gemigreerd van oudere versie naar v4");
+      }
+    } catch (e) {
+      console.error("Laden mislukt:", e);
+    }
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch (e) { console.error(e); }
+  }, [data, loaded]);
+
+  const setTaal = (taal) => setData((d) => ({ ...d, taal }));
+
+  const updateEvent = (patch) => setData((d) => ({ ...d, event: { ...d.event, ...patch } }));
+
+  const addVrijwilliger = () => setData((d) => ({
+    ...d,
+    vrijwilligers: [...d.vrijwilligers, {
+      id: uid(), voornaam: "", naam: "", geslacht: "", taal: "nl",
+      gsm1: "", gsm2: "", email: "",
+      straat: "", postcode: "", gemeente: "",
+      beschikbaarheid: "hele_dag", beschikbaarVan: "", beschikbaarTot: "", opmerking: "",
+    }],
+  }));
+
+  const updateVrijwilliger = (id, patch) => setData((d) => ({
+    ...d, vrijwilligers: d.vrijwilligers.map((v) => v.id === id ? { ...v, ...patch } : v),
+  }));
+
+  const removeVrijwilliger = (id) => setData((d) => ({
+    ...d,
+    vrijwilligers: d.vrijwilligers.filter((v) => v.id !== id),
+    taken: d.taken.map((t) => ({
+      ...t,
+      toegewezen: (t.toegewezen || []).filter((vid) => vid !== id),
+      subtaken: t.subtaken.map((s) => ({ ...s, toegewezen: s.toegewezen.filter((vid) => vid !== id) })),
+    })),
+  }));
+
+  const dedupVrijwilligers = () => {
+    const seen = new Set();
+    const ids_te_houden = new Set();
+    const dedupped = [];
+    data.vrijwilligers.forEach((v) => {
+      const key = `${(v.voornaam || "").toLowerCase().trim()}|${(v.naam || "").toLowerCase().trim()}|${cleanPhone(v.gsm1)}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      ids_te_houden.add(v.id);
+      dedupped.push(v);
+    });
+    const verwijderd = data.vrijwilligers.length - dedupped.length;
+    if (verwijderd === 0) { showToast(t.no_dups_found); return; }
+    if (!confirm(t.confirm_dedup(verwijderd))) return;
+    setData((d) => ({
+      ...d,
+      vrijwilligers: dedupped,
+      taken: d.taken.map((tt) => ({
+        ...tt,
+        toegewezen: (tt.toegewezen || []).filter((vid) => ids_te_houden.has(vid)),
+        subtaken: tt.subtaken.map((s) => ({ ...s, toegewezen: s.toegewezen.filter((vid) => ids_te_houden.has(vid)) })),
+      })),
+    }));
+    showToast(t.dups_removed(verwijderd));
+  };
+
+  const addTaak = () => setData((d) => ({
+    ...d,
+    taken: [...d.taken, {
+      id: uid(), naamNl: "", naamFr: "", categorie: "",
+      heeftSubtaken: false,
+      start: "", eind: "", dagdeel: "voormiddag",
+      toegewezen: [], status: "open", opmerking: "",
+      verantwoordelijkeId: "", verantwoordelijkeVrij: "",
+      subtaken: [],
+    }],
+  }));
+
+  const updateTaak = (id, patch) => setData((d) => ({
+    ...d, taken: d.taken.map((tt) => tt.id === id ? { ...tt, ...patch } : tt),
+  }));
+
+  const removeTaak = (id) => setData((d) => ({ ...d, taken: d.taken.filter((tt) => tt.id !== id) }));
+
+  const addSubtaak = (taakId) => setData((d) => ({
+    ...d,
+    taken: d.taken.map((tt) => tt.id === taakId ? {
+      ...tt,
+      subtaken: [...tt.subtaken, {
+        id: uid(), naamNl: "", naamFr: "", start: "", eind: "",
+        dagdeel: "voormiddag", toegewezen: [], status: "open", opmerking: "",
+      }],
+    } : tt),
+  }));
+
+  const updateSubtaak = (taakId, subId, patch) => setData((d) => ({
+    ...d,
+    taken: d.taken.map((tt) => tt.id === taakId ? {
+      ...tt, subtaken: tt.subtaken.map((s) => s.id === subId ? { ...s, ...patch } : s),
+    } : tt),
+  }));
+
+  const removeSubtaak = (taakId, subId) => setData((d) => ({
+    ...d,
+    taken: d.taken.map((tt) => tt.id === taakId ? { ...tt, subtaken: tt.subtaken.filter((s) => s.id !== subId) } : tt),
+  }));
+
+  const toggleAssignmentTaak = (taakId, vId) => setData((d) => ({
+    ...d,
+    taken: d.taken.map((tt) => tt.id === taakId ? {
+      ...tt,
+      toegewezen: (tt.toegewezen || []).includes(vId)
+        ? (tt.toegewezen || []).filter((x) => x !== vId)
+        : [...(tt.toegewezen || []), vId],
+    } : tt),
+  }));
+
+  const toggleAssignmentSub = (taakId, subId, vId) => setData((d) => ({
+    ...d,
+    taken: d.taken.map((tt) => tt.id === taakId ? {
+      ...tt,
+      subtaken: tt.subtaken.map((s) => s.id === subId ? {
+        ...s,
+        toegewezen: s.toegewezen.includes(vId) ? s.toegewezen.filter((x) => x !== vId) : [...s.toegewezen, vId],
+      } : s),
+    } : tt),
+  }));
+
+  // Sjablonen
+  const updateSjabloonVeld = (id, veld, waarde) => setData((d) => ({
+    ...d,
+    sjablonen: d.sjablonen.map((s) => s.id === id ? { ...s, [veld]: waarde } : s),
+  }));
+
+  const addSjabloon = () => setData((d) => ({
+    ...d,
+    sjablonen: [...d.sjablonen, {
+      id: uid(), titel: t.sjabloon_title_ph,
+      nl: "Dag {voornaam},\n\n{takenlijst}\n\n📍 {mapslink}",
+      fr: "Bonjour {voornaam},\n\n{takenlijst}\n\n📍 {mapslink}",
+    }],
+  }));
+
+  const removeSjabloon = (id) => setData((d) => ({ ...d, sjablonen: d.sjablonen.filter((s) => s.id !== id) }));
+
+  const updateWoordenboek = (newDict) => setData((d) => ({ ...d, woordenboek: newDict }));
+
+  // Externe contacten
+  const addExternContact = () => setData((d) => ({
+    ...d,
+    externeContacten: [...d.externeContacten, { id: uid(), naam: "", gsm1: "", taal: "nl" }],
+  }));
+
+  const updateExternContact = (id, patch) => setData((d) => ({
+    ...d,
+    externeContacten: d.externeContacten.map((c) => c.id === id ? { ...c, ...patch } : c),
+  }));
+
+  const removeExternContact = (id) => setData((d) => ({
+    ...d,
+    externeContacten: d.externeContacten.filter((c) => c.id !== id),
+  }));
+
+  // Materiaal
+  const addMateriaal = () => setData((d) => ({
+    ...d,
+    materiaal: [...(d.materiaal || []), {
+      id: uid(), naamNl: "", naamFr: "", aantal: "", oorsprong: "",
+      verantwoordelijkeId: "", verantwoordelijkeVrij: "",
+    }],
+  }));
+
+  const updateMateriaal = (id, patch) => setData((d) => ({
+    ...d,
+    materiaal: (d.materiaal || []).map((m) => m.id === id ? { ...m, ...patch } : m),
+  }));
+
+  const removeMateriaal = (id) => setData((d) => ({
+    ...d,
+    materiaal: (d.materiaal || []).filter((m) => m.id !== id),
+  }));
+
+  const addOorsprongLocatie = () => {
+    const naam = prompt(t.mat_new_loc_prompt);
+    if (!naam || !naam.trim()) return;
+    const trimmed = naam.trim();
+    setData((d) => ({
+      ...d,
+      oorsprongLijst: (d.oorsprongLijst || []).includes(trimmed)
+        ? d.oorsprongLijst
+        : [...(d.oorsprongLijst || []), trimmed],
+    }));
+  };
+
+  const removeOorsprongLocatie = (locatie) => {
+    const inUse = (data.materiaal || []).filter((m) => m.oorsprong === locatie).length;
+    if (inUse > 0) {
+      alert(t.mat_loc_inuse(locatie, inUse));
+      return;
+    }
+    if (!confirm(t.mat_remove_loc_q(locatie))) return;
+    setData((d) => ({
+      ...d,
+      oorsprongLijst: (d.oorsprongLijst || []).filter((x) => x !== locatie),
+    }));
+  };
+
+  const exportMateriaalAlleen = () => {
+    const wb = XLSX.utils.book_new();
+    const rows = (data.materiaal || []).map((m) => {
+      let verantwNaam = "";
+      if (m.verantwoordelijkeId === "__ander__") {
+        verantwNaam = m.verantwoordelijkeVrij || "";
+      } else if (m.verantwoordelijkeId) {
+        const v = data.vrijwilligers.find((vv) => vv.id === m.verantwoordelijkeId);
+        if (v) verantwNaam = `${v.naam} ${v.voornaam}`.trim();
+        else {
+          const c = (data.externeContacten || []).find((cc) => cc.id === m.verantwoordelijkeId);
+          if (c) verantwNaam = c.naam;
+        }
+      }
+      return {
+        id: m.id, naam_nl: m.naamNl, naam_fr: m.naamFr,
+        aantal: m.aantal, oorsprong: m.oorsprong,
+        verantwoordelijke_id: m.verantwoordelijkeId,
+        verantwoordelijke_naam: verantwNaam,
+        verantwoordelijke_vrij: m.verantwoordelijkeVrij || "",
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Materiaal");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (data.oorsprongLijst || []).map((loc) => ({ locatie: loc }))
+    ), "OorsprongLijst");
+    XLSX.writeFile(wb, `materiaal_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  // Bulk geschiedenis
+  const markBulkSent = (personId, bericht) => setData((d) => {
+    const old = d.bulkGeschiedenis[personId] || [];
+    return { ...d, bulkGeschiedenis: { ...d.bulkGeschiedenis, [personId]: [...old, { datum: new Date().toISOString(), bericht: (bericht || "").slice(0, 80) }] } };
+  });
+
+  const markBulkUnsent = (personId) => setData((d) => {
+    const old = d.bulkGeschiedenis[personId] || [];
+    if (old.length === 0) return d;
+    return { ...d, bulkGeschiedenis: { ...d.bulkGeschiedenis, [personId]: old.slice(0, -1) } };
+  });
+
+  const resetBulkHistory = () => setData((d) => ({ ...d, bulkGeschiedenis: {} }));
+
+  // ---- Excel ----
+  const exportExcel = () => {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([data.event]), "Event");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.vrijwilligers), "Vrijwilligers");
+
+    // Hulpfunctie: zet lijst van vrijwilliger-ids om in leesbare namen
+    const idsToNamen = (ids) => {
+      return (ids || []).map((id) => {
+        const v = data.vrijwilligers.find((x) => x.id === id);
+        if (v) return `${v.naam} ${v.voornaam}`.trim();
+        return "(onbekend)";
+      }).join(", ");
+    };
+
+    const takenRows = [];
+    data.taken.forEach((tt) => {
+      // Verantwoordelijke leesbare naam berekenen
+      let verantwNaam = "";
+      if (tt.verantwoordelijkeId === "__ander__") {
+        verantwNaam = tt.verantwoordelijkeVrij || "";
+      } else if (tt.verantwoordelijkeId) {
+        const vr = data.vrijwilligers.find((x) => x.id === tt.verantwoordelijkeId);
+        if (vr) verantwNaam = `${vr.naam} ${vr.voornaam}`.trim();
+        else {
+          const ec = (data.externeContacten || []).find((c) => c.id === tt.verantwoordelijkeId);
+          if (ec) verantwNaam = ec.naam;
+        }
+      }
+      takenRows.push({
+        id: tt.id, hoofdtaak_id: "", naam_nl: tt.naamNl, naam_fr: tt.naamFr,
+        categorie: tt.categorie, heeft_subtaken: tt.heeftSubtaken ? "ja" : "nee",
+        start: tt.start || "", eind: tt.eind || "", dagdeel: tt.dagdeel || "",
+        toegewezen: (tt.toegewezen || []).join(","),
+        toegewezen_namen: idsToNamen(tt.toegewezen),
+        status: tt.status || "", opmerking: tt.opmerking || "",
+        verantwoordelijke_id: tt.verantwoordelijkeId || "",
+        verantwoordelijke_naam: verantwNaam,
+        verantwoordelijke_vrij: tt.verantwoordelijkeVrij || "",
+      });
+      (tt.subtaken || []).forEach((s) => {
+        takenRows.push({
+          id: s.id, hoofdtaak_id: tt.id, naam_nl: s.naamNl, naam_fr: s.naamFr,
+          categorie: "", heeft_subtaken: "",
+          start: s.start, eind: s.eind, dagdeel: s.dagdeel,
+          toegewezen: s.toegewezen.join(","),
+          toegewezen_namen: idsToNamen(s.toegewezen),
+          status: s.status, opmerking: s.opmerking,
+          verantwoordelijke_id: "", verantwoordelijke_naam: "", verantwoordelijke_vrij: "",
+        });
+      });
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(takenRows), "Taken");
+
+    const dictRows = Object.entries(data.woordenboek).map(([nl, fr]) => ({ nl, fr }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dictRows), "Woordenboek");
+
+    const sjabloonRows = data.sjablonen.map((s) => ({ id: s.id, titel: s.titel, nl: s.nl, fr: s.fr }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sjabloonRows), "Sjablonen");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.externeContacten), "ExterneContacten");
+
+    // Materiaal — met leesbare verantwoordelijke-naam
+    const materiaalRows = (data.materiaal || []).map((m) => {
+      let verantwNaam = "";
+      if (m.verantwoordelijkeId === "__ander__") {
+        verantwNaam = m.verantwoordelijkeVrij || "";
+      } else if (m.verantwoordelijkeId) {
+        const v = data.vrijwilligers.find((vv) => vv.id === m.verantwoordelijkeId);
+        if (v) verantwNaam = `${v.naam} ${v.voornaam}`.trim();
+        else {
+          const c = (data.externeContacten || []).find((cc) => cc.id === m.verantwoordelijkeId);
+          if (c) verantwNaam = c.naam;
+        }
+      }
+      return {
+        id: m.id, naam_nl: m.naamNl, naam_fr: m.naamFr,
+        aantal: m.aantal, oorsprong: m.oorsprong,
+        verantwoordelijke_id: m.verantwoordelijkeId, verantwoordelijke_naam: verantwNaam,
+        verantwoordelijke_vrij: m.verantwoordelijkeVrij || "",
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(materiaalRows), "Materiaal");
+
+    // OorsprongLijst
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (data.oorsprongLijst || []).map((loc) => ({ locatie: loc }))
+    ), "OorsprongLijst");
+
+    const fileName = `evenement_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+  const downloadTemplate = () => {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{
+      naam: "Lentefeest 2026", datum: "2026-03-14", locatieNaam: "De Markten",
+      straat: "Oude Graanmarkt", nummer: "5", postcode: "1000", gemeente: "Brussel",
+      beschrijving: "Jaarlijks lentefeest van de afdeling",
+    }]), "Event");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
+      { id: "v1", voornaam: "Jan", naam: "Janssens", geslacht: "M", taal: "nl",
+        gsm1: "+32475123456", gsm2: "", email: "jan@example.be",
+        straat: "Korte straat 1", postcode: "1000", gemeente: "Brussel",
+        beschikbaarheid: "hele_dag", beschikbaarVan: "", beschikbaarTot: "", opmerking: "" },
+      { id: "v2", voornaam: "Marie", naam: "Dupont", geslacht: "V", taal: "fr",
+        gsm1: "+32475654321", gsm2: "+3221234567", email: "marie@example.be",
+        straat: "Rue Neuve 10", postcode: "1000", gemeente: "Bruxelles",
+        beschikbaarheid: "voormiddag", beschikbaarVan: "", beschikbaarTot: "",
+        opmerking: "Enkel voormiddag beschikbaar" },
+    ]), "Vrijwilligers");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
+      { id: "t1", hoofdtaak_id: "", naam_nl: "Onthaal", naam_fr: "Accueil",
+        categorie: "Onthaal", heeft_subtaken: "nee",
+        start: "13:00", eind: "17:00", dagdeel: "namiddag",
+        toegewezen: "v2", status: "open", opmerking: "Aan de inkom" },
+    ]), "Taken");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      Object.entries(defaultDictionary).map(([nl, fr]) => ({ nl, fr }))
+    ), "Woordenboek");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      defaultSjablonen.map((s) => ({ id: s.id, titel: s.titel, nl: s.nl, fr: s.fr }))
+    ), "Sjablonen");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([]), "ExterneContacten");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
+      { id: "m1", naam_nl: "tafel", naam_fr: "table", aantal: 10, oorsprong: "Leuven",
+        verantwoordelijke_id: "", verantwoordelijke_naam: "", verantwoordelijke_vrij: "" },
+    ]), "Materiaal");
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      ["Leuven", "Vilvoorde"].map((loc) => ({ locatie: loc }))
+    ), "OorsprongLijst");
+
+    XLSX.writeFile(wb, "evenement_sjabloon.xlsx");
+  };
+
+  const parseImportedExcel = async (file) => {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf);
+    const eventRows = XLSX.utils.sheet_to_json(wb.Sheets["Event"] || {});
+    const vRows = XLSX.utils.sheet_to_json(wb.Sheets["Vrijwilligers"] || {});
+    const tRows = XLSX.utils.sheet_to_json(wb.Sheets["Taken"] || {});
+    const dRows = XLSX.utils.sheet_to_json(wb.Sheets["Woordenboek"] || {});
+    const sRows = XLSX.utils.sheet_to_json(wb.Sheets["Sjablonen"] || {});
+    const eRows = XLSX.utils.sheet_to_json(wb.Sheets["ExterneContacten"] || {});
+    const mRows = XLSX.utils.sheet_to_json(wb.Sheets["Materiaal"] || {});
+    const oRows = XLSX.utils.sheet_to_json(wb.Sheets["OorsprongLijst"] || {});
+
+    const newEvent = eventRows[0] ? { ...defaultData.event, ...eventRows[0] } : defaultData.event;
+
+    const vSeen = new Set();
+    let vSkipped = 0;
+    const newVrijwilligers = [];
+    vRows.forEach((r) => {
+      const voornaam = (r.voornaam || "").toString().trim();
+      const naam = (r.naam || "").toString().trim();
+      const gsm1 = (r.gsm1 || r.telefoon || "").toString().trim();
+      if (!voornaam && !naam && !gsm1 && !r.email) return;
+      const key = `${voornaam.toLowerCase()}|${naam.toLowerCase()}|${cleanPhone(gsm1)}`;
+      if (vSeen.has(key)) { vSkipped++; return; }
+      vSeen.add(key);
+      newVrijwilligers.push({
+        id: r.id || uid(), voornaam, naam,
+        geslacht: r.geslacht || "", taal: (r.taal || "nl").toString().toLowerCase(),
+        gsm1, gsm2: r.gsm2 || "", email: r.email || "",
+        straat: r.straat || "", postcode: String(r.postcode || ""), gemeente: r.gemeente || "",
+        beschikbaarheid: r.beschikbaarheid || "hele_dag",
+        beschikbaarVan: r.beschikbaarVan || "", beschikbaarTot: r.beschikbaarTot || "",
+        opmerking: r.opmerking || "",
+      });
+    });
+
+    const tSeen = new Set();
+    let tSkipped = 0;
+    const hoofd = [];
+    const sub = [];
+    tRows.forEach((r) => {
+      const naamNl = (r.naam_nl || "").toString().trim();
+      const naamFr = (r.naam_fr || "").toString().trim();
+      if (!naamNl && !naamFr) return;
+      if (!r.hoofdtaak_id) {
+        const key = `H|${naamNl.toLowerCase()}|${(r.categorie || "").toString().toLowerCase()}`;
+        if (tSeen.has(key)) { tSkipped++; return; }
+        tSeen.add(key); hoofd.push(r);
+      } else {
+        const key = `S|${r.hoofdtaak_id}|${naamNl.toLowerCase()}|${r.start || ""}|${r.eind || ""}`;
+        if (tSeen.has(key)) { tSkipped++; return; }
+        tSeen.add(key); sub.push(r);
+      }
+    });
+
+    const newTaken = hoofd.map((h) => ({
+      id: h.id || uid(),
+      naamNl: h.naam_nl || "", naamFr: h.naam_fr || "", categorie: h.categorie || "",
+      heeftSubtaken: (h.heeft_subtaken || "").toString().toLowerCase() === "ja",
+      start: h.start || "", eind: h.eind || "", dagdeel: h.dagdeel || "voormiddag",
+      toegewezen: (h.toegewezen || "").toString().split(",").map((x) => x.trim()).filter(Boolean),
+      status: h.status || "open", opmerking: h.opmerking || "",
+      verantwoordelijkeId: h.verantwoordelijke_id || "",
+      verantwoordelijkeVrij: h.verantwoordelijke_vrij || "",
+      subtaken: sub.filter((s) => s.hoofdtaak_id === h.id).map((s) => ({
+        id: s.id || uid(),
+        naamNl: s.naam_nl || "", naamFr: s.naam_fr || "",
+        start: s.start || "", eind: s.eind || "",
+        dagdeel: s.dagdeel || "voormiddag",
+        toegewezen: (s.toegewezen || "").toString().split(",").map((x) => x.trim()).filter(Boolean),
+        status: s.status || "open", opmerking: s.opmerking || "",
+      })),
+    }));
+
+    const newDict = dRows.reduce((acc, r) => {
+      if (r.nl && r.fr) acc[String(r.nl).toLowerCase().trim()] = String(r.fr).trim();
+      return acc;
+    }, {});
+
+    const newSjablonen = sRows.filter((r) => r.titel || r.nl || r.fr).map((r) => ({
+      id: r.id || uid(),
+      titel: r.titel || "Sjabloon",
+      nl: r.nl || "", fr: r.fr || "",
+    }));
+
+    const newExtern = eRows.filter((r) => r.naam || r.gsm1).map((r) => ({
+      id: r.id || uid(),
+      naam: r.naam || "",
+      gsm1: r.gsm1 || "",
+      taal: (r.taal || "nl").toString().toLowerCase(),
+    }));
+
+    const newMateriaal = mRows.filter((r) => r.naam_nl || r.naam_fr || r.aantal).map((r) => ({
+      id: r.id || uid(),
+      naamNl: normalizeName(r.naam_nl),
+      naamFr: normalizeName(r.naam_fr),
+      aantal: r.aantal !== undefined ? String(r.aantal) : "",
+      oorsprong: r.oorsprong || "",
+      verantwoordelijkeId: r.verantwoordelijke_id || "",
+      verantwoordelijkeVrij: r.verantwoordelijke_vrij || "",
+    }));
+
+    const newOorsprongLijst = oRows
+      .map((r) => (r.locatie || "").toString().trim())
+      .filter(Boolean);
+
+    return {
+      event: newEvent,
+      vrijwilligers: newVrijwilligers,
+      taken: newTaken,
+      woordenboek: newDict,
+      sjablonen: newSjablonen,
+      externeContacten: newExtern,
+      materiaal: newMateriaal,
+      oorsprongLijst: newOorsprongLijst,
+      vSkipped, tSkipped,
+    };
+  };
+
+  const importExcelReplace = async (file) => {
+    try {
+      const parsed = await parseImportedExcel(file);
+      setData((d) => ({
+        ...d,
+        event: parsed.event,
+        vrijwilligers: parsed.vrijwilligers,
+        taken: parsed.taken,
+        woordenboek: Object.keys(parsed.woordenboek).length > 0 ? parsed.woordenboek : d.woordenboek,
+        sjablonen: parsed.sjablonen.length > 0 ? parsed.sjablonen : d.sjablonen,
+        externeContacten: parsed.externeContacten,
+        materiaal: parsed.materiaal || [],
+        oorsprongLijst: (parsed.oorsprongLijst && parsed.oorsprongLijst.length > 0)
+          ? parsed.oorsprongLijst : d.oorsprongLijst,
+      }));
+      const parts = [`${parsed.vrijwilligers.length} ${t.volunteers.toLowerCase()}, ${parsed.taken.length} ${t.tab_taken.toLowerCase()}`];
+      if (parsed.vSkipped + parsed.tSkipped > 0) parts.push(`${parsed.vSkipped + parsed.tSkipped} doublons`);
+      showToast(t.import_ok(parts.join(" · ")));
+    } catch (e) {
+      console.error(e);
+      alert(t.import_failed + ": " + e.message);
+    }
+  };
+
+  const importExcelMerge = async (file) => {
+    try {
+      const parsed = await parseImportedExcel(file);
+      setData((d) => mergeData(d, {
+        event: parsed.event,
+        vrijwilligers: parsed.vrijwilligers,
+        taken: parsed.taken,
+        woordenboek: parsed.woordenboek,
+        sjablonen: parsed.sjablonen,
+        materiaal: parsed.materiaal,
+        oorsprongLijst: parsed.oorsprongLijst,
+      }));
+      showToast(t.import_ok(`${parsed.vrijwilligers.length} ${t.volunteers.toLowerCase()} · ${parsed.taken.length} ${t.tab_taken.toLowerCase()}`));
+    } catch (e) {
+      console.error(e);
+      alert(t.import_failed + ": " + e.message);
+    }
+  };
+
+  const resetAll = () => {
+    if (confirm(t.confirm_reset)) setData(defaultData);
+  };
+
+  const nieuwEvenement = () => {
+    if (!confirm(t.confirm_nieuw_evenement)) return;
+    setData((d) => ({
+      ...d,
+      // Wissen
+      event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
+      bulkGeschiedenis: {},
+      // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
+      taken: d.taken.map((tt) => ({
+        ...tt,
+        toegewezen: [],
+        status: "open",
+        verantwoordelijkeId: "",
+        verantwoordelijkeVrij: "",
+        subtaken: tt.subtaken.map((s) => ({
+          ...s,
+          toegewezen: [],
+          status: "open",
+        })),
+      })),
+      // Behouden zoals ze zijn: vrijwilligers, materiaal, sjablonen, woordenboek, externeContacten, oorsprongLijst
+    }));
+    showToast(t.nieuw_evenement_klaar);
+  };
+
+  const dagen = daysUntil(data.event.datum);
+
+  return (
+    <div style={{ minHeight: "100vh" }}>
+      {toast && <div className="toast">{toast}</div>}
+      {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} t={t} />}
+
+      <header style={{ borderBottom: "1px solid var(--line)", background: "var(--bg-card)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem 2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+            <div>
+              <div className="font-body" style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--accent)", fontWeight: 600 }}>
+                {t.app_subtitle}
+              </div>
+              <h1 className="font-display" style={{ margin: "0.2rem 0 0 0", fontSize: "2rem" }}>
+                {data.event.naam || t.no_event}
+              </h1>
+              {data.event.datum && (
+                <div className="font-body" style={{ fontSize: "0.9rem", color: "var(--ink-soft)", marginTop: "0.3rem" }}>
+                  {formatDate(data.event.datum, data.taal)} · {data.event.gemeente || "—"}
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+              <div className="lang-toggle">
+                <button className={data.taal === "nl" ? "active" : ""} onClick={() => setTaal("nl")}>🇳🇱 NL</button>
+                <button className={data.taal === "fr" ? "active" : ""} onClick={() => setTaal("fr")}>🇫🇷 FR</button>
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={() => setHelpOpen(true)}>❓ {t.help_button}</button>
+              <button className="btn btn-ghost btn-sm" onClick={downloadTemplate}>{t.template}</button>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
+                {t.import_merge}
+                <input type="file" accept=".xlsx,.xls" style={{ display: "none" }}
+                  onChange={(e) => e.target.files[0] && importExcelMerge(e.target.files[0])} />
+              </label>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
+                {t.import_replace}
+                <input type="file" accept=".xlsx,.xls" style={{ display: "none" }}
+                  onChange={(e) => e.target.files[0] && importExcelReplace(e.target.files[0])} />
+              </label>
+              <button className="btn btn-primary btn-sm" onClick={exportExcel}>{t.export}</button>
+              <button className="btn btn-ghost btn-sm" onClick={nieuwEvenement} title={t.nieuw_evenement}>
+                🆕 {t.nieuw_evenement}
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={resetAll} title={t.reset}>
+                <span style={{ color: "#c8442a", marginRight: "0.3rem" }}>⚠️</span>{t.reset}
+              </button>
+            </div>
+          </div>
+
+          <nav style={{ marginTop: "1.5rem", display: "flex", gap: "0.2rem", flexWrap: "wrap" }}>
+            {[
+              ["dashboard", t.tab_dashboard], ["event", t.tab_event],
+              ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken],
+              ["materiaal", t.tab_materiaal],
+              ["berichten", t.tab_berichten], ["bulk", t.tab_bulk],
+              ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek],
+            ].map(([k, label]) => (
+              <button key={k} className={`tab-btn ${tab === k ? "active" : ""}`} onClick={() => setTab(k)}>{label}</button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "2rem" }} className="font-body">
+        {tab === "dashboard" && <Dashboard data={data} dagen={dagen} setTab={setTab} t={t} />}
+        {tab === "event" && <EventTab event={data.event} update={updateEvent} t={t} />}
+        {tab === "vrijwilligers" && <VrijwilligersTab vrijwilligers={data.vrijwilligers}
+          add={addVrijwilliger} update={updateVrijwilliger} remove={removeVrijwilliger} dedup={dedupVrijwilligers} t={t} />}
+        {tab === "taken" && <TakenTab taken={data.taken} vrijwilligers={data.vrijwilligers}
+          externeContacten={data.externeContacten || []} dict={data.woordenboek} t={t}
+          addTaak={addTaak} updateTaak={updateTaak} removeTaak={removeTaak}
+          addSubtaak={addSubtaak} updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak}
+          toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub} />}
+        {tab === "berichten" && <BerichtenTab data={data} showToast={showToast} t={t} />}
+        {tab === "bulk" && <BulkSendTab data={data} showToast={showToast} t={t}
+          addExternContact={addExternContact} updateExternContact={updateExternContact} removeExternContact={removeExternContact}
+          markBulkSent={markBulkSent} markBulkUnsent={markBulkUnsent} resetBulkHistory={resetBulkHistory} />}
+        {tab === "sjablonen" && <SjablonenTab sjablonen={data.sjablonen}
+          updateVeld={updateSjabloonVeld} add={addSjabloon} remove={removeSjabloon} t={t} />}
+        {tab === "woordenboek" && <WoordenboekTab dict={data.woordenboek} update={updateWoordenboek} showToast={showToast} t={t} />}
+        {tab === "materiaal" && <MateriaalTab
+          materiaal={data.materiaal || []}
+          oorsprongLijst={data.oorsprongLijst || []}
+          vrijwilligers={data.vrijwilligers}
+          externeContacten={data.externeContacten || []}
+          dict={data.woordenboek}
+          taal={data.taal}
+          add={addMateriaal} update={updateMateriaal} remove={removeMateriaal}
+          addLocatie={addOorsprongLocatie} removeLocatie={removeOorsprongLocatie}
+          exportMateriaal={exportMateriaalAlleen}
+          t={t} />}
+      </main>
+
+      <footer style={{ borderTop: "1px solid var(--line)", padding: "1.5rem 2rem", textAlign: "center",
+        fontSize: "0.78rem", color: "var(--ink-soft)", marginTop: "3rem" }}>
+        {t.storage_note} · {data.vrijwilligers.length} {t.volunteers.toLowerCase()} · {data.taken.length} {t.tab_taken.toLowerCase()}
+      </footer>
+    </div>
+  );
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function Dashboard({ data, dagen, setTab, t }) {
+  const allUnits = [];
+  data.taken.forEach((tt) => {
+    if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+      tt.subtaken.forEach((s) => allUnits.push(s));
+    } else {
+      allUnits.push(tt);
+    }
+  });
+
+  const stats = {
+    open: allUnits.filter((s) => s.status === "open").length,
+    bezig: allUnits.filter((s) => s.status === "bezig").length,
+    ok: allUnits.filter((s) => s.status === "ok").length,
+    pasok: allUnits.filter((s) => s.status === "pas_ok").length,
+  };
+  const niettoegewezen = allUnits.filter((s) => !(s.toegewezen || []).length).length;
+
+  let alert = null;
+  if (dagen !== null && data.event.datum) {
+    if (dagen < 0) alert = { type: "green", text: t.event_past(Math.abs(dagen)) };
+    else if (dagen === 0) alert = { type: "red", text: t.event_today };
+    else if (dagen <= 1) alert = { type: "red", text: `${t.event_in_days(dagen)} ${t.day_reminder_time}`, cta: t.to_messages };
+    else if (dagen <= 7) alert = { type: "amber", text: `${t.event_in_days(dagen)} ${t.week_reminder_time}`, cta: t.to_messages };
+  }
+
+  return (
+    <div>
+      {alert && (
+        <div className={`alert-bar alert-${alert.type}`}>
+          <span style={{ fontWeight: 500 }}>{alert.text}</span>
+          {alert.cta && <button className="btn btn-primary btn-sm" onClick={() => setTab("berichten")}>{alert.cta}</button>}
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+        <div className="card">
+          <div className="stat-num">{dagen === null ? "—" : dagen < 0 ? "✓" : dagen}</div>
+          <div className="stat-label">{dagen === null ? t.no_date : dagen < 0 ? t.past : dagen === 1 ? t.day_left : t.days_left}</div>
+        </div>
+        <div className="card"><div className="stat-num">{data.vrijwilligers.length}</div><div className="stat-label">{t.volunteers}</div></div>
+        <div className="card"><div className="stat-num">{allUnits.length}</div><div className="stat-label">{t.workunits}</div></div>
+        <div className="card">
+          <div className="stat-num" style={{ color: niettoegewezen > 0 ? "var(--accent)" : "var(--green)" }}>{niettoegewezen}</div>
+          <div className="stat-label">{t.unassigned}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+        <StatusCard label={t.status_open} count={stats.open} cls="badge-open" />
+        <StatusCard label={t.status_bezig} count={stats.bezig} cls="badge-bezig" />
+        <StatusCard label={t.status_ok} count={stats.ok} cls="badge-ok" />
+        <StatusCard label={t.status_pasok} count={stats.pasok} cls="badge-pasok" />
+      </div>
+
+      <div className="card">
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.quick_nav}</h2>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button className="btn btn-ghost" onClick={() => setTab("event")}>{t.edit_event}</button>
+          <button className="btn btn-ghost" onClick={() => setTab("vrijwilligers")}>{t.manage_volunteers}</button>
+          <button className="btn btn-ghost" onClick={() => setTab("taken")}>{t.manage_tasks}</button>
+          <button className="btn btn-primary" onClick={() => setTab("berichten")}>{t.wa_messages}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusCard({ label, count, cls }) {
+  return (
+    <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div>
+        <div className="stat-num" style={{ fontSize: "1.8rem" }}>{count}</div>
+        <div className="stat-label">{label}</div>
+      </div>
+      <span className={`badge ${cls}`}>{label}</span>
+    </div>
+  );
+}
+
+// ============================================================
+// EVENT TAB
+// ============================================================
+function EventTab({ event, update, t }) {
+  const mapsAuto = buildMapsLink(event, "driving");
+  const mapsOv = buildMapsLink(event, "transit");
+  const nmbs = buildNmbsLink(event);
+
+  return (
+    <div className="grid-2">
+      <div className="card">
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.basic_info}</h2>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <Field label={t.event_name}><input className="input" value={event.naam} onChange={(e) => update({ naam: e.target.value })} /></Field>
+          <Field label={t.date}><input type="date" className="input" value={event.datum} onChange={(e) => update({ datum: e.target.value })} /></Field>
+          <Field label={t.description}><textarea className="textarea" rows={3} value={event.beschrijving} onChange={(e) => update({ beschrijving: e.target.value })} /></Field>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.location}</h2>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <Field label={t.location_name}><input className="input" value={event.locatieNaam} onChange={(e) => update({ locatieNaam: e.target.value })} /></Field>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem" }}>
+            <Field label={t.street}><input className="input" value={event.straat} onChange={(e) => update({ straat: e.target.value })} /></Field>
+            <Field label={t.number}><input className="input" value={event.nummer} onChange={(e) => update({ nummer: e.target.value })} /></Field>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem" }}>
+            <Field label={t.postcode}><input className="input" value={event.postcode} onChange={(e) => update({ postcode: e.target.value })} /></Field>
+            <Field label={t.city}><input className="input" value={event.gemeente} onChange={(e) => update({ gemeente: e.target.value })} /></Field>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ gridColumn: "1 / -1" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.accessibility}</h2>
+        {!buildAddressString(event) ? (
+          <p style={{ color: "var(--ink-soft)" }}>{t.fill_address_first}</p>
+        ) : (
+          <div style={{ display: "grid", gap: "0.6rem" }}>
+            <div><span style={{ fontWeight: 500 }}>{t.by_car}:</span> <a className="link" href={mapsAuto} target="_blank" rel="noopener">{t.open_in_maps}</a></div>
+            <div><span style={{ fontWeight: 500 }}>{t.by_pt}:</span> <a className="link" href={mapsOv} target="_blank" rel="noopener">{t.open_in_maps}</a></div>
+            <div><span style={{ fontWeight: 500 }}>{t.by_train}:</span> <a className="link" href={nmbs} target="_blank" rel="noopener">{t.nmbs_planner}</a></div>
+            <div style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--ink-soft)" }}>{t.full_address}: <em>{buildAddressString(event)}</em></div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return <label style={{ display: "block" }}><span className="label">{label}</span>{children}</label>;
+}
+
+// ============================================================
+// VRIJWILLIGERS
+// ============================================================
+function VrijwilligersTab({ vrijwilligers, add, update, remove, dedup, t }) {
+  const [zoek, setZoek] = useState("");
+  const filtered = vrijwilligers
+    .filter((v) => {
+      const s = zoek.toLowerCase();
+      return v.voornaam.toLowerCase().includes(s) || v.naam.toLowerCase().includes(s)
+          || (v.email || "").toLowerCase().includes(s) || (v.gemeente || "").toLowerCase().includes(s);
+    })
+    .sort((a, b) => {
+      const an = (a.naam || "").toLowerCase();
+      const bn = (b.naam || "").toLowerCase();
+      if (an !== bn) return an.localeCompare(bn);
+      return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+    });
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", gap: "1rem", flexWrap: "wrap" }}>
+        <input className="input" placeholder={t.search_volunteer} value={zoek}
+          onChange={(e) => setZoek(e.target.value)} style={{ maxWidth: 300 }} />
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="btn btn-ghost" onClick={dedup}>{t.remove_dups}</button>
+          <button className="btn btn-primary" onClick={add}>{t.add_volunteer}</button>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+          {vrijwilligers.length === 0 ? t.no_volunteers : t.no_results}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: "0.8rem" }}>
+          {filtered.map((v) => <VrijwilligerKaart key={v.id} v={v} update={update} remove={remove} t={t} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VrijwilligerKaart({ v, update, remove, t }) {
+  const adres = buildVrijwilligerAdres(v);
+  const adresLink = adres ? buildMapsSearchLink(adres) : "";
+
+  return (
+    <details className="card">
+      <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <span className="chevron">▶</span>{" "}
+          <strong className="font-display" style={{ fontSize: "1.1rem" }}>{v.voornaam || "?"} {v.naam || ""}</strong>
+          <span style={{ color: "var(--ink-soft)", marginLeft: "0.7rem", fontSize: "0.85rem" }}>
+            {v.taal === "fr" ? "🇫🇷" : "🇳🇱"} {v.gsm1 || t.no_phone} ·{" "}
+            {v.beschikbaarheid === "hele_dag" ? t.whole_day
+              : v.beschikbaarheid === "voormiddag" ? t.daypart_morning.toLowerCase()
+              : v.beschikbaarheid === "namiddag" ? t.daypart_afternoon.toLowerCase()
+              : v.beschikbaarheid === "avond" ? t.daypart_evening.toLowerCase()
+              : `${v.beschikbaarVan || "?"}–${v.beschikbaarTot || "?"}`}
+          </span>
+        </div>
+      </summary>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginTop: "1rem" }}>
+        <Field label={t.firstname}><input className="input" value={v.voornaam} onChange={(e) => update(v.id, { voornaam: e.target.value })} /></Field>
+        <Field label={t.lastname}><input className="input" value={v.naam} onChange={(e) => update(v.id, { naam: e.target.value })} /></Field>
+        <Field label={t.gender}>
+          <select className="select" value={v.geslacht} onChange={(e) => update(v.id, { geslacht: e.target.value })}>
+            <option value="">—</option><option value="M">M</option><option value="V">V</option><option value="X">X</option>
+          </select>
+        </Field>
+        <Field label={t.lang}>
+          <select className="select" value={v.taal} onChange={(e) => update(v.id, { taal: e.target.value })}>
+            <option value="nl">Nederlands</option><option value="fr">Français</option>
+          </select>
+        </Field>
+        <Field label={t.gsm1}><input className="input" value={v.gsm1} onChange={(e) => update(v.id, { gsm1: e.target.value })} placeholder="+32475123456" /></Field>
+        <Field label={t.gsm2}><input className="input" value={v.gsm2} onChange={(e) => update(v.id, { gsm2: e.target.value })} placeholder="+3221234567" /></Field>
+        <Field label={t.email}><input className="input" value={v.email} onChange={(e) => update(v.id, { email: e.target.value })} /></Field>
+        <Field label={t.street_nr}><input className="input" value={v.straat} onChange={(e) => update(v.id, { straat: e.target.value })} /></Field>
+        <Field label={t.postcode}><input className="input" value={v.postcode} onChange={(e) => update(v.id, { postcode: e.target.value })} /></Field>
+        <Field label={t.city}><input className="input" value={v.gemeente} onChange={(e) => update(v.id, { gemeente: e.target.value })} /></Field>
+        <Field label={t.availability}>
+          <select className="select" value={v.beschikbaarheid} onChange={(e) => update(v.id, { beschikbaarheid: e.target.value })}>
+            <option value="hele_dag">{t.avail_full}</option>
+            <option value="voormiddag">{t.avail_morning}</option>
+            <option value="namiddag">{t.avail_afternoon}</option>
+            <option value="avond">{t.avail_evening}</option>
+            <option value="aangepast">{t.avail_custom}</option>
+          </select>
+        </Field>
+        {v.beschikbaarheid === "aangepast" && (
+          <>
+            <Field label={t.avail_from}><input type="time" className="input" value={v.beschikbaarVan} onChange={(e) => update(v.id, { beschikbaarVan: e.target.value })} /></Field>
+            <Field label={t.avail_to}><input type="time" className="input" value={v.beschikbaarTot} onChange={(e) => update(v.id, { beschikbaarTot: e.target.value })} /></Field>
+          </>
+        )}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <Field label={t.note}><input className="input" value={v.opmerking} onChange={(e) => update(v.id, { opmerking: e.target.value })} /></Field>
+        </div>
+        {adresLink && (
+          <div style={{ gridColumn: "1 / -1" }}>
+            <a className="link" href={adresLink} target="_blank" rel="noopener" style={{ fontSize: "0.9rem" }}>
+              {t.address_link}: {adres}
+            </a>
+          </div>
+        )}
+        <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end" }}>
+          <button className="btn btn-danger btn-sm" onClick={() => remove(v.id)}>{t.remove_volunteer}</button>
+        </div>
+      </div>
+    </details>
+  );
+}
+
+// ============================================================
+// TAKEN
+// ============================================================
+function TakenTab({ taken, vrijwilligers, externeContacten, dict, addTaak, updateTaak, removeTaak,
+  addSubtaak, updateSubtaak, removeSubtaak, toggleAssignmentTaak, toggleAssignmentSub, t }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
+        <p style={{ margin: 0, color: "var(--ink-soft)", maxWidth: 700, fontSize: "0.9rem" }}>
+          {t.task_intro} <strong>"{t.has_subtasks}"</strong>{t.task_intro2}
+        </p>
+        <button className="btn btn-primary" onClick={addTaak}>{t.add_task}</button>
+      </div>
+
+      {taken.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.no_tasks}</div>
+      ) : (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {taken.map((tt) => (
+            <TaakKaart key={tt.id} taak={tt} vrijwilligers={vrijwilligers}
+              externeContacten={externeContacten} dict={dict} t={t}
+              updateTaak={updateTaak} removeTaak={removeTaak}
+              addSubtaak={addSubtaak} updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak}
+              toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const useAutoTranslate = (item, updateFn, dict) => {
+  const handleNlBlur = () => {
+    if (item.naamNl) updateFn({ naamNl: normalizeName(item.naamNl) });
+    if (item.naamNl && !item.naamFr) {
+      const tr = translateText(item.naamNl, "nl", "fr", dict);
+      if (tr) updateFn({ naamFr: normalizeName(tr) });
+    }
+  };
+  const handleFrBlur = () => {
+    if (item.naamFr) updateFn({ naamFr: normalizeName(item.naamFr) });
+    if (item.naamFr && !item.naamNl) {
+      const tr = translateText(item.naamFr, "fr", "nl", dict);
+      if (tr) updateFn({ naamNl: normalizeName(tr) });
+    }
+  };
+  return { handleNlBlur, handleFrBlur };
+};
+
+function TaakKaart({ taak, vrijwilligers, externeContacten, dict, updateTaak, removeTaak,
+  addSubtaak, updateSubtaak, removeSubtaak, toggleAssignmentTaak, toggleAssignmentSub, t }) {
+
+  const { handleNlBlur, handleFrBlur } = useAutoTranslate(taak, (patch) => updateTaak(taak.id, patch), dict);
+
+  const sortedVrij = [...(vrijwilligers || [])].sort((a, b) => {
+    const an = (a.naam || "").toLowerCase();
+    const bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+  const sortedExtern = [...(externeContacten || [])].sort((a, b) =>
+    (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase())
+  );
+  const verantwIsAnder = taak.verantwoordelijkeId === "__ander__";
+
+  return (
+    <div className="card" style={{ borderLeft: "3px solid var(--accent)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: "0.8rem", alignItems: "end" }}>
+        <Field label={t.name_nl}>
+          <input className="input" value={capitalize(taak.naamNl)}
+            onChange={(e) => updateTaak(taak.id, { naamNl: e.target.value })} onBlur={handleNlBlur} />
+        </Field>
+        <Field label={t.name_fr}>
+          <input className="input" value={capitalize(taak.naamFr)}
+            onChange={(e) => updateTaak(taak.id, { naamFr: e.target.value })} onBlur={handleFrBlur} />
+        </Field>
+        <Field label={t.category}>
+          <input className="input" value={taak.categorie}
+            onChange={(e) => updateTaak(taak.id, { categorie: e.target.value })} placeholder={t.category_ph} />
+        </Field>
+        <button className="btn btn-danger btn-sm" onClick={() => removeTaak(taak.id)}>{t.remove}</button>
+      </div>
+
+      <div style={{ marginTop: "0.8rem", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0.5rem", alignItems: "end" }}>
+        <Field label={t.taak_verant}>
+          <select className="select" value={taak.verantwoordelijkeId || ""}
+            onChange={(e) => updateTaak(taak.id, { verantwoordelijkeId: e.target.value, verantwoordelijkeVrij: e.target.value === "__ander__" ? (taak.verantwoordelijkeVrij || "") : "" })}>
+            <option value="">{t.taak_verant_none}</option>
+            {sortedVrij.length > 0 && (
+              <optgroup label={t.tab_vrijwilligers}>
+                {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+              </optgroup>
+            )}
+            {sortedExtern.length > 0 && (
+              <optgroup label={t.external_contacts}>
+                {sortedExtern.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+              </optgroup>
+            )}
+            <option value="__ander__">{t.mat_other}</option>
+          </select>
+        </Field>
+        {verantwIsAnder && (
+          <Field label={t.mat_other_ph}>
+            <input className="input" value={taak.verantwoordelijkeVrij || ""}
+              onChange={(e) => updateTaak(taak.id, { verantwoordelijkeVrij: e.target.value })} />
+          </Field>
+        )}
+      </div>
+
+      <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+        <div className={`switch ${taak.heeftSubtaken ? "on" : ""}`}
+          onClick={() => updateTaak(taak.id, { heeftSubtaken: !taak.heeftSubtaken })}>
+          <span className="switch-track"></span>
+          <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>
+            {t.has_subtasks} {taak.heeftSubtaken ? t.on_off_direct.on : t.on_off_direct.off}
+          </span>
+        </div>
+      </div>
+
+      {!taak.heeftSubtaken ? (
+        <DirectToewijzing taak={taak} vrijwilligers={vrijwilligers} updateTaak={updateTaak} toggleAssignmentTaak={toggleAssignmentTaak} t={t} />
+      ) : (
+        <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed var(--line)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.7rem" }}>
+            <span className="label" style={{ margin: 0 }}>{t.subtasks} ({taak.subtaken.length})</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => addSubtaak(taak.id)}>{t.add_subtask}</button>
+          </div>
+          {taak.subtaken.length === 0 ? (
+            <p style={{ color: "var(--ink-soft)", fontSize: "0.85rem", margin: 0 }}>{t.no_subtasks}</p>
+          ) : (
+            <div style={{ display: "grid", gap: "0.7rem" }}>
+              {taak.subtaken.map((s) => (
+                <SubtaakRij key={s.id} taakId={taak.id} sub={s} vrijwilligers={vrijwilligers} dict={dict} t={t}
+                  updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak} toggleAssignmentSub={toggleAssignmentSub} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DirectToewijzing({ taak, vrijwilligers, updateTaak, toggleAssignmentTaak, t }) {
+  const statusOpts = [
+    ["open", "badge-open", t.status_open], ["bezig", "badge-bezig", t.status_bezig],
+    ["ok", "badge-ok", t.status_ok], ["pas_ok", "badge-pasok", t.status_pasok],
+  ];
+
+  return (
+    <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed var(--line)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.5fr", gap: "0.5rem", alignItems: "end" }}>
+        <Field label={t.from}>
+          <input type="time" className="input" value={taak.start || ""} onChange={(e) => updateTaak(taak.id, { start: e.target.value })} />
+        </Field>
+        <Field label={t.to}>
+          <input type="time" className="input" value={taak.eind || ""} onChange={(e) => updateTaak(taak.id, { eind: e.target.value })} />
+        </Field>
+        <Field label={t.daypart}>
+          <select className="select" value={taak.dagdeel || "voormiddag"} onChange={(e) => {
+            const val = e.target.value;
+            const patch = { dagdeel: val };
+            if (val === "hele_dag") { patch.start = "08:00"; patch.eind = "22:00"; }
+            updateTaak(taak.id, patch);
+          }}>
+            <option value="voormiddag">{t.daypart_morning}</option>
+            <option value="namiddag">{t.daypart_afternoon}</option>
+            <option value="avond">{t.daypart_evening}</option>
+            <option value="hele_dag">{t.daypart_full}</option>
+          </select>
+        </Field>
+      </div>
+
+      <div style={{ marginTop: "0.7rem", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+        <span className="label" style={{ margin: 0 }}>{t.status}</span>
+        {statusOpts.map(([val, cls, lbl]) => (
+          <button key={val} className={`badge ${cls}`}
+            style={{ cursor: "pointer", opacity: (taak.status || "open") === val ? 1 : 0.4,
+              border: (taak.status || "open") === val ? "1px solid currentColor" : "1px solid transparent" }}
+            onClick={() => updateTaak(taak.id, { status: val })}>{lbl}</button>
+        ))}
+      </div>
+
+      <div style={{ marginTop: "0.7rem" }}>
+        <span className="label">{t.assigned_to}</span>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          {vrijwilligers.length === 0 ? (
+            <em style={{ color: "var(--ink-soft)", fontSize: "0.85rem" }}>{t.add_volunteers_first}</em>
+          ) : (
+            vrijwilligers.map((v) => {
+              const active = (taak.toegewezen || []).includes(v.id);
+              const beschikbaar = isAvailable(v, taak);
+              const cls = `pill ${active ? "active" : ""} ${active && !beschikbaar ? "warn" : ""}`;
+              return (
+                <span key={v.id} className={cls}
+                  onClick={() => toggleAssignmentTaak(taak.id, v.id)}
+                  title={!beschikbaar ? t.outside_avail : ""}>
+                  {!beschikbaar && active && "⚠ "}{v.voornaam} {v.naam}
+                </span>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: "0.5rem" }}>
+        <input className="input" placeholder={t.note_optional} value={taak.opmerking || ""} onChange={(e) => updateTaak(taak.id, { opmerking: e.target.value })} />
+      </div>
+    </div>
+  );
+}
+
+function SubtaakRij({ taakId, sub, vrijwilligers, dict, updateSubtaak, removeSubtaak, toggleAssignmentSub, t }) {
+  const statusOpts = [
+    ["open", "badge-open", t.status_open], ["bezig", "badge-bezig", t.status_bezig],
+    ["ok", "badge-ok", t.status_ok], ["pas_ok", "badge-pasok", t.status_pasok],
+  ];
+
+  const { handleNlBlur, handleFrBlur } = useAutoTranslate(sub, (patch) => updateSubtaak(taakId, sub.id, patch), dict);
+
+  return (
+    <div style={{ background: "white", border: "1px solid var(--line)", borderRadius: 3, padding: "0.8rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 0.8fr 0.8fr 0.8fr auto", gap: "0.5rem", alignItems: "end" }}>
+        <Field label={t.name_nl}>
+          <input className="input" value={capitalize(sub.naamNl)} onChange={(e) => updateSubtaak(taakId, sub.id, { naamNl: e.target.value })} onBlur={handleNlBlur} />
+        </Field>
+        <Field label={t.name_fr}>
+          <input className="input" value={capitalize(sub.naamFr)} onChange={(e) => updateSubtaak(taakId, sub.id, { naamFr: e.target.value })} onBlur={handleFrBlur} />
+        </Field>
+        <Field label={t.from}><input type="time" className="input" value={sub.start} onChange={(e) => updateSubtaak(taakId, sub.id, { start: e.target.value })} /></Field>
+        <Field label={t.to}><input type="time" className="input" value={sub.eind} onChange={(e) => updateSubtaak(taakId, sub.id, { eind: e.target.value })} /></Field>
+        <Field label={t.daypart}>
+          <select className="select" value={sub.dagdeel} onChange={(e) => {
+            const val = e.target.value;
+            const patch = { dagdeel: val };
+            if (val === "hele_dag") { patch.start = "08:00"; patch.eind = "22:00"; }
+            updateSubtaak(taakId, sub.id, patch);
+          }}>
+            <option value="voormiddag">{t.daypart_morning}</option>
+            <option value="namiddag">{t.daypart_afternoon}</option>
+            <option value="avond">{t.daypart_evening}</option>
+            <option value="hele_dag">{t.daypart_full}</option>
+          </select>
+        </Field>
+        <button className="btn btn-danger btn-sm" onClick={() => removeSubtaak(taakId, sub.id)}>✕</button>
+      </div>
+
+      <div style={{ marginTop: "0.7rem", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+        <span className="label" style={{ margin: 0 }}>{t.status}</span>
+        {statusOpts.map(([val, cls, lbl]) => (
+          <button key={val} className={`badge ${cls}`}
+            style={{ cursor: "pointer", opacity: sub.status === val ? 1 : 0.4,
+              border: sub.status === val ? "1px solid currentColor" : "1px solid transparent" }}
+            onClick={() => updateSubtaak(taakId, sub.id, { status: val })}>{lbl}</button>
+        ))}
+      </div>
+
+      <div style={{ marginTop: "0.7rem" }}>
+        <span className="label">{t.assigned_to}</span>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          {vrijwilligers.length === 0 ? (
+            <em style={{ color: "var(--ink-soft)", fontSize: "0.85rem" }}>{t.add_volunteers_first}</em>
+          ) : (
+            vrijwilligers.map((v) => {
+              const active = sub.toegewezen.includes(v.id);
+              const beschikbaar = isAvailable(v, sub);
+              const cls = `pill ${active ? "active" : ""} ${active && !beschikbaar ? "warn" : ""}`;
+              return (
+                <span key={v.id} className={cls}
+                  onClick={() => toggleAssignmentSub(taakId, sub.id, v.id)}
+                  title={!beschikbaar ? t.outside_avail : ""}>
+                  {!beschikbaar && active && "⚠ "}{v.voornaam} {v.naam}
+                </span>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: "0.5rem" }}>
+        <input className="input" placeholder={t.note_optional} value={sub.opmerking}
+          onChange={(e) => updateSubtaak(taakId, sub.id, { opmerking: e.target.value })} />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// BERICHTEN
+// ============================================================
+function BerichtenTab({ data, showToast, t }) {
+  const eersteId = data.sjablonen.length > 0 ? data.sjablonen[0].id : "";
+  const [sjabloonId, setSjabloonId] = useState(eersteId);
+  const huidigSjabloon = data.sjablonen.find((s) => s.id === sjabloonId) || data.sjablonen[0] || null;
+
+  const buildBerichtVoor = (v) => {
+    const lang = v.taal === "fr" ? "fr" : "nl";
+    const sjabloon = huidigSjabloon ? (lang === "fr" ? (huidigSjabloon.fr || "") : (huidigSjabloon.nl || "")) : "";
+
+    // Hulpfunctie: krijg leesbare naam van verantwoordelijke
+    const getVerantwNaam = (tt) => {
+      if (!tt.verantwoordelijkeId) return "";
+      if (tt.verantwoordelijkeId === "__ander__") return tt.verantwoordelijkeVrij || "";
+      const vr = data.vrijwilligers.find((x) => x.id === tt.verantwoordelijkeId);
+      if (vr) return `${vr.voornaam} ${vr.naam}`.trim();
+      const ec = (data.externeContacten || []).find((c) => c.id === tt.verantwoordelijkeId);
+      if (ec) return ec.naam;
+      return "";
+    };
+
+    const eigenTaken = [];
+    data.taken.forEach((tt) => {
+      const hoofdNaam = capitalize(lang === "fr" ? (tt.naamFr || tt.naamNl) : (tt.naamNl || tt.naamFr));
+      const verantwNaam = getVerantwNaam(tt);
+      // Vermelding alleen als er een verantwoordelijke is EN het is iemand anders dan de ontvanger zelf
+      const isOntvangerVerantw = tt.verantwoordelijkeId && tt.verantwoordelijkeId === v.id;
+      const verantwSuffix = (verantwNaam && !isOntvangerVerantw)
+        ? ` [${lang === "fr" ? "Responsable" : "Verantwoordelijke"}: ${verantwNaam}]`
+        : "";
+      const eigenStar = isOntvangerVerantw
+        ? (lang === "fr" ? " ⭐⭐⭐ Responsable" : " ⭐⭐⭐ Verantwoordelijke")
+        : "";
+
+      if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+        tt.subtaken.forEach((s) => {
+          if (s.toegewezen.includes(v.id)) {
+            const subNaam = capitalize(lang === "fr" ? (s.naamFr || s.naamNl) : (s.naamNl || s.naamFr));
+            const tijd = s.start && s.eind ? ` (${s.start}–${s.eind})` : "";
+            eigenTaken.push(`• ${hoofdNaam} — ${subNaam}${tijd}${eigenStar}${verantwSuffix}`);
+          }
+        });
+      } else {
+        if ((tt.toegewezen || []).includes(v.id)) {
+          const tijd = tt.start && tt.eind ? ` (${tt.start}–${tt.eind})` : "";
+          eigenTaken.push(`• ${hoofdNaam}${tijd}${eigenStar}${verantwSuffix}`);
+        }
+      }
+    });
+
+    const takenlijst = eigenTaken.length > 0 ? eigenTaken.join("\n") : (lang === "fr" ? "(aucune tâche assignée)" : "(geen taken toegewezen)");
+    const mapslink = buildMapsLink(data.event, "driving");
+    const locatie = buildAddressString(data.event);
+
+    return sjabloon
+      .replace(/{voornaam}/g, v.voornaam || "")
+      .replace(/{eventnaam}/g, data.event.naam || "")
+      .replace(/{eventdatum}/g, formatDate(data.event.datum, lang))
+      .replace(/{locatie}/g, locatie)
+      .replace(/{takenlijst}/g, takenlijst)
+      .replace(/{mapslink}/g, mapslink);
+  };
+
+  const buildWaLink = (v, bericht) => {
+    const tel = cleanPhone(v.gsm1);
+    if (!tel) return "";
+    return `https://wa.me/${tel}?text=${encodeURIComponent(bericht)}`;
+  };
+
+  const copyToClipboard = async (text, naam) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t.msg_copied(naam));
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); showToast(t.msg_copied(naam)); }
+      catch (e2) { alert(t.cant_copy); }
+      document.body.removeChild(ta);
+    }
+  };
+
+  const aantalVoor = (vId) => {
+    let n = 0;
+    data.taken.forEach((tt) => {
+      if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+        n += tt.subtaken.filter((s) => s.toegewezen.includes(vId)).length;
+      } else if ((tt.toegewezen || []).includes(vId)) {
+        n += 1;
+      }
+    });
+    return n;
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.tab_berichten}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>
+          {t.msg_intro} <strong>"{t.copy_msg}"</strong> {t.msg_intro2}
+        </p>
+        {data.sjablonen.length === 0 ? (
+          <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: "1rem", marginBottom: 0 }}>
+            {t.no_templates} <strong>{t.tab_sjablonen}</strong>.
+          </p>
+        ) : (
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1rem" }}>
+            {data.sjablonen.map((s) => (
+              <button key={s.id}
+                className={(huidigSjabloon && s.id === huidigSjabloon.id) ? "btn btn-primary" : "btn btn-ghost"}
+                onClick={() => setSjabloonId(s.id)}>
+                {s.titel || "(?)"}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {data.vrijwilligers.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.no_volunteers}</div>
+      ) : (() => {
+        const metTaken = data.vrijwilligers
+          .filter((v) => aantalVoor(v.id) > 0)
+          .sort((a, b) => {
+            const an = (a.naam || "").toLowerCase();
+            const bn = (b.naam || "").toLowerCase();
+            if (an !== bn) return an.localeCompare(bn);
+            return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+          });
+
+        if (metTaken.length === 0) {
+          return (
+            <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+              {t.no_volunteers_w_tasks} <strong>{t.tab_taken}</strong>.
+            </div>
+          );
+        }
+
+        return (
+          <div style={{ display: "grid", gap: "1rem" }}>
+            {metTaken.map((v) => {
+              const bericht = buildBerichtVoor(v);
+              const link = buildWaLink(v, bericht);
+              const aantal = aantalVoor(v.id);
+              const naamVol = `${v.voornaam} ${v.naam}`.trim() || "vrijwilliger";
+              return (
+                <div key={v.id} className="card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+                    <div>
+                      <strong className="font-display" style={{ fontSize: "1.1rem" }}>{naamVol}</strong>
+                      <div style={{ color: "var(--ink-soft)", fontSize: "0.85rem", marginTop: "0.2rem" }}>
+                        {v.taal === "fr" ? "🇫🇷" : "🇳🇱"} · {v.gsm1 || t.no_phone} · {t.taken_assigned(aantal)}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => copyToClipboard(bericht, v.voornaam || naamVol)}>
+                        {t.copy_msg}
+                      </button>
+                      {link && (
+                        <a className="btn btn-whatsapp btn-sm" href={link} target="_blank" rel="noopener" style={{ textDecoration: "none" }}>
+                          {t.open_wa}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <details style={{ marginTop: "0.7rem" }}>
+                    <summary style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                      <span className="chevron">▶</span> {t.show_msg}
+                    </summary>
+                    <pre style={{ marginTop: "0.5rem", padding: "0.8rem", background: "var(--bg)",
+                      border: "1px solid var(--line)", borderRadius: 3, whiteSpace: "pre-wrap",
+                      fontFamily: "inherit", fontSize: "0.85rem" }}>{bericht}</pre>
+                  </details>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ============================================================
+// BULK SEND
+// ============================================================
+function BulkSendTab({ data, showToast, t, addExternContact, updateExternContact, removeExternContact,
+                      markBulkSent, markBulkUnsent, resetBulkHistory }) {
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [taalFilter, setTaalFilter] = useState("all");
+  const [berichtNl, setBerichtNl] = useState("");
+  const [berichtFr, setBerichtFr] = useState("");
+  const [imageMode, setImageMode] = useState("none"); // none | attach | url
+  const [imageDataUrl, setImageDataUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showHelp, setShowHelp] = useState(false);
+  const [previewId, setPreviewId] = useState("");
+  const [useTemplateId, setUseTemplateId] = useState("");
+
+  // Combineer vrijwilligers (met gsm1) en externe contacten
+  const alleOntvangers = [
+    ...data.vrijwilligers.filter((v) => v.gsm1).map((v) => ({
+      id: v.id, type: "vrijwilliger",
+      voornaam: v.voornaam, naam: v.naam, gsm1: v.gsm1, taal: v.taal || "nl",
+    })),
+    ...data.externeContacten.filter((c) => c.gsm1).map((c) => ({
+      id: c.id, type: "extern",
+      voornaam: c.naam, naam: "(extern)", gsm1: c.gsm1, taal: c.taal || "nl",
+    })),
+  ].filter((p) => taalFilter === "all" || p.taal === taalFilter)
+   .sort((a, b) => {
+     const an = (a.naam || "").toLowerCase();
+     const bn = (b.naam || "").toLowerCase();
+     if (an !== bn) return an.localeCompare(bn);
+     return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+   });
+
+  const selectAll = () => setSelectedIds(new Set(alleOntvangers.map((p) => p.id)));
+  const deselectAll = () => setSelectedIds(new Set());
+  const toggleSelect = (id) => setSelectedIds((s) => {
+    const next = new Set(s);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const applyTemplate = (templateId) => {
+    setUseTemplateId(templateId);
+    if (!templateId) { setBerichtNl(""); setBerichtFr(""); return; }
+    const sj = data.sjablonen.find((s) => s.id === templateId);
+    if (sj) { setBerichtNl(sj.nl || ""); setBerichtFr(sj.fr || ""); }
+  };
+
+  const buildBericht = (persoon) => {
+    const lang = persoon.taal === "fr" ? "fr" : "nl";
+    let txt = (lang === "fr" ? berichtFr : berichtNl) || "";
+    txt = txt
+      .replace(/{voornaam}/g, persoon.voornaam || "")
+      .replace(/{eventnaam}/g, data.event.naam || "")
+      .replace(/{eventdatum}/g, formatDate(data.event.datum, lang))
+      .replace(/{locatie}/g, buildAddressString(data.event))
+      .replace(/{mapslink}/g, buildMapsLink(data.event, "driving"))
+      .replace(/{takenlijst}/g, "");
+    if (imageMode === "url" && imageUrl) {
+      txt = txt + (txt.endsWith("\n") ? "" : "\n\n") + imageUrl;
+    }
+    return txt;
+  };
+
+  const buildWaLink = (persoon) => {
+    const tel = cleanPhone(persoon.gsm1);
+    if (!tel) return "";
+    return `https://wa.me/${tel}?text=${encodeURIComponent(buildBericht(persoon))}`;
+  };
+
+  const handleSend = (persoon, link) => {
+    const lastSent = (data.bulkGeschiedenis[persoon.id] || []).slice(-1)[0];
+    if (lastSent && isToday(lastSent.datum)) {
+      const naam = `${persoon.voornaam} ${persoon.naam}`.trim();
+      if (!confirm(t.confirm_resend(naam, formatTimeShort(lastSent.datum)))) return;
+    }
+    markBulkSent(persoon.id, buildBericht(persoon));
+    window.open(link, "_blank");
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setImageDataUrl(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const copyImage = async () => {
+    if (!imageDataUrl) return;
+    try {
+      const blob = await (await fetch(imageDataUrl)).blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      showToast(t.img_copied);
+    } catch (e) {
+      showToast(t.img_copy_failed);
+    }
+  };
+
+  const dupsToday = Array.from(selectedIds).filter((id) => {
+    const last = (data.bulkGeschiedenis[id] || []).slice(-1)[0];
+    return last && isToday(last.datum);
+  });
+
+  const deselectDups = () => {
+    setSelectedIds((s) => {
+      const next = new Set(s);
+      dupsToday.forEach((id) => next.delete(id));
+      return next;
+    });
+  };
+
+  const totaalSelected = selectedIds.size;
+  const sentCount = Array.from(selectedIds).filter((id) => {
+    const last = (data.bulkGeschiedenis[id] || []).slice(-1)[0];
+    return last && isToday(last.datum);
+  }).length;
+
+  const previewPerson = previewId ? alleOntvangers.find((p) => p.id === previewId) : null;
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.bulk_title}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.bulk_intro}</p>
+      </div>
+
+      {/* Compose */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>{t.compose}</h3>
+        <div style={{ marginBottom: "1rem" }}>
+          <Field label={t.use_template}>
+            <select className="select" value={useTemplateId} onChange={(e) => applyTemplate(e.target.value)}>
+              <option value="">{t.none}</option>
+              {data.sjablonen.map((s) => <option key={s.id} value={s.id}>{s.titel}</option>)}
+            </select>
+          </Field>
+        </div>
+        <div className="grid-2">
+          <Field label={t.msg_nl}>
+            <textarea className="textarea" rows={6} value={berichtNl} onChange={(e) => setBerichtNl(e.target.value)} />
+          </Field>
+          <Field label={t.msg_fr}>
+            <textarea className="textarea" rows={6} value={berichtFr} onChange={(e) => setBerichtFr(e.target.value)} />
+          </Field>
+        </div>
+        <p style={{ fontSize: "0.78rem", color: "var(--ink-soft)", marginTop: "0.5rem" }}>
+          <strong>{t.placeholders_avail}</strong> <code>{t.placeholder_help_bulk}</code>
+        </p>
+
+        {/* Afbeelding */}
+        <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed var(--line)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+            <Field label={t.image}>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                <button className={imageMode === "none" ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"} onClick={() => setImageMode("none")}>{t.image_none}</button>
+                <button className={imageMode === "attach" ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"} onClick={() => setImageMode("attach")}>{t.image_attach}</button>
+                <button className={imageMode === "url" ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"} onClick={() => setImageMode("url")}>{t.image_url}</button>
+              </div>
+            </Field>
+            {imageMode !== "none" && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowHelp(!showHelp)}>{t.image_help}</button>
+            )}
+          </div>
+
+          {showHelp && imageMode === "url" && (
+            <div className="info-box">
+              <strong>{t.image_help_title}</strong>
+              <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: "0.5rem 0 0 0", fontSize: "0.85rem" }}>{t.image_help_body}</pre>
+            </div>
+          )}
+          {showHelp && imageMode === "attach" && (
+            <div className="info-box">{t.image_attach_help}</div>
+          )}
+
+          {imageMode === "attach" && (
+            <div style={{ marginTop: "0.7rem", display: "flex", alignItems: "center", gap: "0.7rem", flexWrap: "wrap" }}>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
+                {t.upload_image}
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
+              </label>
+              {imageDataUrl && (
+                <>
+                  <img src={imageDataUrl} alt="" style={{ maxHeight: 60, borderRadius: 3, border: "1px solid var(--line)" }} />
+                  <span style={{ fontSize: "0.85rem", color: "var(--green)" }}>✓ {t.image_loaded}</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {imageMode === "url" && (
+            <div style={{ marginTop: "0.7rem" }}>
+              <Field label={t.image_url_label}>
+                <input className="input" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder={t.image_url_ph} />
+              </Field>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Externe contacten */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.7rem" }}>
+          <h3 className="font-display" style={{ margin: 0, fontSize: "1.1rem" }}>{t.external_contacts}</h3>
+          <button className="btn btn-ghost btn-sm" onClick={addExternContact}>{t.add_external}</button>
+        </div>
+        {data.externeContacten.length === 0 ? (
+          <p style={{ color: "var(--ink-soft)", fontSize: "0.85rem", margin: 0 }}>{t.no_external}</p>
+        ) : (
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            {data.externeContacten.map((c) => (
+              <div key={c.id} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: "0.5rem" }}>
+                <input className="input" placeholder={t.name_ph} value={c.naam} onChange={(e) => updateExternContact(c.id, { naam: e.target.value })} />
+                <input className="input" placeholder="+32475123456" value={c.gsm1} onChange={(e) => updateExternContact(c.id, { gsm1: e.target.value })} />
+                <select className="select" value={c.taal} onChange={(e) => updateExternContact(c.id, { taal: e.target.value })}>
+                  <option value="nl">NL</option><option value="fr">FR</option>
+                </select>
+                <button className="btn btn-danger btn-sm" onClick={() => removeExternContact(c.id)}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Selectie + verzending */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.7rem" }}>
+          <h3 className="font-display" style={{ margin: 0, fontSize: "1.1rem" }}>{t.select_recipients}</h3>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            <select className="select" value={taalFilter} onChange={(e) => setTaalFilter(e.target.value)} style={{ width: "auto" }}>
+              <option value="all">{t.all_langs}</option>
+              <option value="nl">🇳🇱 NL</option>
+              <option value="fr">🇫🇷 FR</option>
+            </select>
+            <button className="btn btn-ghost btn-sm" onClick={selectAll}>{t.select_all}</button>
+            <button className="btn btn-ghost btn-sm" onClick={deselectAll}>{t.deselect_all}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { if (confirm(t.confirm_new_campaign)) resetBulkHistory(); }}>{t.new_campaign}</button>
+          </div>
+        </div>
+
+        {dupsToday.length > 0 && (
+          <div className="alert-bar alert-amber" style={{ marginBottom: "0.7rem" }}>
+            <span style={{ fontWeight: 500 }}>{t.dup_warning(dupsToday.length)}</span>
+            <button className="btn btn-ghost btn-sm" onClick={deselectDups}>{t.deselect_dups}</button>
+          </div>
+        )}
+
+        {totaalSelected > 0 && (
+          <p style={{ color: "var(--ink-soft)", fontSize: "0.85rem", marginTop: 0, marginBottom: "0.7rem" }}>
+            <strong>{t.progress}</strong> {t.sent_count(sentCount, totaalSelected)}
+          </p>
+        )}
+
+        {alleOntvangers.length === 0 ? (
+          <p style={{ color: "var(--ink-soft)", textAlign: "center", margin: "1rem 0" }}>{t.no_recipients}</p>
+        ) : (
+          <div>
+            {alleOntvangers.map((p) => {
+              const lastSent = (data.bulkGeschiedenis[p.id] || []).slice(-1)[0];
+              const sentToday = lastSent && isToday(lastSent.datum);
+              const sentRecent = lastSent && !sentToday && isThisWeek(lastSent.datum);
+              const cls = `send-row ${sentToday ? "sent-today" : sentRecent ? "sent-week" : ""}`;
+              const naamVol = `${p.voornaam} ${p.naam}`.trim();
+
+              return (
+                <div key={p.id} className={cls}>
+                  <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggleSelect(p.id)} />
+                  <div>
+                    <strong>{naamVol}</strong>
+                    <div style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>
+                      {p.taal === "fr" ? "🇫🇷" : "🇳🇱"} · {p.gsm1}
+                      {sentToday && ` · ${t.sent_today} ${formatTimeShort(lastSent.datum)}`}
+                      {sentRecent && ` · ${t.sent_week_ago} ${formatDateShort(lastSent.datum, data.taal || "nl")}`}
+                      {!lastSent && ` · ${t.not_sent}`}
+                    </div>
+                  </div>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setPreviewId(p.id === previewId ? "" : p.id)}>
+                    👁
+                  </button>
+                  <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+                    {imageMode === "attach" && imageDataUrl && (
+                      <button className="btn btn-ghost btn-sm" onClick={copyImage}>{t.copy_image}</button>
+                    )}
+                    {(() => {
+                      const link = buildWaLink(p);
+                      return link ? (
+                        <button className="btn btn-whatsapp btn-sm" onClick={() => handleSend(p, link)}>
+                          {t.open_wa}
+                        </button>
+                      ) : <span style={{ fontSize: "0.78rem", color: "var(--accent)" }}>{t.no_wa_number}</span>;
+                    })()}
+                    {sentToday && (
+                      <button className="btn btn-ghost btn-sm" onClick={() => markBulkUnsent(p.id)}>{t.mark_unsent}</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {previewPerson && (
+          <div style={{ marginTop: "1rem", padding: "1rem", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 3 }}>
+            <strong style={{ fontSize: "0.85rem" }}>{t.preview} {previewPerson.voornaam} {previewPerson.naam}:</strong>
+            <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: "0.5rem 0 0 0", fontSize: "0.85rem" }}>
+              {buildBericht(previewPerson)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SJABLONEN
+// ============================================================
+function SjablonenTab({ sjablonen, updateVeld, add, remove, t }) {
+  const handleRemove = (id, titel) => {
+    if (!confirm(t.confirm_remove_template(titel))) return;
+    remove(id);
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 250 }}>
+            <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.sjab_title}</h2>
+            <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>
+              {t.sjab_intro} <strong>{t.tab_berichten}</strong>. {t.sjab_intro2} <code>{t.placeholder_help}</code>
+            </p>
+          </div>
+          <button className="btn btn-primary" onClick={add}>{t.new_sjabloon}</button>
+        </div>
+      </div>
+
+      {sjablonen.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.no_sjablonen}</div>
+      ) : (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {sjablonen.map((s) => (
+            <div key={s.id} className="card" style={{ borderLeft: "3px solid var(--accent)" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.8rem", alignItems: "end", marginBottom: "1rem" }}>
+                <Field label={t.sjabloon_title}>
+                  <input className="input" value={s.titel}
+                    onChange={(e) => updateVeld(s.id, "titel", e.target.value)} placeholder={t.sjabloon_title_ph} />
+                </Field>
+                <button className="btn btn-danger btn-sm" onClick={() => handleRemove(s.id, s.titel)}>{t.remove}</button>
+              </div>
+              <div className="grid-2">
+                <Field label="🇳🇱 Nederlands">
+                  <textarea className="textarea" rows={8} value={s.nl}
+                    onChange={(e) => updateVeld(s.id, "nl", e.target.value)} style={{ fontFamily: "inherit" }} />
+                </Field>
+                <Field label="🇫🇷 Français">
+                  <textarea className="textarea" rows={8} value={s.fr}
+                    onChange={(e) => updateVeld(s.id, "fr", e.target.value)} style={{ fontFamily: "inherit" }} />
+                </Field>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// MATERIAAL
+// ============================================================
+function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContacten, dict, taal, add, update, remove, addLocatie, removeLocatie, exportMateriaal, t }) {
+  const sortedVrij = [...vrijwilligers].sort((a, b) => {
+    const an = (a.naam || "").toLowerCase();
+    const bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+  const sortedExtern = [...(externeContacten || [])].sort((a, b) =>
+    (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase())
+  );
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 250 }}>
+            <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.mat_title}</h2>
+            <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.mat_intro}</p>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            {materiaal.length > 0 && exportMateriaal && (
+              <button className="btn btn-ghost" onClick={exportMateriaal}>{t.mat_export}</button>
+            )}
+            <button className="btn btn-primary" onClick={add}>{t.mat_add}</button>
+          </div>
+        </div>
+
+        <details style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed var(--line)" }}>
+          <summary style={{ fontSize: "0.85rem", color: "var(--ink-soft)", cursor: "pointer" }}>
+            <span className="chevron">▶</span> {t.mat_manage_loc} ({(oorsprongLijst || []).length})
+          </summary>
+          <div style={{ marginTop: "0.8rem", display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+            {(oorsprongLijst || []).length === 0 ? (
+              <em style={{ color: "var(--ink-soft)", fontSize: "0.85rem" }}>—</em>
+            ) : (
+              oorsprongLijst.map((loc) => (
+                <span key={loc} style={{
+                  display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                  padding: "0.3rem 0.7rem", background: "var(--bg)", border: "1px solid var(--line)",
+                  borderRadius: 999, fontSize: "0.85rem",
+                }}>
+                  {loc}
+                  <button onClick={() => removeLocatie(loc)} title={t.remove}
+                    style={{ background: "none", border: "none", color: "var(--accent)",
+                      cursor: "pointer", padding: 0, fontSize: "0.85rem", lineHeight: 1 }}>✕</button>
+                </span>
+              ))
+            )}
+          </div>
+        </details>
+      </div>
+
+      {materiaal.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.mat_no_items}</div>
+      ) : (
+        <div style={{ display: "grid", gap: "0.7rem" }}>
+          {materiaal.map((m) => (
+            <MateriaalRij key={m.id} m={m} sortedVrij={sortedVrij} sortedExtern={sortedExtern} oorsprongLijst={oorsprongLijst}
+              dict={dict} update={update} remove={remove} addLocatie={addLocatie} removeLocatie={removeLocatie} t={t} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, dict, update, remove, addLocatie, removeLocatie, t }) {
+  const handleNlBlur = () => {
+    // Normaliseer naar lowercase bij verlaten van veld
+    if (m.naamNl) update(m.id, { naamNl: normalizeName(m.naamNl) });
+    if (m.naamNl && !m.naamFr) {
+      const tr = translateText(m.naamNl, "nl", "fr", dict);
+      if (tr) update(m.id, { naamFr: normalizeName(tr) });
+    }
+  };
+  const handleFrBlur = () => {
+    if (m.naamFr) update(m.id, { naamFr: normalizeName(m.naamFr) });
+    if (m.naamFr && !m.naamNl) {
+      const tr = translateText(m.naamFr, "fr", "nl", dict);
+      if (tr) update(m.id, { naamNl: normalizeName(tr) });
+    }
+  };
+
+  const verantwIsAnder = m.verantwoordelijkeId === "__ander__";
+
+  return (
+    <div className="card" style={{ borderLeft: "3px solid var(--accent)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1.4fr 0.6fr 1fr 1.2fr auto", gap: "0.5rem", alignItems: "end" }}>
+        <Field label={`${t.mat_naam} (NL)`}>
+          <input className="input" value={capitalize(m.naamNl)}
+            onChange={(e) => update(m.id, { naamNl: e.target.value })} onBlur={handleNlBlur} />
+        </Field>
+        <Field label={`${t.mat_naam} (FR)`}>
+          <input className="input" value={capitalize(m.naamFr)}
+            onChange={(e) => update(m.id, { naamFr: e.target.value })} onBlur={handleFrBlur} />
+        </Field>
+        <Field label={t.mat_aantal}>
+          <input type="number" className="input" value={m.aantal}
+            onChange={(e) => update(m.id, { aantal: e.target.value })} min="0" />
+        </Field>
+        <Field label={t.mat_oorsprong}>
+          <select className="select" value={m.oorsprong}
+            onChange={(e) => {
+              if (e.target.value === "__add__") { addLocatie(); return; }
+              update(m.id, { oorsprong: e.target.value });
+            }}>
+            <option value="">{t.mat_choose}</option>
+            {oorsprongLijst.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+            <option value="__add__">{t.mat_new_loc}</option>
+          </select>
+        </Field>
+        <Field label={t.mat_verant}>
+          <select className="select" value={m.verantwoordelijkeId}
+            onChange={(e) => update(m.id, { verantwoordelijkeId: e.target.value, verantwoordelijkeVrij: e.target.value === "__ander__" ? m.verantwoordelijkeVrij : "" })}>
+            <option value="">{t.mat_choose}</option>
+            {sortedVrij.length > 0 && (
+              <optgroup label={t.tab_vrijwilligers}>
+                {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+              </optgroup>
+            )}
+            {sortedExtern && sortedExtern.length > 0 && (
+              <optgroup label={t.external_contacts}>
+                {sortedExtern.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+              </optgroup>
+            )}
+            <option value="__ander__">{t.mat_other}</option>
+          </select>
+        </Field>
+        <button className="btn btn-danger btn-sm" onClick={() => remove(m.id)} title={t.remove}>🗑</button>
+      </div>
+      {verantwIsAnder && (
+        <div style={{ marginTop: "0.5rem" }}>
+          <input className="input" placeholder={t.mat_other_ph} value={m.verantwoordelijkeVrij || ""}
+            onChange={(e) => update(m.id, { verantwoordelijkeVrij: e.target.value })} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// WOORDENBOEK
+// ============================================================
+function WoordenboekTab({ dict, update, showToast, t }) {
+  const [zoek, setZoek] = useState("");
+  const [nieuwNl, setNieuwNl] = useState("");
+  const [nieuwFr, setNieuwFr] = useState("");
+
+  const entries = Object.entries(dict).sort((a, b) => a[0].localeCompare(b[0]));
+  const filtered = entries.filter(([nl, fr]) => {
+    const s = zoek.toLowerCase();
+    return nl.toLowerCase().includes(s) || fr.toLowerCase().includes(s);
+  });
+
+  const addEntry = () => {
+    if (!nieuwNl.trim() || !nieuwFr.trim()) { alert(t.fill_both); return; }
+    update({ ...dict, [nieuwNl.trim().toLowerCase()]: nieuwFr.trim().toLowerCase() });
+    setNieuwNl(""); setNieuwFr("");
+    showToast("✓");
+  };
+
+  const removeEntry = (nl) => {
+    if (!confirm(t.confirm_remove_term(nl))) return;
+    const newDict = { ...dict };
+    delete newDict[nl];
+    update(newDict);
+  };
+
+  const updateEntry = (nl, newFr) => update({ ...dict, [nl]: (newFr || "").toLowerCase() });
+
+  const resetDict = () => {
+    if (!confirm(t.confirm_restore_dict)) return;
+    update(defaultDictionary);
+    showToast("✓");
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.woord_title}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>{t.woord_intro}</p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>{t.new_term}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "0.5rem", alignItems: "end" }}>
+          <Field label={t.dutch}>
+            <input className="input" value={nieuwNl} onChange={(e) => setNieuwNl(e.target.value)} />
+          </Field>
+          <Field label={t.french}>
+            <input className="input" value={nieuwFr} onChange={(e) => setNieuwFr(e.target.value)} />
+          </Field>
+          <button className="btn btn-primary" onClick={addEntry}>{t.add}</button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+        <input className="input" placeholder={t.search_dict} value={zoek}
+          onChange={(e) => setZoek(e.target.value)} style={{ maxWidth: 300 }} />
+        <button className="btn btn-ghost btn-sm" onClick={resetDict}>{t.restore_default}</button>
+        <span style={{ color: "var(--ink-soft)", fontSize: "0.85rem", alignSelf: "center" }}>
+          {entries.length} {t.terms}
+        </span>
+      </div>
+
+      <div className="card">
+        {filtered.length === 0 ? (
+          <p style={{ color: "var(--ink-soft)", textAlign: "center", margin: 0 }}>{t.no_terms}</p>
+        ) : (
+          filtered.map(([nl, fr]) => (
+            <div key={nl} className="dict-row">
+              <div style={{ fontSize: "0.9rem" }}>{nl}</div>
+              <input className="input" value={fr} onChange={(e) => updateEntry(nl, e.target.value)} />
+              <button className="btn btn-danger btn-sm" onClick={() => removeEntry(nl)}>✕</button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// ERROR BOUNDARY
+// ============================================================
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) { console.error("App-fout:", error, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: "2rem", fontFamily: "system-ui, sans-serif", maxWidth: 800, margin: "0 auto" }}>
+          <h1 style={{ color: "#c8442a" }}>Er ging iets mis</h1>
+          <p>De app kon niet laden. Klik op onderstaande knop om alle lokale data te wissen en opnieuw te beginnen.</p>
+          <pre style={{ background: "#fbf8f2", padding: "1rem", border: "1px solid #d9cfc1", borderRadius: 4, overflow: "auto", fontSize: "0.85rem" }}>
+            {String(this.state.error && this.state.error.message)}
+          </pre>
+          <button onClick={() => {
+            ["evenement_beheer_data_v4", "evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"].forEach((k) => localStorage.removeItem(k));
+            location.reload();
+          }} style={{ background: "#c8442a", color: "white", border: "none", padding: "0.7rem 1.2rem", borderRadius: 3, cursor: "pointer", fontSize: "0.9rem" }}>
+            Wis lokale data en herstart
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<ErrorBoundary><App /></ErrorBoundary>);
+</script>
+
+<script>
+// PWA: registreer de service worker zodat de app installeerbaar is
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(function () { console.log("Service worker geregistreerd"); })
+      .catch(function (err) { console.log("Service worker registratie mislukt:", err); });
+  });
+}
+</script>
+</body>
+</html>
