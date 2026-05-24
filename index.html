@@ -169,6 +169,20 @@ const T = {
     kb_export: "Exporteren", kb_export_intro: "Exporteer het volledige kostenoverzicht met grafieken als PDF, klaar om naar het secretariaat te sturen.",
     kb_pdf_knop: "⬇ PDF downloaden", kb_pdf_klaar: "✓ PDF aangemaakt",
     kb_pdf_fout: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
+    winkel_uit_kas: "Betaald uit kas tijdens evenement",
+    kas_titel: "Kas (cash tijdens evenement)",
+    kas_intro: "Het cash geld tijdens het evenement: startbedrag, ontvangsten en uitgaven. Staat los van het budget.",
+    kas_start: "Startbedrag kas", kas_bewegingen: "Kasbewegingen",
+    kas_add_in: "＋ Ontvangst", kas_add_uit: "－ Uitgave",
+    kas_in: "Ontvangst", kas_uit: "Uitgave", kas_omschrijving: "Omschrijving",
+    kas_geen: "Nog geen kasbewegingen ingevoerd.",
+    kas_winkel_uit: "Winkelaankopen uit de kas betaald", kas_winkel: "Winkel",
+    kas_winkel_uit_hint: "Automatisch overgenomen uit Winkelbestellingen (kastickets met 'Betaald uit kas' aangevinkt).",
+    kas_totaal_in: "Totaal ontvangen", kas_totaal_uit: "Totaal uitgegeven",
+    kas_eindsaldo: "Verwacht eindsaldo kas",
+    kas_blad_knop: "🖨 Leeg kasblad afdrukken (PDF)",
+    kas_blad_titel: "Kasblad — in te vullen tijdens het evenement",
+    kas_blad_tijd: "Tijd", kas_blad_in: "Erin (+)", kas_blad_uit: "Eruit (−)",
     history_intro: "Overzicht van afgesloten evenementen. Een evenement komt hier automatisch bij wanneer je 'Nieuw evenement' start.",
     history_geen: "Nog geen afgesloten evenementen.",
     history_afgesloten: "Afgesloten op",
@@ -441,6 +455,20 @@ const T = {
     kb_export: "Exporter", kb_export_intro: "Exportez l'aperçu complet des coûts avec graphiques en PDF, prêt à envoyer au secrétariat.",
     kb_pdf_knop: "⬇ Télécharger le PDF", kb_pdf_klaar: "✓ PDF créé",
     kb_pdf_fout: "Impossible de créer le PDF (bibliothèque non chargée).",
+    winkel_uit_kas: "Payé avec la caisse pendant l'événement",
+    kas_titel: "Caisse (cash pendant l'événement)",
+    kas_intro: "L'argent liquide pendant l'événement : montant de départ, recettes et dépenses. Distinct du budget.",
+    kas_start: "Montant de départ caisse", kas_bewegingen: "Mouvements de caisse",
+    kas_add_in: "＋ Recette", kas_add_uit: "－ Dépense",
+    kas_in: "Recette", kas_uit: "Dépense", kas_omschrijving: "Description",
+    kas_geen: "Aucun mouvement de caisse saisi.",
+    kas_winkel_uit: "Achats magasin payés avec la caisse", kas_winkel: "Magasin",
+    kas_winkel_uit_hint: "Repris automatiquement des Commandes via Magasin (tickets cochés 'Payé avec la caisse').",
+    kas_totaal_in: "Total reçu", kas_totaal_uit: "Total dépensé",
+    kas_eindsaldo: "Solde final attendu caisse",
+    kas_blad_knop: "🖨 Imprimer une feuille de caisse vierge (PDF)",
+    kas_blad_titel: "Feuille de caisse — à remplir pendant l'événement",
+    kas_blad_tijd: "Heure", kas_blad_in: "Entrée (+)", kas_blad_uit: "Sortie (−)",
     history_intro: "Aperçu des événements clôturés. Un événement est ajouté ici automatiquement lorsque vous démarrez un 'Nouvel événement'.",
     history_geen: "Aucun événement clôturé.",
     history_afgesloten: "Clôturé le",
@@ -781,7 +809,7 @@ const defaultData = {
   // Kasticket-bedragen: per kasticket (winkel + aankoper + datum). {kasticketKey: bedrag}
   kastickets: {},
   // Kostenbeheer: evenementspecifiek. budget + zaalhuur + vrije manuele kosten
-  kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] }, // manueleKosten: [{id, naam, bedrag}]
+  kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [], kasStart: "", kasBewegingen: [] }, // manueleKosten/kasBewegingen: [{id, naam, bedrag(, type)}]
   // Event History: afgesloten evenementen. [{id, naam, datum, gemeente, afgesloten, budget, zaalhuur, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo}]
   eventHistory: [],
   // Datum (ISO) van de laatste algemene backup — voor de herinnering
@@ -803,21 +831,30 @@ const fmtEuro = (n) => `€ ${(Number(n) || 0).toFixed(2).replace(".", ",")}`;
 
 // Bereken de kostensamenvatting van het huidige evenement
 function berekenKosten(data) {
-  const kb = data.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+  const kb = data.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [], kasStart: "", kasBewegingen: [] };
   const budget = parseBedragNum(kb.budget);
   const zaalhuur = parseBedragNum(kb.zaalhuur);
 
-  // Winkeltotalen: som van alle kasticketbedragen, gegroepeerd per winkel
+  // Winkeltotalen: som van kasticketbedragen per winkel.
+  // Kastickets die "uit de kas" zijn betaald, gaan NIET in het budget —
+  // die verschijnen apart in het kasoverzicht.
   const winkelPerNaam = {};
   const kastickets = data.kastickets || {};
+  let winkelUitKasTotaal = 0;
+  const winkelUitKas = []; // {winkel, bedrag} voor het kasoverzicht
   Object.keys(kastickets).forEach((key) => {
-    const bedrag = parseBedragNum(kastickets[key].bedrag);
+    const kt = kastickets[key];
+    const bedrag = parseBedragNum(kt.bedrag);
     if (bedrag === 0) return;
-    // key = "winkelId|aankoper|datum"
     const winkelId = key.split("|")[0];
     const w = (data.winkels || []).find((x) => x.id === winkelId);
     const naam = w ? w.naam : "—";
-    winkelPerNaam[naam] = (winkelPerNaam[naam] || 0) + bedrag;
+    if (kt.uitKas) {
+      winkelUitKasTotaal += bedrag;
+      winkelUitKas.push({ winkel: naam, bedrag });
+    } else {
+      winkelPerNaam[naam] = (winkelPerNaam[naam] || 0) + bedrag;
+    }
   });
   const winkelTotaal = Object.values(winkelPerNaam).reduce((a, b) => a + b, 0);
 
@@ -825,10 +862,26 @@ function berekenKosten(data) {
   const manueelTotaal = (kb.manueleKosten || [])
     .reduce((a, k) => a + parseBedragNum(k.bedrag), 0);
 
+  // Budget: zaalhuur + winkelkosten (niet uit kas) + manuele kosten
   const totaalUitgegeven = zaalhuur + winkelTotaal + manueelTotaal;
   const saldo = budget - totaalUitgegeven;
 
-  return { budget, zaalhuur, winkelPerNaam, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo };
+  // --- Kasberekening (apart van het budget) ---
+  const kasStart = parseBedragNum(kb.kasStart);
+  let kasIn = 0, kasUit = 0;
+  (kb.kasBewegingen || []).forEach((b) => {
+    const bed = parseBedragNum(b.bedrag);
+    if (b.type === "uit") kasUit += bed;
+    else kasIn += bed;
+  });
+  // Uit-kas-betaalde winkelaankopen tellen ook als kasuitgave
+  const kasUitTotaal = kasUit + winkelUitKasTotaal;
+  const kasEind = kasStart + kasIn - kasUitTotaal;
+
+  return {
+    budget, zaalhuur, winkelPerNaam, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo,
+    kasStart, kasIn, kasUitBewegingen: kasUit, winkelUitKas, winkelUitKasTotaal, kasUitTotaal, kasEind,
+  };
 }
 
 
@@ -1101,6 +1154,16 @@ const normalizeData = (raw) => {
             bedrag: k.bedrag || "",
           }))
         : [],
+      // Kas: startbedrag + bewegingen (type "in" = ontvangst, "uit" = uitgave)
+      kasStart: raw.kostenbeheer.kasStart || "",
+      kasBewegingen: Array.isArray(raw.kostenbeheer.kasBewegingen)
+        ? raw.kostenbeheer.kasBewegingen.map((k) => ({
+            id: k.id || uid(),
+            naam: (k.naam || "").toString(),
+            bedrag: k.bedrag || "",
+            type: k.type === "uit" ? "uit" : "in",
+          }))
+        : [],
     };
   }
 
@@ -1314,7 +1377,7 @@ const helpContentNl = [
       { naam: "Berichten", uitleg: "Genereert per vrijwilliger een persoonlijk bericht met zijn/haar taken in zijn taal. Klik 'Open WhatsApp' om met één klik een chat te openen met de tekst voorgevuld. Bovenaan staat een oranje kader met de materiaalverantwoordelijke." },
       { naam: "Bulk Send", uitleg: "Stuur hetzelfde bericht naar meerdere mensen tegelijk. Selecteer ontvangers (vrijwilligers + externe contacten), filter op taal, optioneel een afbeelding meesturen. App houdt bij wie al een bericht kreeg vandaag (groene markering)." },
       { naam: "Sjablonen", uitleg: "Beheer voorgedefinieerde berichten zoals welkomst, week-herinnering, dag-herinnering. Gebruik placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Sjablonen verschijnen automatisch als knoppen in de Berichten- en Bulk Send-tab." },
-      { naam: "Kostenbeheer", uitleg: "Beheer het budget en alle kosten. Vul budget en zaalhuur in; winkelkosten komen automatisch uit de kastickets (gegroepeerd per winkel). Voeg vrije manuele kosten toe. De app berekent dynamisch het saldo tegenover het budget en toont grafieken. Exporteer alles als PDF voor het secretariaat." },
+      { naam: "Kostenbeheer", uitleg: "Beheer het budget en alle kosten. Vul budget en zaalhuur in; winkelkosten komen automatisch uit de kastickets. Voeg vrije manuele kosten toe. Apart is er een Kas-blok voor het cash geld tijdens het evenement: startbedrag, ontvangsten en uitgaven. Tijdens het evenement gebruik je geen scherm — druk het lege kasblad af, vul het op papier in en tik het nadien over. Kastickets die je ter plekke uit de kas terugbetaalt, vink je in Winkelbestellingen aan als 'Betaald uit kas'. Alles komt in de PDF-export voor het secretariaat." },
       { naam: "Woordenboek", uitleg: "Lijst van NL↔FR vertalingen voor termen die in taken en materiaal voorkomen. Wordt automatisch toegepast wanneer je een NL-naam invult (FR wordt voorgesteld) en omgekeerd." },
       { naam: "Event History", uitleg: "Verschijnt zodra er een afgesloten evenement is. Bij 'Nieuw evenement' wordt het oude evenement hier automatisch bewaard, samen met het volledige kostenresultaat (budget, uitgaven, saldo)." },
     ],
@@ -1372,7 +1435,7 @@ const helpContentFr = [
       { naam: "Messages", uitleg: "Génère par bénévole un message personnel avec ses tâches dans sa langue. Cliquez 'Ouvrir WhatsApp' pour ouvrir une conversation avec le texte pré-rempli. En haut figure un cadre orange avec le responsable du matériel." },
       { naam: "Envoi groupé", uitleg: "Envoyez le même message à plusieurs personnes à la fois. Sélectionnez les destinataires (bénévoles + contacts externes), filtrez par langue, joignez optionnellement une image. L'app suit qui a déjà reçu un message aujourd'hui (marquage vert)." },
       { naam: "Modèles", uitleg: "Gérez des messages prédéfinis comme bienvenue, rappel semaine, rappel jour. Utilisez les placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Les modèles apparaissent automatiquement comme boutons dans Messages et Envoi groupé." },
-      { naam: "Gestion des coûts", uitleg: "Gérez le budget et tous les coûts. Indiquez le budget et la location de salle ; les coûts en magasin proviennent automatiquement des tickets (groupés par magasin). Ajoutez des coûts manuels libres. L'app calcule dynamiquement le solde par rapport au budget et affiche des graphiques. Exportez le tout en PDF pour le secrétariat." },
+      { naam: "Gestion des coûts", uitleg: "Gérez le budget et tous les coûts. Indiquez le budget et la location de salle ; les coûts en magasin proviennent automatiquement des tickets. Ajoutez des coûts manuels libres. Un bloc Caisse séparé gère l'argent liquide pendant l'événement : montant de départ, recettes et dépenses. Pendant l'événement vous n'utilisez pas d'écran — imprimez la feuille de caisse vierge, remplissez-la sur papier et recopiez-la ensuite. Les tickets remboursés sur place avec la caisse se cochent dans Commandes via Magasin comme 'Payé avec la caisse'. Tout figure dans l'export PDF pour le secrétariat." },
       { naam: "Dictionnaire", uitleg: "Liste de traductions NL↔FR pour les termes utilisés dans les tâches et le matériel. Appliqué automatiquement quand vous remplissez un nom NL (FR proposé) et inversement." },
       { naam: "Historique", uitleg: "Apparaît dès qu'un événement est clôturé. Lors d'un 'Nouvel événement', l'ancien événement est sauvegardé ici automatiquement, avec le résultat complet des coûts (budget, dépenses, solde)." },
     ],
@@ -1688,6 +1751,20 @@ function App() {
   const removeManueleKost = (id) => setData((d) => {
     const kb = d.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
     return { ...d, kostenbeheer: { ...kb, manueleKosten: (kb.manueleKosten || []).filter((k) => k.id !== id) } };
+  });
+
+  // Kasbewegingen (cash tijdens evenement)
+  const addKasBeweging = (type) => setData((d) => {
+    const kb = d.kostenbeheer || {};
+    return { ...d, kostenbeheer: { ...kb, kasBewegingen: [...(kb.kasBewegingen || []), { id: uid(), naam: "", bedrag: "", type: type || "in" }] } };
+  });
+  const updateKasBeweging = (id, patch) => setData((d) => {
+    const kb = d.kostenbeheer || {};
+    return { ...d, kostenbeheer: { ...kb, kasBewegingen: (kb.kasBewegingen || []).map((k) => k.id === id ? { ...k, ...patch } : k) } };
+  });
+  const removeKasBeweging = (id) => setData((d) => {
+    const kb = d.kostenbeheer || {};
+    return { ...d, kostenbeheer: { ...kb, kasBewegingen: (kb.kasBewegingen || []).filter((k) => k.id !== id) } };
   });
 
   const addOorsprongLocatie = () => {
@@ -2161,7 +2238,7 @@ function App() {
         // Overgeslagen aandachtspunten resetten — nieuw evenement, schone lei
         overgeslagenAandachtspunten: [],
         // Kostenbeheer leegmaken
-        kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] },
+        kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [], kasStart: "", kasBewegingen: [] },
         // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
         taken: d.taken.map((tt) => ({
           ...tt,
@@ -2307,6 +2384,10 @@ function App() {
           addManueleKost={addManueleKost}
           updateManueleKost={updateManueleKost}
           removeManueleKost={removeManueleKost}
+          addKasBeweging={addKasBeweging}
+          updateKasBeweging={updateKasBeweging}
+          removeKasBeweging={removeKasBeweging}
+          updateKasticket={updateKasticket}
           showToast={showToast}
           t={t} />}
         {tab === "history" && <EventHistoryTab
@@ -5058,6 +5139,12 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, updateKasticket, 
                               onChange={(e) => { handleFoto(kt.key, e.target.files[0]); e.target.value = ""; }} />
                           </Field>
                         </div>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem",
+                          marginTop: "0.5rem", fontSize: "0.83rem", cursor: "pointer" }}>
+                          <input type="checkbox" checked={!!kd.uitKas}
+                            onChange={(e) => updateKasticket(kt.key, { uitKas: e.target.checked })} />
+                          {t.winkel_uit_kas}
+                        </label>
                         {kd.foto && (
                           <div style={{ marginTop: "0.5rem", display: "flex", gap: "0.6rem", alignItems: "flex-start", flexWrap: "wrap" }}>
                             <img src={kd.foto} alt="kasticket"
@@ -5137,7 +5224,8 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, updateKasticket, 
 // ============================================================
 // KOSTENBEHEER — budget, zaalhuur, winkelkosten, manuele kosten, grafiek, PDF
 // ============================================================
-function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManueleKost, removeManueleKost, showToast, t }) {
+function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManueleKost, removeManueleKost,
+  addKasBeweging, updateKasBeweging, removeKasBeweging, updateKasticket, showToast, t }) {
   const lang = data.taal === "fr" ? "fr" : "nl";
   const kb = data.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
   const k = berekenKosten(data);
@@ -5260,6 +5348,51 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
       });
     }
 
+    // Kasoverzicht (cash tijdens evenement)
+    const heeftKas = k.kasStart || k.kasIn || k.kasUitTotaal ||
+      (kb.kasBewegingen || []).length > 0 || k.winkelUitKas.length > 0;
+    if (heeftKas) {
+      nieuwePagina(14);
+      y += 4;
+      doc.setFillColor(232, 213, 205);
+      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(t.kas_titel, marge + 2, y + 5.5);
+      y += 13;
+
+      const kasRegel = (label, waarde, teken, vet) => {
+        nieuwePagina(7);
+        doc.setFont("helvetica", vet ? "bold" : "normal");
+        doc.setFontSize(9.5);
+        doc.text(label, marge + 2, y);
+        doc.text(`${teken || ""}${fmtEuro(waarde)}`, pageW - marge - 2, y, { align: "right" });
+        y += 6;
+      };
+      kasRegel(t.kas_start, k.kasStart, "", true);
+      (kb.kasBewegingen || []).forEach((b) => {
+        const bed = parseBedragNum(b.bedrag);
+        if (bed === 0) return;
+        kasRegel(`  ${b.naam || (b.type === "uit" ? t.kas_uit : t.kas_in)}`, bed, b.type === "uit" ? "− " : "+ ");
+      });
+      k.winkelUitKas.forEach((w) => {
+        kasRegel(`  ${t.kas_winkel}: ${w.winkel}`, w.bedrag, "− ");
+      });
+      y += 1;
+      doc.setDrawColor(217, 207, 193);
+      doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
+      nieuwePagina(12);
+      if (k.kasEind < 0) doc.setFillColor(200, 68, 42); else doc.setFillColor(58, 125, 68);
+      doc.rect(marge, y, pageW - 2 * marge, 10, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.text(t.kas_eindsaldo, marge + 3, y + 6.5);
+      doc.text(fmtEuro(k.kasEind), pageW - marge - 3, y + 6.5, { align: "right" });
+      doc.setTextColor(26, 22, 18);
+      y += 14;
+    }
+
     return doc;
   };
 
@@ -5272,6 +5405,56 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
       doc.save(naam);
       showToast(t.kb_pdf_klaar);
     } finally { setBezig(false); }
+  };
+
+  // Leeg, afdrukbaar kasblad om tijdens het evenement op papier in te vullen
+  const downloadKasblad = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) { alert(t.kb_pdf_fout); return; }
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210, pageH = 297, marge = 16;
+
+    doc.setFillColor(200, 68, 42);
+    doc.rect(0, 0, pageW, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(t.kas_blad_titel, marge, 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${data.event.naam || ""}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
+
+    doc.setTextColor(26, 22, 18);
+    let y = 38;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.text(`${t.kas_start}: __________________`, marge, y);
+    y += 10;
+
+    // Tabelkop
+    const kol = [marge, marge + 28, marge + 116, marge + 150];
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(t.kas_blad_tijd, kol[0], y);
+    doc.text(t.kas_omschrijving, kol[1], y);
+    doc.text(t.kas_blad_in, kol[2], y);
+    doc.text(t.kas_blad_uit, kol[3], y);
+    y += 2;
+    doc.setDrawColor(180, 180, 180);
+    doc.line(marge, y, pageW - marge, y);
+    y += 6;
+
+    // Lege rijen om met de hand in te vullen
+    doc.setFont("helvetica", "normal");
+    while (y < pageH - 30) {
+      doc.line(marge, y + 2, pageW - marge, y + 2);
+      y += 9;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text(`${t.kas_eindsaldo}: __________________`, marge, pageH - 18);
+
+    doc.save(`kasblad_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`);
   };
 
   return (
@@ -5347,6 +5530,94 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
             <button className="btn btn-primary btn-sm" onClick={addManueleKost}>{t.kb_kost_add}</button>
           </div>
         )}
+      </div>
+
+      {/* Kas (cash tijdens evenement) */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>💶 {t.kas_titel}</h3>
+        <p style={{ fontSize: "0.8rem", color: "var(--ink-soft)", marginTop: 0 }}>{t.kas_intro}</p>
+
+        <Field label={t.kas_start}>
+          <input className="input" inputMode="decimal" placeholder="0,00" style={{ maxWidth: 200 }}
+            value={kb.kasStart || ""}
+            onChange={(e) => updateKostenbeheer({ kasStart: e.target.value })} />
+        </Field>
+
+        <div style={{ marginTop: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+            <strong style={{ fontSize: "0.92rem" }}>{t.kas_bewegingen}</strong>
+            <div style={{ display: "flex", gap: "0.3rem" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => addKasBeweging("in")}>{t.kas_add_in}</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => addKasBeweging("uit")}>{t.kas_add_uit}</button>
+            </div>
+          </div>
+          {(kb.kasBewegingen || []).length === 0 ? (
+            <p style={{ fontSize: "0.83rem", color: "var(--ink-soft)", marginBottom: 0 }}>{t.kas_geen}</p>
+          ) : (
+            <div style={{ display: "grid", gap: "0.5rem", marginTop: "0.6rem" }}>
+              {kb.kasBewegingen.map((b) => (
+                <div key={b.id} style={{ display: "grid", gridTemplateColumns: "auto 2fr 1fr auto", gap: "0.5rem", alignItems: "center" }}>
+                  <select className="select" value={b.type} style={{ width: "auto" }}
+                    onChange={(e) => updateKasBeweging(b.id, { type: e.target.value })}>
+                    <option value="in">＋ {t.kas_in}</option>
+                    <option value="uit">－ {t.kas_uit}</option>
+                  </select>
+                  <input className="input" placeholder={t.kas_omschrijving} value={b.naam}
+                    onChange={(e) => updateKasBeweging(b.id, { naam: e.target.value })} />
+                  <input className="input" inputMode="decimal" placeholder="0,00" value={b.bedrag}
+                    onChange={(e) => updateKasBeweging(b.id, { bedrag: e.target.value })} />
+                  <button className="btn btn-danger btn-sm" onClick={() => removeKasBeweging(b.id)}>🗑</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {(kb.kasBewegingen || []).length > 3 && (
+            <div style={{ marginTop: "0.7rem", display: "flex", justifyContent: "center", gap: "0.3rem" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => addKasBeweging("in")}>{t.kas_add_in}</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => addKasBeweging("uit")}>{t.kas_add_uit}</button>
+            </div>
+          )}
+        </div>
+
+        {/* Winkelaankopen uit de kas betaald (automatisch) */}
+        {k.winkelUitKas.length > 0 && (
+          <div style={{ marginTop: "1rem" }}>
+            <strong style={{ fontSize: "0.92rem" }}>{t.kas_winkel_uit}</strong>
+            <p style={{ fontSize: "0.78rem", color: "var(--ink-soft)", margin: "0.2rem 0 0.4rem" }}>{t.kas_winkel_uit_hint}</p>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+              <tbody>
+                {k.winkelUitKas.map((w, i) => (
+                  <tr key={i} style={{ borderTop: "1px solid var(--line)" }}>
+                    <td style={{ padding: "0.35rem 0" }}>{w.winkel}</td>
+                    <td style={{ padding: "0.35rem 0", textAlign: "right" }}>− {fmtEuro(w.bedrag)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Kasoverzicht */}
+        <div style={{ marginTop: "1rem", paddingTop: "0.8rem", borderTop: "1px solid var(--line)",
+          display: "grid", gap: "0.3rem", fontSize: "0.9rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>{t.kas_start}</span><strong>{fmtEuro(k.kasStart)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", color: "#3a7d44" }}>
+            <span>{t.kas_totaal_in}</span><strong>+ {fmtEuro(k.kasIn)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", color: "var(--accent)" }}>
+            <span>{t.kas_totaal_uit}</span><strong>− {fmtEuro(k.kasUitTotaal)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid var(--ink)",
+            marginTop: "0.2rem", paddingTop: "0.3rem", fontWeight: 700 }} className="font-display">
+            <span>{t.kas_eindsaldo}</span><span>{fmtEuro(k.kasEind)}</span>
+          </div>
+        </div>
+
+        <div style={{ marginTop: "0.9rem" }}>
+          <button className="btn btn-ghost btn-sm" onClick={downloadKasblad}>{t.kas_blad_knop}</button>
+        </div>
       </div>
 
       {/* Resultaat + grafiek */}
