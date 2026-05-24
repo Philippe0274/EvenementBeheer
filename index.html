@@ -123,6 +123,11 @@ const T = {
     ap_wa_titel: "Overgeslagen aandachtspunten",
     ap_wa_knop: "📱 Doorsturen naar verantwoordelijke",
     ap_wa_geen_verantw: "⚠ Stel eerst een Event Verantwoordelijke met GSM in (tabblad Event).",
+    dag_titel: "Dagoverzicht — wie doet wat",
+    dag_toon: "Toon overzicht", dag_verberg: "Verberg overzicht",
+    dag_geen: "Nog geen taken toegewezen. Wijs vrijwilligers toe in het tabblad Taken.",
+    dag_per_vrij: "Per vrijwilliger", dag_per_taak: "Per taak",
+    dag_pdf: "⬇ PDF afdrukken", dag_pdf_fout: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
     ev_verantw_titel: "Event Verantwoordelijke",
     ev_verantw_intro: "De projectverantwoordelijke van dit evenement. Kies een vrijwilliger of vul handmatig in.",
     ev_verantw_kies: "Kies uit vrijwilligers", ev_verantw_manueel: "— Handmatig invullen —",
@@ -390,6 +395,11 @@ const T = {
     ap_wa_titel: "Points d'attention ignorés",
     ap_wa_knop: "📱 Transmettre au responsable",
     ap_wa_geen_verantw: "⚠ Définissez d'abord un responsable d'événement avec GSM (onglet Événement).",
+    dag_titel: "Aperçu du jour — qui fait quoi",
+    dag_toon: "Afficher l'aperçu", dag_verberg: "Masquer l'aperçu",
+    dag_geen: "Aucune tâche assignée. Assignez des bénévoles dans l'onglet Tâches.",
+    dag_per_vrij: "Par bénévole", dag_per_taak: "Par tâche",
+    dag_pdf: "⬇ Imprimer le PDF", dag_pdf_fout: "Impossible de créer le PDF (bibliothèque non chargée).",
     ev_verantw_titel: "Responsable de l'événement",
     ev_verantw_intro: "Le responsable de projet de cet événement. Choisissez un bénévole ou remplissez manuellement.",
     ev_verantw_kies: "Choisir parmi les bénévoles", ev_verantw_manueel: "— Saisie manuelle —",
@@ -2430,6 +2440,215 @@ function WeerKaart({ event, lang, t }) {
   );
 }
 
+// ============================================================
+// DAGOVERZICHT — wie doet welke taak/shift (per vrijwilliger of per taak)
+// ============================================================
+function DagoverzichtBlok({ data, t }) {
+  const lang = data.taal === "fr" ? "fr" : "nl";
+  const [modus, setModus] = React.useState("vrijwilliger"); // vrijwilliger | taak
+  const [open, setOpen] = React.useState(false);
+
+  const taakNaam = (tt) => capitalize(lang === "fr" ? (tt.naamFr || tt.naamNl) : (tt.naamNl || tt.naamFr)) || "?";
+  const subNaam = (s) => capitalize(lang === "fr" ? (s.naamFr || s.naamNl) : (s.naamNl || s.naamFr)) || "?";
+  const vrijNaam = (v) => `${v.voornaam || ""} ${v.naam || ""}`.trim() || "?";
+
+  // Tijdslot leesbaar maken
+  const slotTekst = (unit) => {
+    if (unit.start && unit.eind) return `${unit.start}–${unit.eind}`;
+    return lang === "fr" ? "horaire non précisé" : "geen tijdslot";
+  };
+
+  // ----- Groepering per vrijwilliger -----
+  const perVrijwilliger = data.vrijwilligers
+    .map((v) => ({
+      naam: vrijNaam(v),
+      gsm: v.gsm1 || "",
+      units: getAllUnitsForVolunteer(v.id, data.taken, lang),
+    }))
+    .filter((x) => x.units.length > 0)
+    .sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase()));
+
+  // ----- Groepering per taak -----
+  const perTaak = [];
+  data.taken.forEach((tt) => {
+    if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+      tt.subtaken.forEach((s) => {
+        const mensen = (s.toegewezen || [])
+          .map((id) => data.vrijwilligers.find((v) => v.id === id))
+          .filter(Boolean);
+        if (mensen.length > 0) {
+          perTaak.push({
+            label: `${taakNaam(tt)} — ${subNaam(s)}`,
+            slot: slotTekst(s),
+            mensen: mensen.map((v) => ({ naam: vrijNaam(v), gsm: v.gsm1 || "" })),
+          });
+        }
+      });
+    } else {
+      const mensen = (tt.toegewezen || [])
+        .map((id) => data.vrijwilligers.find((v) => v.id === id))
+        .filter(Boolean);
+      if (mensen.length > 0) {
+        perTaak.push({
+          label: taakNaam(tt),
+          slot: slotTekst(tt),
+          mensen: mensen.map((v) => ({ naam: vrijNaam(v), gsm: v.gsm1 || "" })),
+        });
+      }
+    }
+  });
+  perTaak.sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
+
+  const heeftToewijzingen = perVrijwilliger.length > 0 || perTaak.length > 0;
+
+  // ----- PDF -----
+  const genereerPDF = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) { alert(t.dag_pdf_fout); return; }
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210, pageH = 297, marge = 16;
+    let y = marge;
+    const nieuwePagina = (nodig) => { if (y + nodig > pageH - marge) { doc.addPage(); y = marge; } };
+
+    // Kop
+    doc.setFillColor(200, 68, 42);
+    doc.rect(0, 0, pageW, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(t.dag_titel, marge, 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${data.event.naam || t.no_event}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
+    y = 36;
+    doc.setTextColor(26, 22, 18);
+
+    const kolX = [marge, marge + 70, marge + 140];
+
+    if (modus === "vrijwilliger") {
+      perVrijwilliger.forEach((p) => {
+        nieuwePagina(14);
+        doc.setFillColor(232, 213, 205);
+        doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10.5);
+        doc.text(p.naam, marge + 2, y + 5.5);
+        if (p.gsm) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.text(p.gsm, pageW - marge - 2, y + 5.5, { align: "right" });
+        }
+        y += 11;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        p.units.forEach((u) => {
+          nieuwePagina(6);
+          doc.text(`• ${u.label}`, marge + 3, y);
+          doc.text(slotTekst(u.unit), pageW - marge - 2, y, { align: "right" });
+          y += 5.5;
+        });
+        y += 3;
+      });
+    } else {
+      perTaak.forEach((tk) => {
+        nieuwePagina(14);
+        doc.setFillColor(232, 213, 205);
+        doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10.5);
+        doc.text(tk.label, marge + 2, y + 5.5);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.text(tk.slot, pageW - marge - 2, y + 5.5, { align: "right" });
+        y += 11;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        tk.mensen.forEach((m) => {
+          nieuwePagina(6);
+          doc.text(`• ${m.naam}`, marge + 3, y);
+          if (m.gsm) doc.text(m.gsm, pageW - marge - 2, y, { align: "right" });
+          y += 5.5;
+        });
+        y += 3;
+      });
+    }
+
+    const naam = `dagoverzicht_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+    doc.save(naam);
+  };
+
+  return (
+    <div className="card" style={{ marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+        <h3 className="font-display" style={{ margin: 0, fontSize: "1.15rem" }}>📋 {t.dag_titel}</h3>
+        <button className="btn btn-ghost btn-sm" onClick={() => setOpen(!open)}>
+          {open ? t.dag_verberg : t.dag_toon}
+        </button>
+      </div>
+
+      {open && (
+        <div style={{ marginTop: "1rem" }}>
+          {!heeftToewijzingen ? (
+            <p style={{ color: "var(--ink-soft)", fontSize: "0.88rem" }}>{t.dag_geen}</p>
+          ) : (
+            <div>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                <button className={modus === "vrijwilliger" ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"}
+                  onClick={() => setModus("vrijwilliger")}>{t.dag_per_vrij}</button>
+                <button className={modus === "taak" ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"}
+                  onClick={() => setModus("taak")}>{t.dag_per_taak}</button>
+                <button className="btn btn-whatsapp btn-sm" onClick={genereerPDF}
+                  style={{ marginLeft: "auto" }}>{t.dag_pdf}</button>
+              </div>
+
+              {modus === "vrijwilliger" ? (
+                <div style={{ display: "grid", gap: "0.8rem" }}>
+                  {perVrijwilliger.map((p, i) => (
+                    <div key={i} style={{ borderLeft: "3px solid var(--accent)", paddingLeft: "0.8rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                        <strong style={{ fontSize: "0.92rem" }}>{p.naam}</strong>
+                        {p.gsm && <span style={{ fontSize: "0.82rem", color: "var(--ink-soft)" }}>{p.gsm}</span>}
+                      </div>
+                      <div style={{ marginTop: "0.3rem", display: "grid", gap: "0.2rem" }}>
+                        {p.units.map((u, j) => (
+                          <div key={j} style={{ display: "flex", justifyContent: "space-between",
+                            fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                            <span>• {u.label}</span>
+                            <span>{slotTekst(u.unit)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: "0.8rem" }}>
+                  {perTaak.map((tk, i) => (
+                    <div key={i} style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "0.8rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                        <strong style={{ fontSize: "0.92rem" }}>{tk.label}</strong>
+                        <span style={{ fontSize: "0.82rem", color: "var(--ink-soft)" }}>{tk.slot}</span>
+                      </div>
+                      <div style={{ marginTop: "0.3rem", display: "grid", gap: "0.2rem" }}>
+                        {tk.mensen.map((m, j) => (
+                          <div key={j} style={{ display: "flex", justifyContent: "space-between",
+                            fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                            <span>• {m.naam}</span>
+                            {m.gsm && <span>{m.gsm}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 function Dashboard({ data, dagen, setTab, slaAandachtspuntOver, herstelAandachtspunten, t }) {
   const allUnits = [];
   data.taken.forEach((tt) => {
@@ -2662,6 +2881,8 @@ function Dashboard({ data, dagen, setTab, slaAandachtspuntOver, herstelAandachts
           )}
         </div>
       )}
+
+      {heeftData && <DagoverzichtBlok data={data} t={t} />}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
         <div className="card">
