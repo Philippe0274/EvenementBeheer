@@ -108,6 +108,16 @@ const T = {
     import_merge: "⬆ Importeer (samenvoegen)",
     import_replace: "⬆ Importeer (vervang alles)",
     export: "⬇ Exporteer Excel",
+    backup_knop: "ALGEMENE BACKUP",
+    backup_titel: "Maak een volledige, verliesvrije backup van alle gegevens (.json-bestand)",
+    herstel_knop: "⬆ Backup herstellen", herstel_titel: "Een eerder gemaakt .json-backupbestand terugzetten",
+    backup_gemaakt: "✓ Algemene backup gedownload",
+    backup_fout: "De backup is niet gelukt. Probeer opnieuw.",
+    herstel_bevestig: "Een backup herstellen VERVANGT alle huidige gegevens door die uit het backupbestand.\n\nMaak eventueel eerst een algemene backup van de huidige toestand.\n\nDoorgaan?",
+    herstel_ok: "✓ Backup hersteld",
+    herstel_ongeldig: "Dit is geen geldig backupbestand (.json). Controleer of je het juiste bestand koos.",
+    backup_nooit: "Je hebt nog geen algemene backup gemaakt. Klik op 'ALGEMENE BACKUP' bovenaan om je werk veilig te stellen.",
+    backup_herinnering: (n) => `Je laatste algemene backup is ${n} dagen geleden. Tijd voor een nieuwe — klik op 'ALGEMENE BACKUP' bovenaan.`,
     reset: "Reset",
     help_button: "Werking", help_close: "Sluiten",
     nieuw_evenement: "Nieuw evenement",
@@ -346,6 +356,16 @@ const T = {
     import_merge: "⬆ Importer (fusionner)",
     import_replace: "⬆ Importer (tout remplacer)",
     export: "⬇ Exporter Excel",
+    backup_knop: "BACKUP GÉNÉRAL",
+    backup_titel: "Créez une sauvegarde complète et sans perte de toutes les données (fichier .json)",
+    herstel_knop: "⬆ Restaurer une sauvegarde", herstel_titel: "Restaurer un fichier de sauvegarde .json créé précédemment",
+    backup_gemaakt: "✓ Sauvegarde générale téléchargée",
+    backup_fout: "La sauvegarde a échoué. Réessayez.",
+    herstel_bevestig: "Restaurer une sauvegarde REMPLACE toutes les données actuelles par celles du fichier de sauvegarde.\n\nFaites éventuellement d'abord une sauvegarde générale de l'état actuel.\n\nContinuer ?",
+    herstel_ok: "✓ Sauvegarde restaurée",
+    herstel_ongeldig: "Ce n'est pas un fichier de sauvegarde valide (.json). Vérifiez que vous avez choisi le bon fichier.",
+    backup_nooit: "Vous n'avez pas encore fait de sauvegarde générale. Cliquez sur 'BACKUP GÉNÉRAL' en haut pour protéger votre travail.",
+    backup_herinnering: (n) => `Votre dernière sauvegarde générale date de ${n} jours. Il est temps d'en faire une nouvelle — cliquez sur 'BACKUP GÉNÉRAL' en haut.`,
     reset: "Réinitialiser",
     help_button: "Fonctionnement", help_close: "Fermer",
     nieuw_evenement: "Nouvel événement",
@@ -716,6 +736,8 @@ const defaultData = {
   kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] }, // manueleKosten: [{id, naam, bedrag}]
   // Event History: afgesloten evenementen. [{id, naam, datum, gemeente, afgesloten, budget, zaalhuur, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo}]
   eventHistory: [],
+  // Datum (ISO) van de laatste algemene backup — voor de herinnering
+  laatsteBackup: "",
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -1046,6 +1068,11 @@ const normalizeData = (raw) => {
       }));
   }
 
+  // Datum van de laatste algemene backup
+  if (typeof raw.laatsteBackup === "string") {
+    safe.laatsteBackup = raw.laatsteBackup;
+  }
+
   return safe;
 };
 
@@ -1212,7 +1239,9 @@ const helpContentNl = [
       { naam: "⬇ Sjabloon", uitleg: "Downloadt een leeg Excel-sjabloon met de juiste structuur. Handig om te zien hoe de import-bestanden eruit moeten zien." },
       { naam: "⬆ Importeer (samenvoegen)", uitleg: "Leest een Excel-bestand in en VOEGT TOE aan wat er al staat. Bestaande data blijft behouden, nieuwe items komen erbij. Aanbevolen voor PC-naar-PC overdracht." },
       { naam: "⬆ Importeer (vervang alles)", uitleg: "VERVANGT ALLE data door wat in de Excel staat. Gebruik enkel als je opnieuw wil beginnen of een verse start wil. Je huidige werk gaat verloren!" },
-      { naam: "⬇ Exporteer Excel", uitleg: "Downloadt alle data als één Excel-bestand. Gebruik voor backup of om te delen met je vrouw op de andere PC." },
+      { naam: "⬇ Exporteer Excel", uitleg: "Downloadt alle data als één Excel-bestand. Handig om in te kijken of te bewerken, of om te delen met de andere PC." },
+      { naam: "💾 ALGEMENE BACKUP", uitleg: "Downloadt een volledige, verliesvrije backup van álle gegevens als .json-bestand (inclusief foto's en alle koppelingen). Dit is je veiligste reservekopie. Bewaar het bestand op een veilige plek. Maak regelmatig een backup — de app herinnert je eraan na 7 dagen." },
+      { naam: "⬆ Backup herstellen", uitleg: "Zet een eerder gemaakt .json-backupbestand volledig terug. Let op: dit vervangt alle huidige gegevens. De app vraagt eerst bevestiging." },
       { naam: "🆕 Nieuw evenement", uitleg: "Start een nieuw evenement zonder de stamlijsten kwijt te raken. Wist event-info, taaktoewijzingen, statussen, verantwoordelijken en bulk-zendgeschiedenis. Behoudt vrijwilligers, taken, materiaal, sjablonen, woordenboek en externe contacten. Maak eerst een Excel-export als archief van het vorige evenement!" },
       { naam: "⚠️ Reset", uitleg: "Wist ALLE gegevens uit deze browser. Vraagt eerst bevestiging. Maak eerst een Excel-export voor je dit doet!" },
     ],
@@ -1257,7 +1286,9 @@ const helpContentFr = [
       { naam: "⬇ Modèle", uitleg: "Télécharge un modèle Excel vide avec la bonne structure. Pratique pour voir à quoi doivent ressembler les fichiers d'import." },
       { naam: "⬆ Importer (fusionner)", uitleg: "Lit un fichier Excel et AJOUTE à ce qui existe déjà. Les données existantes sont conservées, les nouveaux éléments s'ajoutent. Recommandé pour le transfert d'un PC à l'autre." },
       { naam: "⬆ Importer (tout remplacer)", uitleg: "REMPLACE TOUTES les données par celles de l'Excel. À utiliser uniquement pour repartir de zéro. Votre travail actuel sera perdu !" },
-      { naam: "⬇ Exporter Excel", uitleg: "Télécharge toutes les données dans un fichier Excel unique. À utiliser pour sauvegarde ou pour partager avec votre conjoint(e) sur l'autre PC." },
+      { naam: "⬇ Exporter Excel", uitleg: "Télécharge toutes les données dans un fichier Excel unique. Pratique pour consulter ou modifier, ou pour partager avec l'autre PC." },
+      { naam: "💾 BACKUP GÉNÉRAL", uitleg: "Télécharge une sauvegarde complète et sans perte de TOUTES les données en fichier .json (y compris photos et liens). C'est votre copie de secours la plus sûre. Conservez le fichier en lieu sûr. Faites une sauvegarde régulièrement — l'app vous le rappelle après 7 jours." },
+      { naam: "⬆ Restaurer une sauvegarde", uitleg: "Restaure intégralement un fichier de sauvegarde .json créé précédemment. Attention : cela remplace toutes les données actuelles. L'app demande d'abord confirmation." },
       { naam: "🆕 Nouvel événement", uitleg: "Démarrer un nouvel événement sans perdre les listes de base. Efface les infos de l'événement, les assignations, statuts, responsables et l'historique des envois groupés. Conserve les bénévoles, tâches, matériel, modèles, dictionnaire et contacts externes. Faites d'abord une exportation Excel comme archive de l'événement précédent !" },
       { naam: "⚠️ Réinitialiser", uitleg: "Efface TOUTES les données de ce navigateur. Demande d'abord confirmation. Faites d'abord une exportation Excel avant de cliquer !" },
     ],
@@ -1954,6 +1985,55 @@ function App() {
     if (confirm(t.confirm_reset)) setData(defaultData);
   };
 
+  // Algemene backup: volledige app-data als .json (verliesvrij)
+  const algemeneBackup = () => {
+    try {
+      const nu = new Date();
+      const stempel = nu.toISOString().slice(0, 10) + "_" +
+        String(nu.getHours()).padStart(2, "0") + String(nu.getMinutes()).padStart(2, "0");
+      // De backup-datum mee opslaan in de geëxporteerde data
+      const teExporteren = { ...data, laatsteBackup: nu.toISOString() };
+      const blob = new Blob([JSON.stringify(teExporteren, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `backup_volledig_${data.event.naam ? data.event.naam.replace(/[^a-z0-9]/gi, "_") + "_" : ""}${stempel}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      // Datum onthouden zodat de herinnering reset
+      setData((d) => ({ ...d, laatsteBackup: nu.toISOString() }));
+      showToast(t.backup_gemaakt);
+    } catch (e) {
+      console.error(e);
+      alert(t.backup_fout);
+    }
+  };
+
+  // Backup herstellen: .json inlezen en de volledige data vervangen
+  const herstelBackup = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const ingelezen = JSON.parse(ev.target.result);
+        if (!ingelezen || typeof ingelezen !== "object" || !Array.isArray(ingelezen.vrijwilligers)) {
+          alert(t.herstel_ongeldig);
+          return;
+        }
+        if (!confirm(t.herstel_bevestig)) return;
+        setData(normalizeData(ingelezen));
+        showToast(t.herstel_ok);
+      } catch (e) {
+        console.error(e);
+        alert(t.herstel_ongeldig);
+      }
+    };
+    reader.onerror = () => alert(t.herstel_ongeldig);
+    reader.readAsText(file);
+  };
+
   const nieuwEvenement = () => {
     if (!confirm(t.confirm_nieuw_evenement)) return;
     // Stap 1: automatische Excel-backup van het huidige evenement
@@ -2044,6 +2124,14 @@ function App() {
                   onChange={(e) => e.target.files[0] && importExcelReplace(e.target.files[0])} />
               </label>
               <button className="btn btn-primary btn-sm" onClick={() => exportExcel(false)}>{t.export}</button>
+              <button className="btn btn-primary btn-sm" onClick={algemeneBackup} title={t.backup_titel}>
+                💾 {t.backup_knop}
+              </button>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }} title={t.herstel_titel}>
+                {t.herstel_knop}
+                <input type="file" accept=".json" style={{ display: "none" }}
+                  onChange={(e) => { herstelBackup(e.target.files[0]); e.target.value = ""; }} />
+              </label>
               <button className="btn btn-ghost btn-sm" onClick={nieuwEvenement} title={t.nieuw_evenement}>
                 🆕 {t.nieuw_evenement}
               </button>
@@ -2277,12 +2365,30 @@ function Dashboard({ data, dagen, setTab, t }) {
     else if (dagen <= 7) alert = { type: "amber", text: `${t.event_in_days(dagen)} ${t.week_reminder_time}`, cta: t.to_messages };
   }
 
+  // Backup-herinnering: ouder dan 7 dagen of nog nooit
+  let backupHerinnering = null;
+  const heeftData = data.vrijwilligers.length > 0 || data.taken.length > 0 || (data.materiaal || []).length > 0;
+  if (heeftData) {
+    if (!data.laatsteBackup) {
+      backupHerinnering = t.backup_nooit;
+    } else {
+      const dagenGeleden = Math.floor((Date.now() - new Date(data.laatsteBackup).getTime()) / 86400000);
+      if (dagenGeleden >= 7) backupHerinnering = t.backup_herinnering(dagenGeleden);
+    }
+  }
+
   return (
     <div>
       {alert && (
         <div className={`alert-bar alert-${alert.type}`}>
           <span style={{ fontWeight: 500 }}>{alert.text}</span>
           {alert.cta && <button className="btn btn-primary btn-sm" onClick={() => setTab("berichten")}>{alert.cta}</button>}
+        </div>
+      )}
+
+      {backupHerinnering && (
+        <div className="alert-bar alert-amber">
+          <span style={{ fontWeight: 500 }}>💾 {backupHerinnering}</span>
         </div>
       )}
 
