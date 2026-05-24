@@ -117,6 +117,16 @@ const T = {
     ap_mat_geen_winkel: "Winkelmateriaal zonder gekozen winkel",
     ap_best_geen_info: "Winkelbestellingen zonder datum of aankoper",
     ap_kasticket_geen_bedrag: "Kastickets zonder ingevuld bedrag",
+    ap_shift_overlap: "Shiftoverlappingen",
+    ap_overslaan: "Overslaan", ap_herstel: "↺ Verborgen punten herstellen",
+    ap_overgeslagen: "Overgeslagen",
+    ap_wa_titel: "Overgeslagen aandachtspunten",
+    ap_wa_knop: "📱 Doorsturen naar verantwoordelijke",
+    ap_wa_geen_verantw: "⚠ Stel eerst een Event Verantwoordelijke met GSM in (tabblad Event).",
+    ev_verantw_titel: "Event Verantwoordelijke",
+    ev_verantw_intro: "De projectverantwoordelijke van dit evenement. Kies een vrijwilliger of vul handmatig in.",
+    ev_verantw_kies: "Kies uit vrijwilligers", ev_verantw_manueel: "— Handmatig invullen —",
+    ev_verantw_naam: "Naam", ev_verantw_gsm: "GSM-nummer",
     backup_knop: "ALGEMENE BACKUP",
     backup_titel: "Maak een volledige, verliesvrije backup van alle gegevens (.json-bestand)",
     herstel_knop: "⬆ Backup herstellen", herstel_titel: "Een eerder gemaakt .json-backupbestand terugzetten",
@@ -374,6 +384,16 @@ const T = {
     ap_mat_geen_winkel: "Matériel de magasin sans magasin choisi",
     ap_best_geen_info: "Commandes via magasin sans date ou acheteur",
     ap_kasticket_geen_bedrag: "Tickets sans montant renseigné",
+    ap_shift_overlap: "Chevauchements de shifts",
+    ap_overslaan: "Ignorer", ap_herstel: "↺ Restaurer les points masqués",
+    ap_overgeslagen: "Ignorés",
+    ap_wa_titel: "Points d'attention ignorés",
+    ap_wa_knop: "📱 Transmettre au responsable",
+    ap_wa_geen_verantw: "⚠ Définissez d'abord un responsable d'événement avec GSM (onglet Événement).",
+    ev_verantw_titel: "Responsable de l'événement",
+    ev_verantw_intro: "Le responsable de projet de cet événement. Choisissez un bénévole ou remplissez manuellement.",
+    ev_verantw_kies: "Choisir parmi les bénévoles", ev_verantw_manueel: "— Saisie manuelle —",
+    ev_verantw_naam: "Nom", ev_verantw_gsm: "Numéro GSM",
     backup_knop: "BACKUP GÉNÉRAL",
     backup_titel: "Créez une sauvegarde complète et sans perte de toutes les données (fichier .json)",
     herstel_knop: "⬆ Restaurer une sauvegarde", herstel_titel: "Restaurer un fichier de sauvegarde .json créé précédemment",
@@ -725,7 +745,7 @@ const defaultSjablonen = [
 
 const defaultData = {
   taal: "nl",
-  event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
+  event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "", verantwId: "", verantwNaam: "", verantwGsm: "" },
   vrijwilligers: [],
   taken: [],
   woordenboek: defaultDictionary,
@@ -756,6 +776,8 @@ const defaultData = {
   eventHistory: [],
   // Datum (ISO) van de laatste algemene backup — voor de herinnering
   laatsteBackup: "",
+  // Categorieën van aandachtspunten die de gebruiker heeft overgeslagen (blijvend)
+  overgeslagenAandachtspunten: [],
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -1091,6 +1113,11 @@ const normalizeData = (raw) => {
     safe.laatsteBackup = raw.laatsteBackup;
   }
 
+  // Overgeslagen aandachtspunt-categorieën
+  if (Array.isArray(raw.overgeslagenAandachtspunten)) {
+    safe.overgeslagenAandachtspunten = raw.overgeslagenAandachtspunten.filter((x) => typeof x === "string");
+  }
+
   return safe;
 };
 
@@ -1260,15 +1287,15 @@ const helpContentNl = [
       { naam: "⬇ Exporteer Excel", uitleg: "Downloadt alle data als één Excel-bestand. Handig om in te kijken of te bewerken, of om te delen met de andere PC." },
       { naam: "💾 ALGEMENE BACKUP", uitleg: "Downloadt een volledige, verliesvrije backup van álle gegevens als .json-bestand (inclusief foto's en alle koppelingen). Dit is je veiligste reservekopie. Bewaar het bestand op een veilige plek. Maak regelmatig een backup — de app herinnert je eraan na 7 dagen." },
       { naam: "⬆ Backup herstellen", uitleg: "Zet een eerder gemaakt .json-backupbestand volledig terug. Let op: dit vervangt alle huidige gegevens. De app vraagt eerst bevestiging." },
-      { naam: "🆕 Nieuw evenement", uitleg: "Start een nieuw evenement zonder de stamlijsten kwijt te raken. Wist event-info, taaktoewijzingen, statussen, verantwoordelijken en bulk-zendgeschiedenis. Behoudt vrijwilligers, taken, materiaal, sjablonen, woordenboek en externe contacten. Maak eerst een Excel-export als archief van het vorige evenement!" },
+      { naam: "🆕 Nieuw evenement", uitleg: "Start een nieuw evenement zonder de stamlijsten kwijt te raken. Downloadt eerst automatisch een Excel-backup. Het oude evenement gaat met zijn kostenresultaat naar Event History. Wist event-info, Event Verantwoordelijke, taaktoewijzingen, materiaalaantallen, winkelbestellingen, kosten en overgeslagen aandachtspunten. Behoudt vrijwilligers, taken, materiaallijst, winkels, sjablonen, woordenboek en externe contacten." },
       { naam: "⚠️ Reset", uitleg: "Wist ALLE gegevens uit deze browser. Vraagt eerst bevestiging. Maak eerst een Excel-export voor je dit doet!" },
     ],
   },
   {
     titel: "Tabbladen",
     items: [
-      { naam: "Dashboard", uitleg: "Overzicht: dagen tot het evenement, aantal vrijwilligers, taakstatussen, en herinneringen wanneer het tijd is om berichten te sturen." },
-      { naam: "Event", uitleg: "Basisinfo van het evenement: naam, datum, locatie. Genereert automatisch links naar Google Maps en de NMBS-routeplanner." },
+      { naam: "Dashboard", uitleg: "Overzicht: dagen tot het evenement, aantal vrijwilligers, taakstatussen, het weer op de evenementlocatie, en het blok Aandachtspunten dat toont wat nog moet gebeuren." },
+      { naam: "Event", uitleg: "Basisinfo van het evenement: naam, datum, locatie. Genereert automatisch links naar Google Maps en de NMBS-routeplanner. Hier stel je ook de Event Verantwoordelijke in — de projectverantwoordelijke naar wie overgeslagen aandachtspunten kunnen worden doorgestuurd." },
       { naam: "Vrijwilligers", uitleg: "Beheer alle vrijwilligers met contactinfo, taal (NL/FR), beschikbaarheid en adres. GSM 1 wordt gebruikt voor WhatsApp, GSM 2 is enkel ter info. Het veld 'Roepnaam' is optioneel: is het ingevuld, dan gebruiken alle sjablonen die roepnaam in plaats van de voornaam." },
       { naam: "Taken", uitleg: "Maak taken aan en wijs vrijwilligers toe. Een taak met meerdere onderdelen kan je opsplitsen in subtaken via de schakelaar 'Heeft subtaken'. Naam wordt automatisch vertaald via het woordenboek." },
       { naam: "Materiaal", uitleg: "Beheer alle materiaal met aantal, oorsprong en verantwoordelijke. Kies je als oorsprong 'Winkel_Magasin', dan verschijnt een winkel-keuzelijst voor die rij. Lijst blijft beschikbaar voor volgende evenementen." },
@@ -1280,6 +1307,17 @@ const helpContentNl = [
       { naam: "Kostenbeheer", uitleg: "Beheer het budget en alle kosten. Vul budget en zaalhuur in; winkelkosten komen automatisch uit de kastickets (gegroepeerd per winkel). Voeg vrije manuele kosten toe. De app berekent dynamisch het saldo tegenover het budget en toont grafieken. Exporteer alles als PDF voor het secretariaat." },
       { naam: "Woordenboek", uitleg: "Lijst van NL↔FR vertalingen voor termen die in taken en materiaal voorkomen. Wordt automatisch toegepast wanneer je een NL-naam invult (FR wordt voorgesteld) en omgekeerd." },
       { naam: "Event History", uitleg: "Verschijnt zodra er een afgesloten evenement is. Bij 'Nieuw evenement' wordt het oude evenement hier automatisch bewaard, samen met het volledige kostenresultaat (budget, uitgaven, saldo)." },
+    ],
+  },
+  {
+    titel: "Aandachtspunten op het Dashboard",
+    intro: "Het blok Aandachtspunten toont wat nog half af is, zodat je niets vergeet. Lege items worden overgeslagen — alleen echt onafgewerkte zaken verschijnen.",
+    items: [
+      { naam: "Wat wordt gecontroleerd", uitleg: "Taken zonder verantwoordelijke, taken zonder toegewezen vrijwilliger, shiftoverlappingen, vrijwilligers zonder GSM, materiaal zonder oorsprong of zonder winkel, en winkelbestellingen zonder datum, aankoper of bedrag." },
+      { naam: "Materiaal met aantal 0", uitleg: "Materiaal waarvan het aantal leeg of 0 is, telt niet mee — dat is niet nodig voor dit evenement en wordt niet als aandachtspunt getoond." },
+      { naam: "Oplossen →", uitleg: "Springt rechtstreeks naar het juiste tabblad. Bovenaan dat tabblad verschijnt dan '← Terug naar Dashboard'." },
+      { naam: "Overslaan", uitleg: "Verbergt een hele categorie aandachtspunten (bv. als sommige taken bewust geen verantwoordelijke hebben). Dit wordt onthouden, ook na het heropenen van de app. Met '↺ Verborgen punten herstellen' maak je alles weer zichtbaar." },
+      { naam: "Doorsturen naar verantwoordelijke", uitleg: "Zodra er punten zijn overgeslagen, verschijnt een WhatsApp-knop die alle overgeslagen aandachtspunten in één bericht naar de Event Verantwoordelijke stuurt. Stel die eerst in op het tabblad Event." },
     ],
   },
   {
@@ -1307,15 +1345,15 @@ const helpContentFr = [
       { naam: "⬇ Exporter Excel", uitleg: "Télécharge toutes les données dans un fichier Excel unique. Pratique pour consulter ou modifier, ou pour partager avec l'autre PC." },
       { naam: "💾 BACKUP GÉNÉRAL", uitleg: "Télécharge une sauvegarde complète et sans perte de TOUTES les données en fichier .json (y compris photos et liens). C'est votre copie de secours la plus sûre. Conservez le fichier en lieu sûr. Faites une sauvegarde régulièrement — l'app vous le rappelle après 7 jours." },
       { naam: "⬆ Restaurer une sauvegarde", uitleg: "Restaure intégralement un fichier de sauvegarde .json créé précédemment. Attention : cela remplace toutes les données actuelles. L'app demande d'abord confirmation." },
-      { naam: "🆕 Nouvel événement", uitleg: "Démarrer un nouvel événement sans perdre les listes de base. Efface les infos de l'événement, les assignations, statuts, responsables et l'historique des envois groupés. Conserve les bénévoles, tâches, matériel, modèles, dictionnaire et contacts externes. Faites d'abord une exportation Excel comme archive de l'événement précédent !" },
+      { naam: "🆕 Nouvel événement", uitleg: "Démarrer un nouvel événement sans perdre les listes de base. Télécharge d'abord automatiquement une sauvegarde Excel. L'ancien événement passe avec son résultat de coûts vers l'Historique. Efface les infos de l'événement, le responsable, les assignations, quantités de matériel, commandes magasin, coûts et points d'attention ignorés. Conserve les bénévoles, tâches, liste de matériel, magasins, modèles, dictionnaire et contacts externes." },
       { naam: "⚠️ Réinitialiser", uitleg: "Efface TOUTES les données de ce navigateur. Demande d'abord confirmation. Faites d'abord une exportation Excel avant de cliquer !" },
     ],
   },
   {
     titel: "Onglets",
     items: [
-      { naam: "Tableau de bord", uitleg: "Aperçu : jours avant l'événement, nombre de bénévoles, statut des tâches, et rappels pour envoyer les messages." },
-      { naam: "Événement", uitleg: "Informations de base : nom, date, lieu. Génère automatiquement des liens vers Google Maps et le planificateur SNCB." },
+      { naam: "Tableau de bord", uitleg: "Aperçu : jours avant l'événement, nombre de bénévoles, statut des tâches, la météo sur le lieu de l'événement, et le bloc Points d'attention qui montre ce qu'il reste à faire." },
+      { naam: "Événement", uitleg: "Informations de base : nom, date, lieu. Génère automatiquement des liens vers Google Maps et le planificateur SNCB. Vous y définissez aussi le Responsable de l'événement — le responsable de projet vers qui les points d'attention ignorés peuvent être transmis." },
       { naam: "Bénévoles", uitleg: "Gérez tous les bénévoles avec coordonnées, langue (NL/FR), disponibilité et adresse. GSM 1 est utilisé pour WhatsApp, GSM 2 est uniquement informatif. Le champ 'Surnom' est optionnel : s'il est rempli, tous les modèles utilisent ce surnom à la place du prénom." },
       { naam: "Tâches", uitleg: "Créez des tâches et assignez des bénévoles. Une tâche à plusieurs parties peut être divisée en sous-tâches via l'interrupteur 'A des sous-tâches'. Le nom est traduit automatiquement via le dictionnaire." },
       { naam: "Matériel", uitleg: "Gérez tout le matériel avec quantité, source et responsable. Si vous choisissez la source 'Winkel_Magasin', une liste de magasins apparaît pour cette ligne. La liste reste disponible pour les événements suivants." },
@@ -1327,6 +1365,17 @@ const helpContentFr = [
       { naam: "Gestion des coûts", uitleg: "Gérez le budget et tous les coûts. Indiquez le budget et la location de salle ; les coûts en magasin proviennent automatiquement des tickets (groupés par magasin). Ajoutez des coûts manuels libres. L'app calcule dynamiquement le solde par rapport au budget et affiche des graphiques. Exportez le tout en PDF pour le secrétariat." },
       { naam: "Dictionnaire", uitleg: "Liste de traductions NL↔FR pour les termes utilisés dans les tâches et le matériel. Appliqué automatiquement quand vous remplissez un nom NL (FR proposé) et inversement." },
       { naam: "Historique", uitleg: "Apparaît dès qu'un événement est clôturé. Lors d'un 'Nouvel événement', l'ancien événement est sauvegardé ici automatiquement, avec le résultat complet des coûts (budget, dépenses, solde)." },
+    ],
+  },
+  {
+    titel: "Points d'attention sur le tableau de bord",
+    intro: "Le bloc Points d'attention montre ce qui est encore à moitié fait, pour ne rien oublier. Les éléments vides sont ignorés — seules les choses vraiment inachevées apparaissent.",
+    items: [
+      { naam: "Ce qui est contrôlé", uitleg: "Tâches sans responsable, tâches sans bénévole assigné, chevauchements de shifts, bénévoles sans GSM, matériel sans source ou sans magasin, et commandes via magasin sans date, acheteur ou montant." },
+      { naam: "Matériel avec quantité 0", uitleg: "Le matériel dont la quantité est vide ou 0 ne compte pas — il n'est pas nécessaire pour cet événement et n'apparaît pas comme point d'attention." },
+      { naam: "Résoudre →", uitleg: "Saute directement vers le bon onglet. En haut de cet onglet apparaît alors '← Retour au tableau de bord'." },
+      { naam: "Ignorer", uitleg: "Masque toute une catégorie de points d'attention (par ex. si certaines tâches n'ont volontairement pas de responsable). C'est mémorisé, même après réouverture de l'app. Avec '↺ Restaurer les points masqués' tout redevient visible." },
+      { naam: "Transmettre au responsable", uitleg: "Dès que des points sont ignorés, un bouton WhatsApp apparaît qui envoie tous les points d'attention ignorés en un seul message au Responsable de l'événement. Définissez-le d'abord dans l'onglet Événement." },
     ],
   },
   {
@@ -2057,6 +2106,16 @@ function App() {
     reader.readAsText(file);
   };
 
+  // Aandachtspunt-categorie overslaan / alles herstellen
+  const slaAandachtspuntOver = (categorieKey) => setData((d) => ({
+    ...d,
+    overgeslagenAandachtspunten: [...new Set([...(d.overgeslagenAandachtspunten || []), categorieKey])],
+  }));
+  const herstelAandachtspunten = () => setData((d) => ({
+    ...d,
+    overgeslagenAandachtspunten: [],
+  }));
+
   const nieuwEvenement = () => {
     if (!confirm(t.confirm_nieuw_evenement)) return;
     // Stap 1: automatische Excel-backup van het huidige evenement
@@ -2085,10 +2144,12 @@ function App() {
         // Oud evenement bewaren in de geschiedenis
         eventHistory: [...historyEntry, ...(d.eventHistory || [])],
         // Wissen
-        event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
+        event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "", verantwId: "", verantwNaam: "", verantwGsm: "" },
         bulkGeschiedenis: {},
         winkelbestellingen: {},
         kastickets: {},
+        // Overgeslagen aandachtspunten resetten — nieuw evenement, schone lei
+        overgeslagenAandachtspunten: [],
         // Kostenbeheer leegmaken
         kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] },
         // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
@@ -2189,8 +2250,9 @@ function App() {
             ← {t.terug_dashboard}
           </button>
         )}
-        {tab === "dashboard" && <Dashboard data={data} dagen={dagen} setTab={springNaarTab} t={t} />}
-        {tab === "event" && <EventTab event={data.event} update={updateEvent} t={t} />}
+        {tab === "dashboard" && <Dashboard data={data} dagen={dagen} setTab={springNaarTab}
+          slaAandachtspuntOver={slaAandachtspuntOver} herstelAandachtspunten={herstelAandachtspunten} t={t} />}
+        {tab === "event" && <EventTab event={data.event} update={updateEvent} vrijwilligers={data.vrijwilligers} t={t} />}
         {tab === "vrijwilligers" && <VrijwilligersTab vrijwilligers={data.vrijwilligers}
           add={addVrijwilliger} update={updateVrijwilliger} remove={removeVrijwilliger} dedup={dedupVrijwilligers} t={t} />}
         {tab === "taken" && <TakenTab taken={data.taken} vrijwilligers={data.vrijwilligers}
@@ -2368,7 +2430,7 @@ function WeerKaart({ event, lang, t }) {
   );
 }
 
-function Dashboard({ data, dagen, setTab, t }) {
+function Dashboard({ data, dagen, setTab, slaAandachtspuntOver, herstelAandachtspunten, t }) {
   const allUnits = [];
   data.taken.forEach((tt) => {
     if (tt.heeftSubtaken && tt.subtaken.length > 0) {
@@ -2437,13 +2499,19 @@ function Dashboard({ data, dagen, setTab, t }) {
     .map((v) => `${v.voornaam || ""} ${v.naam || ""}`.trim() || "?");
 
   // Materiaal met een naam + oorsprong Winkel_Magasin maar zonder gekozen winkel
+  // Helper: materiaal telt enkel mee als het voor dít evenement nodig is (aantal > 0)
+  const matNodig = (m) => {
+    const n = parseFloat(m.aantal);
+    return !isNaN(n) && n > 0;
+  };
+
   const matGeenWinkel = (data.materiaal || [])
-    .filter((m) => (m.naamNl || m.naamFr) && m.oorsprong === WINKEL_OORSPRONG && !m.winkelId)
+    .filter((m) => (m.naamNl || m.naamFr) && matNodig(m) && m.oorsprong === WINKEL_OORSPRONG && !m.winkelId)
     .map((m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?");
 
-  // Materiaal met een naam maar zonder oorsprong
+  // Materiaal met een naam + aantal maar zonder oorsprong
   const matGeenOorsprong = (data.materiaal || [])
-    .filter((m) => (m.naamNl || m.naamFr) && !m.oorsprong)
+    .filter((m) => (m.naamNl || m.naamFr) && matNodig(m) && !m.oorsprong)
     .map((m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?");
 
   // Winkelbestellingen met ingevuld kasticket/aankoop maar zonder datum of aankoper
@@ -2487,15 +2555,47 @@ function Dashboard({ data, dagen, setTab, t }) {
     });
   }
 
-  const aandachtspunten = [
+  // Shiftoverlappingen: dezelfde vrijwilliger tegelijk voor twee taken ingepland
+  const shiftOverlap = detectOverlaps(data.vrijwilligers, data.taken, lang)
+    .map((c) => `${c.naam}: ${c.taak1} ↔ ${c.taak2}`);
+
+  const overgeslagen = data.overgeslagenAandachtspunten || [];
+  const alleAandachtspunten = [
     { key: "taakGeenVerantw", items: taakGeenVerantw, tekst: t.ap_taak_geen_verantw, tab: "taken" },
     { key: "taakGeenToewijzing", items: taakGeenToewijzing, tekst: t.ap_taak_geen_toewijzing, tab: "taken" },
+    { key: "shiftOverlap", items: shiftOverlap, tekst: t.ap_shift_overlap, tab: "taken" },
     { key: "vrijGeenGsm", items: vrijGeenGsm, tekst: t.ap_vrij_geen_gsm, tab: "vrijwilligers" },
     { key: "matGeenOorsprong", items: matGeenOorsprong, tekst: t.ap_mat_geen_oorsprong, tab: "materiaal" },
     { key: "matGeenWinkel", items: matGeenWinkel, tekst: t.ap_mat_geen_winkel, tab: "materiaal" },
     { key: "bestGeenInfo", items: bestGeenInfo, tekst: t.ap_best_geen_info, tab: "winkelbestellingen" },
     { key: "kasticketGeenBedrag", items: kasticketGeenBedrag, tekst: t.ap_kasticket_geen_bedrag, tab: "winkelbestellingen" },
   ].filter((a) => a.items.length > 0);
+
+  // Zichtbaar = niet overgeslagen; overgeslagen-met-inhoud apart bijgehouden
+  const aandachtspunten = alleAandachtspunten.filter((a) => !overgeslagen.includes(a.key));
+  const overgeslagenMetInhoud = alleAandachtspunten.filter((a) => overgeslagen.includes(a.key));
+
+  // Event Verantwoordelijke + WhatsApp-link voor overgeslagen punten
+  const ev = data.event;
+  const evVerantwVrij = ev.verantwId ? data.vrijwilligers.find((v) => v.id === ev.verantwId) : null;
+  const evNaam = (ev.verantwNaam || "").trim() || (evVerantwVrij ? `${evVerantwVrij.voornaam} ${evVerantwVrij.naam}`.trim() : "");
+  const evGsm = (ev.verantwGsm || "").trim() || (evVerantwVrij ? (evVerantwVrij.gsm1 || "") : "");
+  const evTel = cleanPhone(evGsm);
+
+  const buildOverslaanBericht = () => {
+    const r = [];
+    r.push(`${t.ap_wa_titel}${ev.naam ? " — " + ev.naam : ""}`);
+    r.push("");
+    overgeslagenMetInhoud.forEach((a) => {
+      r.push(`*${a.tekst}* (${a.items.length})`);
+      a.items.forEach((it) => r.push(`• ${it}`));
+      r.push("");
+    });
+    return r.join("\n").trim();
+  };
+  const overslaanWaLink = (evTel && overgeslagenMetInhoud.length > 0)
+    ? `https://wa.me/${evTel}?text=${encodeURIComponent(buildOverslaanBericht())}`
+    : "";
 
   return (
     <div>
@@ -2526,15 +2626,38 @@ function Dashboard({ data, dagen, setTab, t }) {
               {aandachtspunten.map((a) => (
                 <div key={a.key} style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "0.8rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-                    gap: "0.8rem", flexWrap: "wrap" }}>
+                    gap: "0.5rem", flexWrap: "wrap" }}>
                     <strong style={{ fontSize: "0.9rem" }}>{a.tekst} ({a.items.length})</strong>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setTab(a.tab)}>{t.ap_oplossen}</button>
+                    <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setTab(a.tab)}>{t.ap_oplossen}</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => slaAandachtspuntOver(a.key)}>{t.ap_overslaan}</button>
+                    </div>
                   </div>
                   <div style={{ fontSize: "0.82rem", color: "var(--ink-soft)", marginTop: "0.2rem" }}>
                     {a.items.slice(0, 8).join(" · ")}{a.items.length > 8 ? ` … (+${a.items.length - 8})` : ""}
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Overgeslagen categorieën */}
+          {overgeslagenMetInhoud.length > 0 && (
+            <div style={{ marginTop: "1rem", paddingTop: "0.8rem", borderTop: "1px dashed var(--line)" }}>
+              <div style={{ fontSize: "0.83rem", color: "var(--ink-soft)", marginBottom: "0.5rem" }}>
+                {t.ap_overgeslagen}: {overgeslagenMetInhoud.map((a) => a.tekst).join(" · ")}
+              </div>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                <button className="btn btn-ghost btn-sm" onClick={herstelAandachtspunten}>{t.ap_herstel}</button>
+                {overslaanWaLink ? (
+                  <a className="btn btn-whatsapp btn-sm" href={overslaanWaLink} target="_blank" rel="noopener"
+                    style={{ textDecoration: "none" }}>
+                    {t.ap_wa_knop}{evNaam ? ` (${evNaam})` : ""}
+                  </a>
+                ) : (
+                  <span style={{ fontSize: "0.78rem", color: "var(--accent)" }}>{t.ap_wa_geen_verantw}</span>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -2588,10 +2711,27 @@ function StatusCard({ label, count, cls }) {
 // ============================================================
 // EVENT TAB
 // ============================================================
-function EventTab({ event, update, t }) {
+function EventTab({ event, update, vrijwilligers, t }) {
   const mapsAuto = buildMapsLink(event, "driving");
   const mapsOv = buildMapsLink(event, "transit");
   const nmbs = buildNmbsLink(event);
+
+  const sortedVrij = [...(vrijwilligers || [])].sort((a, b) => {
+    const an = (a.naam || "").toLowerCase(), bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+
+  // Bij keuze van een vrijwilliger: naam + GSM automatisch invullen
+  const kiesVerantw = (vId) => {
+    if (!vId) { update({ verantwId: "" }); return; }
+    const v = (vrijwilligers || []).find((x) => x.id === vId);
+    if (v) {
+      update({ verantwId: vId, verantwNaam: `${v.voornaam} ${v.naam}`.trim(), verantwGsm: v.gsm1 || "" });
+    } else {
+      update({ verantwId: vId });
+    }
+  };
 
   return (
     <div className="grid-2">
@@ -2601,6 +2741,29 @@ function EventTab({ event, update, t }) {
           <Field label={t.event_name}><input className="input" value={event.naam} onChange={(e) => update({ naam: e.target.value })} /></Field>
           <Field label={t.date}><input type="date" className="input" value={event.datum} onChange={(e) => update({ datum: e.target.value })} /></Field>
           <Field label={t.description}><textarea className="textarea" rows={3} value={event.beschrijving} onChange={(e) => update({ beschrijving: e.target.value })} /></Field>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.ev_verantw_titel}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.85rem", marginTop: 0 }}>{t.ev_verantw_intro}</p>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <Field label={t.ev_verantw_kies}>
+            <select className="select" value={event.verantwId || ""} onChange={(e) => kiesVerantw(e.target.value)}>
+              <option value="">{t.ev_verantw_manueel}</option>
+              {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+            </select>
+          </Field>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <Field label={t.ev_verantw_naam}>
+              <input className="input" value={event.verantwNaam || ""}
+                onChange={(e) => update({ verantwNaam: e.target.value })} />
+            </Field>
+            <Field label={t.ev_verantw_gsm}>
+              <input className="input" value={event.verantwGsm || ""}
+                onChange={(e) => update({ verantwGsm: e.target.value })} placeholder="+32..." />
+            </Field>
+          </div>
         </div>
       </div>
 
