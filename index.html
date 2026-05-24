@@ -108,6 +108,15 @@ const T = {
     import_merge: "⬆ Importeer (samenvoegen)",
     import_replace: "⬆ Importeer (vervang alles)",
     export: "⬇ Exporteer Excel",
+    ap_titel: "Aandachtspunten", ap_alles_ok: "Alles is compleet — geen openstaande aandachtspunten.",
+    ap_oplossen: "Oplossen →", terug_dashboard: "Terug naar Dashboard",
+    ap_taak_geen_verantw: "Taken zonder verantwoordelijke",
+    ap_taak_geen_toewijzing: "Taken zonder toegewezen vrijwilliger",
+    ap_vrij_geen_gsm: "Vrijwilligers zonder GSM-nummer",
+    ap_mat_geen_oorsprong: "Materiaal zonder oorsprong",
+    ap_mat_geen_winkel: "Winkelmateriaal zonder gekozen winkel",
+    ap_best_geen_info: "Winkelbestellingen zonder datum of aankoper",
+    ap_kasticket_geen_bedrag: "Kastickets zonder ingevuld bedrag",
     backup_knop: "ALGEMENE BACKUP",
     backup_titel: "Maak een volledige, verliesvrije backup van alle gegevens (.json-bestand)",
     herstel_knop: "⬆ Backup herstellen", herstel_titel: "Een eerder gemaakt .json-backupbestand terugzetten",
@@ -356,6 +365,15 @@ const T = {
     import_merge: "⬆ Importer (fusionner)",
     import_replace: "⬆ Importer (tout remplacer)",
     export: "⬇ Exporter Excel",
+    ap_titel: "Points d'attention", ap_alles_ok: "Tout est complet — aucun point d'attention.",
+    ap_oplossen: "Résoudre →", terug_dashboard: "Retour au tableau de bord",
+    ap_taak_geen_verantw: "Tâches sans responsable",
+    ap_taak_geen_toewijzing: "Tâches sans bénévole assigné",
+    ap_vrij_geen_gsm: "Bénévoles sans numéro GSM",
+    ap_mat_geen_oorsprong: "Matériel sans source",
+    ap_mat_geen_winkel: "Matériel de magasin sans magasin choisi",
+    ap_best_geen_info: "Commandes via magasin sans date ou acheteur",
+    ap_kasticket_geen_bedrag: "Tickets sans montant renseigné",
     backup_knop: "BACKUP GÉNÉRAL",
     backup_titel: "Créez une sauvegarde complète et sans perte de toutes les données (fichier .json)",
     herstel_knop: "⬆ Restaurer une sauvegarde", herstel_titel: "Restaurer un fichier de sauvegarde .json créé précédemment",
@@ -1329,6 +1347,11 @@ const helpContentFr = [
 function App() {
   const [data, setData] = useState(defaultData);
   const [tab, setTab] = useState("dashboard");
+  const [toonTerugKnop, setToonTerugKnop] = useState(false);
+  // Sprong vanuit een Dashboard-aandachtspunt: onthoud dat we terug kunnen
+  const springNaarTab = (doelTab) => { setToonTerugKnop(true); setTab(doelTab); };
+  // Gewone tabwissel wist de terugknop
+  const wisselTab = (doelTab) => { setToonTerugKnop(false); setTab(doelTab); };
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
@@ -2153,14 +2176,20 @@ function App() {
               ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek],
               ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : []),
             ].map(([k, label]) => (
-              <button key={k} className={`tab-btn ${tab === k ? "active" : ""}`} onClick={() => setTab(k)}>{label}</button>
+              <button key={k} className={`tab-btn ${tab === k ? "active" : ""}`} onClick={() => wisselTab(k)}>{label}</button>
             ))}
           </nav>
         </div>
       </header>
 
       <main style={{ maxWidth: 1200, margin: "0 auto", padding: "2rem" }} className="font-body">
-        {tab === "dashboard" && <Dashboard data={data} dagen={dagen} setTab={setTab} t={t} />}
+        {toonTerugKnop && tab !== "dashboard" && (
+          <button className="btn btn-ghost btn-sm" style={{ marginBottom: "1rem" }}
+            onClick={() => wisselTab("dashboard")}>
+            ← {t.terug_dashboard}
+          </button>
+        )}
+        {tab === "dashboard" && <Dashboard data={data} dagen={dagen} setTab={springNaarTab} t={t} />}
         {tab === "event" && <EventTab event={data.event} update={updateEvent} t={t} />}
         {tab === "vrijwilligers" && <VrijwilligersTab vrijwilligers={data.vrijwilligers}
           add={addVrijwilliger} update={updateVrijwilliger} remove={removeVrijwilliger} dedup={dedupVrijwilligers} t={t} />}
@@ -2377,6 +2406,97 @@ function Dashboard({ data, dagen, setTab, t }) {
     }
   }
 
+  // ---- Aandachtspunten: enkel "half afgewerkte" zaken (lege items overslaan) ----
+  const lang = data.taal === "fr" ? "fr" : "nl";
+  const taakNaam = (tt) => (lang === "fr" ? (tt.naamFr || tt.naamNl) : (tt.naamNl || tt.naamFr)) || "?";
+  const heeftTaakNaam = (tt) => !!(tt.naamNl || tt.naamFr);
+
+  // Taken met een naam maar zonder verantwoordelijke
+  const taakGeenVerantw = data.taken
+    .filter((tt) => heeftTaakNaam(tt) && !tt.verantwoordelijkeId)
+    .map((tt) => taakNaam(tt));
+
+  // Taken/subtaken met een naam maar zonder toegewezen vrijwilliger
+  const taakGeenToewijzing = [];
+  data.taken.forEach((tt) => {
+    if (!heeftTaakNaam(tt)) return;
+    if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+      tt.subtaken.forEach((s) => {
+        if ((s.naamNl || s.naamFr) && !(s.toegewezen || []).length) {
+          taakGeenToewijzing.push(`${taakNaam(tt)} → ${(lang === "fr" ? (s.naamFr || s.naamNl) : (s.naamNl || s.naamFr)) || "?"}`);
+        }
+      });
+    } else if (!(tt.toegewezen || []).length) {
+      taakGeenToewijzing.push(taakNaam(tt));
+    }
+  });
+
+  // Vrijwilligers met een naam maar zonder GSM 1
+  const vrijGeenGsm = data.vrijwilligers
+    .filter((v) => (v.voornaam || v.naam) && !(v.gsm1 || "").trim())
+    .map((v) => `${v.voornaam || ""} ${v.naam || ""}`.trim() || "?");
+
+  // Materiaal met een naam + oorsprong Winkel_Magasin maar zonder gekozen winkel
+  const matGeenWinkel = (data.materiaal || [])
+    .filter((m) => (m.naamNl || m.naamFr) && m.oorsprong === WINKEL_OORSPRONG && !m.winkelId)
+    .map((m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?");
+
+  // Materiaal met een naam maar zonder oorsprong
+  const matGeenOorsprong = (data.materiaal || [])
+    .filter((m) => (m.naamNl || m.naamFr) && !m.oorsprong)
+    .map((m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?");
+
+  // Winkelbestellingen met ingevuld kasticket/aankoop maar zonder datum of aankoper
+  const winkelMat = (data.materiaal || []).filter((m) => m.oorsprong === WINKEL_OORSPRONG);
+  const bestGeenInfo = [];
+  winkelMat.forEach((m) => {
+    const best = (data.winkelbestellingen || {})[m.id] || {};
+    // Alleen melden als er al iéts ingevuld is (datum of aankoper deels)
+    const ietsIngevuld = best.datum || best.aankoperId;
+    if (ietsIngevuld && (!best.datum || !best.aankoperId)) {
+      bestGeenInfo.push(capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?");
+    }
+  });
+
+  // Kastickets (winkel + aankoper + datum) die volledig zijn maar zonder bedrag
+  const kasticketGeenBedrag = [];
+  {
+    const gezien = {};
+    winkelMat.forEach((m) => {
+      const best = (data.winkelbestellingen || {})[m.id] || {};
+      // Enkel volledige bestellingen (winkel + aankoper + datum) tellen mee
+      if (!best.datum || !best.aankoperId || !m.winkelId) return;
+      const ak = best.aankoperId === "__extern__"
+        ? `ext:${(best.aankoperVrij || "").trim().toLowerCase()}`
+        : best.aankoperId;
+      const key = `${m.winkelId}|${ak}|${best.datum}`;
+      if (gezien[key]) return;
+      gezien[key] = true;
+      const kt = (data.kastickets || {})[key] || {};
+      if (parseBedragNum(kt.bedrag) === 0) {
+        const w = (data.winkels || []).find((x) => x.id === m.winkelId);
+        const winkelNaam = w ? w.naam : "?";
+        let aankoper = "?";
+        if (best.aankoperId === "__extern__") aankoper = best.aankoperVrij || t.winkel_extern_koper;
+        else {
+          const v = data.vrijwilligers.find((x) => x.id === best.aankoperId);
+          aankoper = v ? `${v.voornaam} ${v.naam}`.trim() : "?";
+        }
+        kasticketGeenBedrag.push(`${winkelNaam} · ${aankoper} · ${formatDate(best.datum, lang)}`);
+      }
+    });
+  }
+
+  const aandachtspunten = [
+    { key: "taakGeenVerantw", items: taakGeenVerantw, tekst: t.ap_taak_geen_verantw, tab: "taken" },
+    { key: "taakGeenToewijzing", items: taakGeenToewijzing, tekst: t.ap_taak_geen_toewijzing, tab: "taken" },
+    { key: "vrijGeenGsm", items: vrijGeenGsm, tekst: t.ap_vrij_geen_gsm, tab: "vrijwilligers" },
+    { key: "matGeenOorsprong", items: matGeenOorsprong, tekst: t.ap_mat_geen_oorsprong, tab: "materiaal" },
+    { key: "matGeenWinkel", items: matGeenWinkel, tekst: t.ap_mat_geen_winkel, tab: "materiaal" },
+    { key: "bestGeenInfo", items: bestGeenInfo, tekst: t.ap_best_geen_info, tab: "winkelbestellingen" },
+    { key: "kasticketGeenBedrag", items: kasticketGeenBedrag, tekst: t.ap_kasticket_geen_bedrag, tab: "winkelbestellingen" },
+  ].filter((a) => a.items.length > 0);
+
   return (
     <div>
       {alert && (
@@ -2393,6 +2513,32 @@ function Dashboard({ data, dagen, setTab, t }) {
       )}
 
       <WeerKaart event={data.event} lang={data.taal === "fr" ? "fr" : "nl"} t={t} />
+
+      {heeftData && (
+        <div className="card" style={{ marginBottom: "1.5rem" }}>
+          <h3 className="font-display" style={{ marginTop: 0, marginBottom: "0.8rem", fontSize: "1.15rem" }}>
+            {aandachtspunten.length === 0 ? "✅" : "📋"} {t.ap_titel}
+          </h3>
+          {aandachtspunten.length === 0 ? (
+            <p style={{ color: "#3a7d44", fontSize: "0.9rem", margin: 0, fontWeight: 500 }}>{t.ap_alles_ok}</p>
+          ) : (
+            <div style={{ display: "grid", gap: "0.7rem" }}>
+              {aandachtspunten.map((a) => (
+                <div key={a.key} style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "0.8rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+                    gap: "0.8rem", flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: "0.9rem" }}>{a.tekst} ({a.items.length})</strong>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setTab(a.tab)}>{t.ap_oplossen}</button>
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--ink-soft)", marginTop: "0.2rem" }}>
+                    {a.items.slice(0, 8).join(" · ")}{a.items.length > 8 ? ` … (+${a.items.length - 8})` : ""}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
         <div className="card">
