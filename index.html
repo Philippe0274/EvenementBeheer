@@ -2535,10 +2535,6 @@ function SubtaakRij({ taakId, sub, vrijwilligers, dict, updateSubtaak, removeSub
 // BERICHTEN
 // ============================================================
 function BerichtenTab({ data, showToast, t }) {
-  const eersteId = data.sjablonen.length > 0 ? data.sjablonen[0].id : "";
-  const [sjabloonId, setSjabloonId] = useState(eersteId);
-  const huidigSjabloon = data.sjablonen.find((s) => s.id === sjabloonId) || data.sjablonen[0] || null;
-
   // ----------------------------------------------------------------
   // MATERIAALBEHEER
   // Het oranje kader bovenaan toont steeds de verantwoordelijke van de
@@ -2557,6 +2553,16 @@ function BerichtenTab({ data, showToast, t }) {
     }) ||
     data.sjablonen.find((s) => ((s.nl || "") + (s.fr || "")).includes("{materiaallijst}")) ||
     null;
+
+  // De "gewone" sjablonen: alles behalve het materiaalbeheer-sjabloon.
+  // Die verschijnen als keuzeknoppen en bepalen het bericht in de onderste lijst.
+  // Het materiaalsjabloon hoort enkel bij het oranje kader, niet bij de gewone lijst.
+  const gewoneSjablonen = data.sjablonen.filter((s) => !materiaalSjabloon || s.id !== materiaalSjabloon.id);
+
+  const eersteId = gewoneSjablonen.length > 0 ? gewoneSjablonen[0].id : "";
+  const [sjabloonId, setSjabloonId] = useState(eersteId);
+  const huidigSjabloon = gewoneSjablonen.find((s) => s.id === sjabloonId) || gewoneSjablonen[0] || null;
+
 
   // Zoek de taak "Materiaal beheer" (NL of FR), case-insensitief
   const materiaalTaak = data.taken.find((tt) => {
@@ -2693,13 +2699,13 @@ function BerichtenTab({ data, showToast, t }) {
         <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>
           {t.msg_intro} <strong>"{t.copy_msg}"</strong> {t.msg_intro2}
         </p>
-        {data.sjablonen.length === 0 ? (
+        {gewoneSjablonen.length === 0 ? (
           <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: "1rem", marginBottom: 0 }}>
             {t.no_templates} <strong>{t.tab_sjablonen}</strong>.
           </p>
         ) : (
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1rem" }}>
-            {data.sjablonen.map((s) => (
+            {gewoneSjablonen.map((s) => (
               <button key={s.id}
                 className={(huidigSjabloon && s.id === huidigSjabloon.id) ? "btn btn-primary" : "btn btn-ghost"}
                 onClick={() => setSjabloonId(s.id)}>
