@@ -182,7 +182,7 @@ const T = {
     kas_eindsaldo: "Verwacht eindsaldo kas",
     kas_blad_knop: "🖨 Leeg kasblad afdrukken (PDF)",
     kas_blad_titel: "Kasblad — in te vullen tijdens het evenement",
-    kas_blad_tijd: "Tijd", kas_blad_in: "Erin (+)", kas_blad_uit: "Eruit (−)",
+    kas_blad_tijd: "Tijd", kas_blad_in: "Erin (+)", kas_blad_uit: "Eruit (-)",
     history_intro: "Overzicht van afgesloten evenementen. Een evenement komt hier automatisch bij wanneer je 'Nieuw evenement' start.",
     history_geen: "Nog geen afgesloten evenementen.",
     history_afgesloten: "Afgesloten op",
@@ -468,7 +468,7 @@ const T = {
     kas_eindsaldo: "Solde final attendu caisse",
     kas_blad_knop: "🖨 Imprimer une feuille de caisse vierge (PDF)",
     kas_blad_titel: "Feuille de caisse — à remplir pendant l'événement",
-    kas_blad_tijd: "Heure", kas_blad_in: "Entrée (+)", kas_blad_uit: "Sortie (−)",
+    kas_blad_tijd: "Heure", kas_blad_in: "Entrée (+)", kas_blad_uit: "Sortie (-)",
     history_intro: "Aperçu des événements clôturés. Un événement est ajouté ici automatiquement lorsque vous démarrez un 'Nouvel événement'.",
     history_geen: "Aucun événement clôturé.",
     history_afgesloten: "Clôturé le",
@@ -2624,7 +2624,7 @@ function DagoverzichtBlok({ data, t }) {
         doc.setFontSize(9);
         p.units.forEach((u) => {
           nieuwePagina(6);
-          doc.text(`• ${u.label}`, marge + 3, y);
+          doc.text(`- ${u.label}`, marge + 3, y);
           doc.text(slotTekst(u.unit), pageW - marge - 2, y, { align: "right" });
           y += 5.5;
         });
@@ -2646,7 +2646,7 @@ function DagoverzichtBlok({ data, t }) {
         doc.setFontSize(9);
         tk.mensen.forEach((m) => {
           nieuwePagina(6);
-          doc.text(`• ${m.naam}`, marge + 3, y);
+          doc.text(`- ${m.naam}`, marge + 3, y);
           if (m.gsm) doc.text(m.gsm, pageW - marge - 2, y, { align: "right" });
           y += 5.5;
         });
@@ -4953,7 +4953,7 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, updateKasticket, 
         kt.items.forEach((m) => {
           nieuwePagina(5);
           const aantal = m.aantal ? `${m.aantal}× ` : "";
-          doc.text(`   • ${aantal}${matNaam(m)}`, marge + 4, y);
+          doc.text(`   - ${aantal}${matNaam(m)}`, marge + 4, y);
           y += 4.2;
         });
         // Foto van het kasticket
@@ -5373,10 +5373,10 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
       (kb.kasBewegingen || []).forEach((b) => {
         const bed = parseBedragNum(b.bedrag);
         if (bed === 0) return;
-        kasRegel(`  ${b.naam || (b.type === "uit" ? t.kas_uit : t.kas_in)}`, bed, b.type === "uit" ? "− " : "+ ");
+        kasRegel(`  ${b.naam || (b.type === "uit" ? t.kas_uit : t.kas_in)}`, bed, b.type === "uit" ? "- " : "+ ");
       });
       k.winkelUitKas.forEach((w) => {
-        kasRegel(`  ${t.kas_winkel}: ${w.winkel}`, w.bedrag, "− ");
+        kasRegel(`  ${t.kas_winkel}: ${w.winkel}`, w.bedrag, "- ");
       });
       y += 1;
       doc.setDrawColor(217, 207, 193);
