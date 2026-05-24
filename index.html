@@ -110,11 +110,31 @@ const T = {
     reset: "Reset",
     help_button: "Werking", help_close: "Sluiten",
     nieuw_evenement: "Nieuw evenement",
-    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Bulk-zendgeschiedenis\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaal\n• Sjablonen + woordenboek\n• Externe contacten\n\nMaak eerst een Excel-export als backup van het huidige evenement!",
+    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Bulk-zendgeschiedenis\n• Winkelbestellingen (datum + aankoper)\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaal\n• Winkels + BTW-nummers\n• Sjablonen + woordenboek\n• Externe contacten\n\nMaak eerst een Excel-export als backup van het huidige evenement!",
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard", tab_event: "Event", tab_vrijwilligers: "Vrijwilligers",
     tab_taken: "Taken", tab_berichten: "Berichten", tab_bulk: "Bulk Send",
     tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal", tab_aankopen: "Aankopen",
+    tab_winkelgegevens: "WinkelGegevens", tab_winkelbestellingen: "Winkelbestellingen",
+    winkel_intro: "Beheer hier de winkels met hun BTW-nummer. Nieuwe winkels verschijnen alfabetisch in de winkel-keuzelijst bij materiaal.",
+    winkel_add: "+ Winkel toevoegen", winkel_geen: "Nog geen winkels.",
+    winkel_naam: "Winkel", winkel_btw: "BTW-nummer", winkel_btw_ph: "BE0123.456.789",
+    winkel_gebruik: "Gebruikt", winkel_new_prompt: "Naam van de nieuwe winkel?",
+    winkel_bestaat: "Die winkel bestaat al.",
+    winkel_inuse: (n) => `Deze winkel is nog gekoppeld aan ${n} materiaal-${n === 1 ? "rij" : "rijen"}. Pas die eerst aan.`,
+    winkel_kies: "Winkel", winkel_kies_hint: "Kies de winkel — beheer de lijst in het tabblad WinkelGegevens.",
+    winkel_best_intro: "Hier verschijnt enkel het materiaal met oorsprong \"Winkel_Magasin\". Vul de aankoopdatum en de aankoper in.",
+    winkel_best_geen: "Nog geen materiaal met oorsprong \"Winkel_Magasin\".",
+    winkel_datum: "Aankoopdatum", winkel_aankoper: "Aankoper",
+    winkel_extern_koper: "Externe koper", winkel_extern_naam: "Naam van de externe koper",
+    winkel_geen_winkel: "Geen winkel gekozen",
+    winkel_geen_gekozen: "⚠ Nog geen winkel gekozen voor dit materiaal (tabblad Materiaal).",
+    winkel_overzicht_titel: "Overzicht per winkel",
+    winkel_overzicht_gekopieerd: "Overzicht gekopieerd",
+    winkel_verzend_titel: "Verzenden via WhatsApp",
+    winkel_verzend_naar: "Het overzicht wordt verstuurd naar",
+    winkel_geen_angela: "Angela Janett Flores staat niet in de vrijwilligerslijst. Voeg haar toe om het overzicht te kunnen versturen.",
+    winkel_angela_geen_gsm: "Angela Janett Flores heeft geen GSM-nummer ingevuld in de vrijwilligerslijst.",
     mat_title: "Materiaal", mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
     mat_naam: "Materiaal", mat_aantal: "Aantal", mat_oorsprong: "Oorsprong", mat_verant: "Verantwoordelijke",
     mat_add: "+ Materiaal toevoegen", mat_no_items: "Nog geen materiaal. Voeg er één toe om te beginnen.",
@@ -151,6 +171,7 @@ const T = {
     no_volunteers: "Nog geen vrijwilligers. Voeg er één toe of importeer een Excel.",
     no_results: "Geen resultaten.",
     firstname: "Voornaam", lastname: "Naam", gender: "Geslacht", lang: "Taal",
+    roepnaam: "Roepnaam", roepnaam_ph: "indien anders dan voornaam",
     gsm1: "GSM 1 (WhatsApp)", gsm2: "GSM 2 (info)", email: "E-mail",
     street_nr: "Straat + nr",
     availability: "Beschikbaarheid", avail_full: "Hele dag", avail_morning: "Voormiddag (tot 12u)",
@@ -290,11 +311,31 @@ const T = {
     reset: "Réinitialiser",
     help_button: "Fonctionnement", help_close: "Fermer",
     nieuw_evenement: "Nouvel événement",
-    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Historique des envois groupés\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Matériel\n• Modèles + dictionnaire\n• Contacts externes\n\nFaites d'abord une exportation Excel comme sauvegarde de l'événement actuel !",
+    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Historique des envois groupés\n• Commandes via magasin (date + acheteur)\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Matériel\n• Magasins + numéros de TVA\n• Modèles + dictionnaire\n• Contacts externes\n\nFaites d'abord une exportation Excel comme sauvegarde de l'événement actuel !",
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord", tab_event: "Événement", tab_vrijwilligers: "Bénévoles",
     tab_taken: "Tâches", tab_berichten: "Messages", tab_bulk: "Envoi groupé",
     tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel", tab_aankopen: "Achats",
+    tab_winkelgegevens: "Données du Magasin", tab_winkelbestellingen: "Commandes via Magasin",
+    winkel_intro: "Gérez ici les magasins et leur numéro de TVA. Les nouveaux magasins apparaissent par ordre alphabétique dans la liste de choix du matériel.",
+    winkel_add: "+ Ajouter un magasin", winkel_geen: "Aucun magasin pour l'instant.",
+    winkel_naam: "Magasin", winkel_btw: "Numéro de TVA", winkel_btw_ph: "BE0123.456.789",
+    winkel_gebruik: "Utilisé", winkel_new_prompt: "Nom du nouveau magasin ?",
+    winkel_bestaat: "Ce magasin existe déjà.",
+    winkel_inuse: (n) => `Ce magasin est encore lié à ${n} ligne${n === 1 ? "" : "s"} de matériel. Modifiez-les d'abord.`,
+    winkel_kies: "Magasin", winkel_kies_hint: "Choisissez le magasin — gérez la liste dans l'onglet Données du Magasin.",
+    winkel_best_intro: "Seul le matériel dont la source est « Winkel_Magasin » apparaît ici. Indiquez la date d'achat et l'acheteur.",
+    winkel_best_geen: "Aucun matériel avec la source « Winkel_Magasin ».",
+    winkel_datum: "Date d'achat", winkel_aankoper: "Acheteur",
+    winkel_extern_koper: "Acheteur externe", winkel_extern_naam: "Nom de l'acheteur externe",
+    winkel_geen_winkel: "Aucun magasin choisi",
+    winkel_geen_gekozen: "⚠ Aucun magasin choisi pour ce matériel (onglet Matériel).",
+    winkel_overzicht_titel: "Aperçu par magasin",
+    winkel_overzicht_gekopieerd: "Aperçu copié",
+    winkel_verzend_titel: "Envoyer via WhatsApp",
+    winkel_verzend_naar: "L'aperçu sera envoyé à",
+    winkel_geen_angela: "Angela Janett Flores ne figure pas dans la liste des bénévoles. Ajoutez-la pour pouvoir envoyer l'aperçu.",
+    winkel_angela_geen_gsm: "Angela Janett Flores n'a pas de numéro GSM dans la liste des bénévoles.",
     mat_title: "Matériel", mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
     mat_naam: "Matériel", mat_aantal: "Quantité", mat_oorsprong: "Source", mat_verant: "Responsable",
     mat_add: "+ Ajouter du matériel", mat_no_items: "Pas encore de matériel. Ajoutez-en un pour commencer.",
@@ -331,6 +372,7 @@ const T = {
     no_volunteers: "Pas encore de bénévoles. Ajoutez-en un ou importez un fichier Excel.",
     no_results: "Aucun résultat.",
     firstname: "Prénom", lastname: "Nom", gender: "Genre", lang: "Langue",
+    roepnaam: "Surnom", roepnaam_ph: "si différent du prénom",
     gsm1: "GSM 1 (WhatsApp)", gsm2: "GSM 2 (info)", email: "E-mail",
     street_nr: "Rue + numéro",
     availability: "Disponibilité", avail_full: "Toute la journée", avail_morning: "Matinée (jusqu'à 12h)",
@@ -505,6 +547,9 @@ const matchCase = (original, translated) => {
 // Forceer lowercase voor opslag (gebruikt voor materiaal-, taak-, woordenboek-namen)
 const normalizeName = (s) => (s || "").toString().trim().toLowerCase();
 
+// Aanspreeknaam voor sjablonen: roepnaam indien ingevuld, anders voornaam
+const aanspreeknaam = (v) => ((v && v.roepnaam && v.roepnaam.trim()) ? v.roepnaam.trim() : ((v && v.voornaam) || ""));
+
 // Eerste letter hoofdletter voor weergave
 const capitalize = (s) => {
   if (!s) return "";
@@ -574,10 +619,26 @@ const defaultData = {
   sjablonen: defaultSjablonen,
   externeContacten: [],
   bulkGeschiedenis: {}, // {personId: [{datum: "2026-05-04T14:23", bericht: "..."}, ...]}
-  materiaal: [], // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij}]
-  oorsprongLijst: ["Leuven", "Vilvoorde"],
+  materiaal: [], // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij, winkelId}]
+  oorsprongLijst: ["Leuven", "Vilvoorde", "Winkel_Magasin"],
   aankopen: [],
+  // Winkels: stamlijst, behouden over evenementen heen. [{id, naam, btw}]
+  winkels: [
+    { id: "w_action",    naam: "Action",    btw: "" },
+    { id: "w_aldi",      naam: "Aldi",      btw: "" },
+    { id: "w_carrefour", naam: "Carrefour", btw: "" },
+    { id: "w_colruyt",   naam: "Colruyt",   btw: "" },
+    { id: "w_delhaize",  naam: "Delhaize",  btw: "" },
+    { id: "w_gamma",     naam: "Gamma",     btw: "" },
+    { id: "w_hubo",      naam: "Hubo",      btw: "" },
+    { id: "w_lidl",      naam: "Lidl",      btw: "" },
+  ],
+  // Winkelbestellingen: evenementspecifiek, per materiaal-item. {materiaalId: {datum, aankoperId, aankoperVrij}}
+  winkelbestellingen: {},
 };
+
+// Vaste oorsprong-waarde die de winkel-flow activeert
+const WINKEL_OORSPRONG = "Winkel_Magasin";
 
 // ============================================================
 // HELPERS
@@ -691,6 +752,7 @@ const normalizeData = (raw) => {
     safe.vrijwilligers = raw.vrijwilligers.map((v) => ({
       id: v.id || uid(),
       voornaam: v.voornaam || "", naam: v.naam || "",
+      roepnaam: v.roepnaam || "",
       geslacht: v.geslacht || "", taal: (v.taal || "nl").toString().toLowerCase(),
       // Migratie: oud 'telefoon' wordt gsm1
       gsm1: v.gsm1 || v.telefoon || "",
@@ -787,20 +849,47 @@ const normalizeData = (raw) => {
     safe.bulkGeschiedenis = raw.bulkGeschiedenis;
   }
 
+  // Oude oorsprong-waarde "Winkel_Magazin" corrigeren naar "Winkel_Magasin"
+  const fixOorsprong = (o) => (o === "Winkel_Magazin" ? WINKEL_OORSPRONG : (o || ""));
+
   if (Array.isArray(raw.materiaal)) {
     safe.materiaal = raw.materiaal.map((m) => ({
       id: m.id || uid(),
       naamNl: normalizeName(m.naamNl),
       naamFr: normalizeName(m.naamFr),
       aantal: m.aantal || "",
-      oorsprong: m.oorsprong || "",
+      oorsprong: fixOorsprong(m.oorsprong),
       verantwoordelijkeId: m.verantwoordelijkeId || "",
       verantwoordelijkeVrij: m.verantwoordelijkeVrij || "",
+      winkelId: m.winkelId || "",
     }));
   }
 
   if (Array.isArray(raw.oorsprongLijst) && raw.oorsprongLijst.length > 0) {
-    safe.oorsprongLijst = raw.oorsprongLijst.filter((x) => typeof x === "string" && x.trim());
+    safe.oorsprongLijst = raw.oorsprongLijst
+      .filter((x) => typeof x === "string" && x.trim())
+      .map((x) => (x === "Winkel_Magazin" ? WINKEL_OORSPRONG : x));
+    // Zorg dat de winkel-oorsprong altijd kiesbaar is
+    if (!safe.oorsprongLijst.includes(WINKEL_OORSPRONG)) {
+      safe.oorsprongLijst.push(WINKEL_OORSPRONG);
+    }
+  }
+
+  // Winkels (stamlijst). Ontbreekt de lijst, dan blijven de defaults uit defaultData staan.
+  if (Array.isArray(raw.winkels) && raw.winkels.length > 0) {
+    safe.winkels = raw.winkels
+      .filter((w) => w && typeof w === "object")
+      .map((w) => ({
+        id: w.id || uid(),
+        naam: (w.naam || "").toString().trim(),
+        btw: (w.btw || "").toString().trim(),
+      }))
+      .filter((w) => w.naam);
+  }
+
+  // Winkelbestellingen (evenementspecifiek): {materiaalId: {datum, aankoperId, aankoperVrij}}
+  if (raw.winkelbestellingen && typeof raw.winkelbestellingen === "object") {
+    safe.winkelbestellingen = raw.winkelbestellingen;
   }
 
   return safe;
@@ -1095,7 +1184,7 @@ function App() {
   const addVrijwilliger = () => setData((d) => ({
     ...d,
     vrijwilligers: [...d.vrijwilligers, {
-      id: uid(), voornaam: "", naam: "", geslacht: "", taal: "nl",
+      id: uid(), voornaam: "", naam: "", roepnaam: "", geslacht: "", taal: "nl",
       gsm1: "", gsm2: "", email: "",
       straat: "", postcode: "", gemeente: "",
       beschikbaarheid: "hele_dag", beschikbaarVan: "", beschikbaarTot: "", opmerking: "",
@@ -1247,7 +1336,7 @@ function App() {
     ...d,
     materiaal: [...(d.materiaal || []), {
       id: uid(), naamNl: "", naamFr: "", aantal: "", oorsprong: "",
-      verantwoordelijkeId: "", verantwoordelijkeVrij: "",
+      verantwoordelijkeId: "", verantwoordelijkeVrij: "", winkelId: "",
     }],
   }));
 
@@ -1256,9 +1345,47 @@ function App() {
     materiaal: (d.materiaal || []).map((m) => m.id === id ? { ...m, ...patch } : m),
   }));
 
-  const removeMateriaal = (id) => setData((d) => ({
+  const removeMateriaal = (id) => setData((d) => {
+    const next = { ...d, materiaal: (d.materiaal || []).filter((m) => m.id !== id) };
+    // Bijhorende winkelbestelling-info opruimen
+    if (next.winkelbestellingen && next.winkelbestellingen[id]) {
+      const wb = { ...next.winkelbestellingen };
+      delete wb[id];
+      next.winkelbestellingen = wb;
+    }
+    return next;
+  });
+
+  // Winkels (stamlijst)
+  const addWinkel = () => {
+    const naam = prompt(t.winkel_new_prompt);
+    if (!naam || !naam.trim()) return;
+    const trimmed = naam.trim();
+    setData((d) => {
+      const bestaat = (d.winkels || []).some((w) => w.naam.toLowerCase() === trimmed.toLowerCase());
+      if (bestaat) { showToast(t.winkel_bestaat); return d; }
+      return { ...d, winkels: [...(d.winkels || []), { id: uid(), naam: trimmed, btw: "" }] };
+    });
+  };
+
+  const updateWinkel = (id, patch) => setData((d) => ({
     ...d,
-    materiaal: (d.materiaal || []).filter((m) => m.id !== id),
+    winkels: (d.winkels || []).map((w) => w.id === id ? { ...w, ...patch } : w),
+  }));
+
+  const removeWinkel = (id) => setData((d) => {
+    const inUse = (d.materiaal || []).filter((m) => m.winkelId === id).length;
+    if (inUse > 0) { alert(t.winkel_inuse(inUse)); return d; }
+    return { ...d, winkels: (d.winkels || []).filter((w) => w.id !== id) };
+  });
+
+  // Winkelbestellingen (per materiaal-item: datum + aankoper)
+  const updateWinkelbestelling = (materiaalId, patch) => setData((d) => ({
+    ...d,
+    winkelbestellingen: {
+      ...(d.winkelbestellingen || {}),
+      [materiaalId]: { ...((d.winkelbestellingen || {})[materiaalId] || {}), ...patch },
+    },
   }));
 
   const addOorsprongLocatie = () => {
@@ -1644,6 +1771,8 @@ function App() {
       // Wissen
       event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
       bulkGeschiedenis: {},
+      // Winkelbestellingen (datum + aankoper) zijn evenementspecifiek → wissen
+      winkelbestellingen: {},
       // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
       taken: d.taken.map((tt) => ({
         ...tt,
@@ -1717,6 +1846,8 @@ function App() {
               ["dashboard", t.tab_dashboard], ["event", t.tab_event],
               ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken],
               ["materiaal", t.tab_materiaal],
+              ["winkelgegevens", t.tab_winkelgegevens],
+              ...((data.materiaal || []).some((m) => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []),
               ["berichten", t.tab_berichten], ["bulk", t.tab_bulk],
               ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek],
             ].map(([k, label]) => (
@@ -1749,11 +1880,22 @@ function App() {
           oorsprongLijst={data.oorsprongLijst || []}
           vrijwilligers={data.vrijwilligers}
           externeContacten={data.externeContacten || []}
+          winkels={data.winkels || []}
           dict={data.woordenboek}
           taal={data.taal}
           add={addMateriaal} update={updateMateriaal} remove={removeMateriaal}
           addLocatie={addOorsprongLocatie} removeLocatie={removeOorsprongLocatie}
           exportMateriaal={exportMateriaalAlleen}
+          t={t} />}
+        {tab === "winkelgegevens" && <WinkelGegevensTab
+          winkels={data.winkels || []}
+          materiaal={data.materiaal || []}
+          add={addWinkel} update={updateWinkel} remove={removeWinkel}
+          t={t} />}
+        {tab === "winkelbestellingen" && (data.materiaal || []).some((m) => m.oorsprong === WINKEL_OORSPRONG) && <WinkelbestellingenTab
+          data={data}
+          updateWinkelbestelling={updateWinkelbestelling}
+          showToast={showToast}
           t={t} />}
       </main>
 
@@ -1968,6 +2110,7 @@ function VrijwilligerKaart({ v, update, remove, t }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginTop: "1rem" }}>
         <Field label={t.firstname}><input className="input" value={v.voornaam} onChange={(e) => update(v.id, { voornaam: e.target.value })} /></Field>
         <Field label={t.lastname}><input className="input" value={v.naam} onChange={(e) => update(v.id, { naam: e.target.value })} /></Field>
+        <Field label={t.roepnaam}><input className="input" value={v.roepnaam || ""} onChange={(e) => update(v.id, { roepnaam: e.target.value })} placeholder={t.roepnaam_ph} /></Field>
         <Field label={t.gender}>
           <select className="select" value={v.geslacht} onChange={(e) => update(v.id, { geslacht: e.target.value })}>
             <option value="">—</option><option value="M">M</option><option value="V">V</option><option value="X">X</option>
@@ -2650,7 +2793,7 @@ function BerichtenTab({ data, showToast, t }) {
     const locatie = buildAddressString(data.event);
 
     return sjabloon
-      .replace(/{voornaam}/g, v.voornaam || "")
+      .replace(/{voornaam}/g, aanspreeknaam(v))
       .replace(/{eventnaam}/g, data.event.naam || "")
       .replace(/{eventdatum}/g, formatDate(data.event.datum, lang))
       .replace(/{locatie}/g, locatie)
@@ -2866,11 +3009,11 @@ function BulkSendTab({ data, showToast, t, addExternContact, updateExternContact
   const alleOntvangers = [
     ...data.vrijwilligers.filter((v) => v.gsm1).map((v) => ({
       id: v.id, type: "vrijwilliger",
-      voornaam: v.voornaam, naam: v.naam, gsm1: v.gsm1, taal: v.taal || "nl",
+      voornaam: v.voornaam, naam: v.naam, roepnaam: v.roepnaam || "", gsm1: v.gsm1, taal: v.taal || "nl",
     })),
     ...data.externeContacten.filter((c) => c.gsm1).map((c) => ({
       id: c.id, type: "extern",
-      voornaam: c.naam, naam: "(extern)", gsm1: c.gsm1, taal: c.taal || "nl",
+      voornaam: c.naam, naam: "(extern)", roepnaam: "", gsm1: c.gsm1, taal: c.taal || "nl",
     })),
   ].filter((p) => taalFilter === "all" || p.taal === taalFilter)
    .sort((a, b) => {
@@ -2899,7 +3042,7 @@ function BulkSendTab({ data, showToast, t, addExternContact, updateExternContact
     const lang = persoon.taal === "fr" ? "fr" : "nl";
     let txt = (lang === "fr" ? berichtFr : berichtNl) || "";
     txt = txt
-      .replace(/{voornaam}/g, persoon.voornaam || "")
+      .replace(/{voornaam}/g, aanspreeknaam(persoon))
       .replace(/{eventnaam}/g, data.event.naam || "")
       .replace(/{eventdatum}/g, formatDate(data.event.datum, lang))
       .replace(/{locatie}/g, buildAddressString(data.event))
@@ -3218,7 +3361,7 @@ function SjablonenTab({ sjablonen, updateVeld, add, remove, t }) {
 // ============================================================
 // MATERIAAL
 // ============================================================
-function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContacten, dict, taal, add, update, remove, addLocatie, removeLocatie, exportMateriaal, t }) {
+function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContacten, winkels, dict, taal, add, update, remove, addLocatie, removeLocatie, exportMateriaal, t }) {
   const sortedVrij = [...vrijwilligers].sort((a, b) => {
     const an = (a.naam || "").toLowerCase();
     const bn = (b.naam || "").toLowerCase();
@@ -3276,7 +3419,7 @@ function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContact
         <div style={{ display: "grid", gap: "0.7rem" }}>
           {materiaal.map((m) => (
             <MateriaalRij key={m.id} m={m} sortedVrij={sortedVrij} sortedExtern={sortedExtern} oorsprongLijst={oorsprongLijst}
-              dict={dict} update={update} remove={remove} addLocatie={addLocatie} removeLocatie={removeLocatie} t={t} />
+              winkels={winkels} dict={dict} update={update} remove={remove} addLocatie={addLocatie} removeLocatie={removeLocatie} t={t} />
           ))}
         </div>
       )}
@@ -3284,7 +3427,7 @@ function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContact
   );
 }
 
-function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, dict, update, remove, addLocatie, removeLocatie, t }) {
+function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, winkels, dict, update, remove, addLocatie, removeLocatie, t }) {
   const handleNlBlur = () => {
     // Normaliseer naar lowercase bij verlaten van veld
     if (m.naamNl) update(m.id, { naamNl: normalizeName(m.naamNl) });
@@ -3322,7 +3465,10 @@ function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, dict, updat
           <select className="select" value={m.oorsprong}
             onChange={(e) => {
               if (e.target.value === "__add__") { addLocatie(); return; }
-              update(m.id, { oorsprong: e.target.value });
+              const nieuwe = e.target.value;
+              const patch = { oorsprong: nieuwe };
+              if (nieuwe !== WINKEL_OORSPRONG) patch.winkelId = "";
+              update(m.id, patch);
             }}>
             <option value="">{t.mat_choose}</option>
             {oorsprongLijst.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
@@ -3352,6 +3498,312 @@ function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, dict, updat
         <div style={{ marginTop: "0.5rem" }}>
           <input className="input" placeholder={t.mat_other_ph} value={m.verantwoordelijkeVrij || ""}
             onChange={(e) => update(m.id, { verantwoordelijkeVrij: e.target.value })} />
+        </div>
+      )}
+      {m.oorsprong === WINKEL_OORSPRONG && (
+        <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px dashed var(--line)" }}>
+          <Field label={t.winkel_kies}>
+            <select className="select" value={m.winkelId || ""}
+              onChange={(e) => update(m.id, { winkelId: e.target.value })}
+              style={{ maxWidth: 320 }}>
+              <option value="">{t.mat_choose}</option>
+              {[...(winkels || [])]
+                .sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase()))
+                .map((w) => <option key={w.id} value={w.id}>{w.naam}</option>)}
+            </select>
+          </Field>
+          <p style={{ fontSize: "0.75rem", color: "var(--ink-soft)", margin: "0.3rem 0 0" }}>
+            {t.winkel_kies_hint}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// WINKELGEGEVENS — stamlijst van winkels met BTW-nummer
+// ============================================================
+function WinkelGegevensTab({ winkels, materiaal, add, update, remove, t }) {
+  const sorted = [...(winkels || [])].sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase()));
+  const gebruikCount = (winkelId) => (materiaal || []).filter((m) => m.winkelId === winkelId).length;
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 250 }}>
+            <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.tab_winkelgegevens}</h2>
+            <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.winkel_intro}</p>
+          </div>
+          <button className="btn btn-primary" onClick={add}>{t.winkel_add}</button>
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.winkel_geen}</div>
+      ) : (
+        <div className="card">
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr auto auto", gap: "0.6rem 1rem", alignItems: "center" }}>
+            <div className="label" style={{ marginBottom: 0 }}>{t.winkel_naam}</div>
+            <div className="label" style={{ marginBottom: 0 }}>{t.winkel_btw}</div>
+            <div className="label" style={{ marginBottom: 0 }}>{t.winkel_gebruik}</div>
+            <div></div>
+            {sorted.map((w) => (
+              <React.Fragment key={w.id}>
+                <input className="input" value={w.naam}
+                  onChange={(e) => update(w.id, { naam: e.target.value })} />
+                <input className="input" value={w.btw || ""} placeholder={t.winkel_btw_ph}
+                  onChange={(e) => update(w.id, { btw: e.target.value })} />
+                <span style={{ fontSize: "0.82rem", color: "var(--ink-soft)", textAlign: "center" }}>
+                  {gebruikCount(w.id)}×
+                </span>
+                <button className="btn btn-danger btn-sm" onClick={() => remove(w.id)} title={t.remove}>🗑</button>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// WINKELBESTELLINGEN — overzicht van winkel-aankopen, per winkel gegroepeerd
+// ============================================================
+function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
+  const lang = data.taal === "fr" ? "fr" : "nl";
+  const winkels = data.winkels || [];
+  const winkelById = (id) => winkels.find((w) => w.id === id) || null;
+
+  // Alleen materiaal met oorsprong Winkel_Magasin
+  const items = (data.materiaal || []).filter((m) => m.oorsprong === WINKEL_OORSPRONG);
+
+  const sortedVrij = [...data.vrijwilligers].sort((a, b) => {
+    const an = (a.naam || "").toLowerCase(), bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+
+  const bestellingVoor = (mId) => (data.winkelbestellingen || {})[mId] || {};
+
+  const aankoperNaam = (best) => {
+    if (!best.aankoperId) return "";
+    if (best.aankoperId === "__extern__") return best.aankoperVrij || t.winkel_extern_koper;
+    const v = data.vrijwilligers.find((x) => x.id === best.aankoperId);
+    return v ? `${v.voornaam} ${v.naam}`.trim() : "";
+  };
+
+  const matNaam = (m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?";
+
+  // Groepeer per winkel voor de overzichtstabel
+  const perWinkel = {};
+  items.forEach((m) => {
+    const key = m.winkelId || "__geen__";
+    if (!perWinkel[key]) perWinkel[key] = [];
+    perWinkel[key].push(m);
+  });
+  const winkelKeys = Object.keys(perWinkel).sort((a, b) => {
+    const na = a === "__geen__" ? "zzz" : (winkelById(a)?.naam || "zzz").toLowerCase();
+    const nb = b === "__geen__" ? "zzz" : (winkelById(b)?.naam || "zzz").toLowerCase();
+    return na.localeCompare(nb);
+  });
+
+  // Tekst van het WhatsApp-overzicht opbouwen
+  const buildOverzichtTekst = () => {
+    const regels = [];
+    regels.push(`${t.winkel_overzicht_titel} — ${data.event.naam || t.no_event}`);
+    regels.push("");
+    winkelKeys.forEach((key) => {
+      const w = key === "__geen__" ? null : winkelById(key);
+      const winkelLabel = w ? w.naam : t.winkel_geen_winkel;
+      const btw = w && w.btw ? ` (BTW: ${w.btw})` : "";
+      regels.push(`*${winkelLabel}*${btw}`);
+      perWinkel[key].forEach((m) => {
+        const best = bestellingVoor(m.id);
+        const aantal = m.aantal ? `${m.aantal}× ` : "";
+        const details = [];
+        if (best.datum) details.push(formatDate(best.datum, lang));
+        const an = aankoperNaam(best);
+        if (an) details.push(an);
+        const suffix = details.length > 0 ? ` — ${details.join(", ")}` : "";
+        regels.push(`• ${aantal}${matNaam(m)}${suffix}`);
+      });
+      regels.push("");
+    });
+    return regels.join("\n").trim();
+  };
+
+  const overzichtTekst = buildOverzichtTekst();
+
+  // Angela uit de vrijwilligerslijst zoeken
+  const angela = data.vrijwilligers.find((v) => {
+    const vol = `${v.voornaam} ${v.naam}`.toLowerCase();
+    return vol.includes("angela") && (vol.includes("flores") || vol.includes("janett"));
+  });
+  const angelaTel = angela ? cleanPhone(angela.gsm1) : "";
+  const waLink = angelaTel
+    ? `https://wa.me/${angelaTel}?text=${encodeURIComponent(overzichtTekst)}`
+    : "";
+
+  const copyOverzicht = async () => {
+    try {
+      await navigator.clipboard.writeText(overzichtTekst);
+      showToast(t.winkel_overzicht_gekopieerd);
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = overzichtTekst;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); showToast(t.winkel_overzicht_gekopieerd); }
+      catch (e2) { alert(t.cant_copy); }
+      document.body.removeChild(ta);
+    }
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.tab_winkelbestellingen}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.winkel_best_intro}</p>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.winkel_best_geen}</div>
+      ) : (
+        <div>
+          {/* Bewerkbare lijst per item */}
+          <div style={{ display: "grid", gap: "0.7rem", marginBottom: "1.5rem" }}>
+            {items.map((m) => {
+              const best = bestellingVoor(m.id);
+              const w = winkelById(m.winkelId);
+              const aankoperIsExtern = best.aankoperId === "__extern__";
+              return (
+                <div key={m.id} className="card" style={{ borderLeft: "3px solid var(--gold)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.5fr 1.2fr 1fr 1.3fr", gap: "0.5rem", alignItems: "end" }}>
+                    <Field label={t.mat_naam}>
+                      <input className="input" value={matNaam(m)} readOnly
+                        style={{ background: "var(--bg)", color: "var(--ink-soft)" }} />
+                    </Field>
+                    <Field label={t.mat_aantal}>
+                      <input className="input" value={m.aantal || ""} readOnly
+                        style={{ background: "var(--bg)", color: "var(--ink-soft)" }} />
+                    </Field>
+                    <Field label={t.winkel_naam}>
+                      <input className="input" value={w ? w.naam : t.winkel_geen_winkel} readOnly
+                        style={{ background: "var(--bg)", color: "var(--ink-soft)" }} />
+                    </Field>
+                    <Field label={t.winkel_datum}>
+                      <input type="date" className="input" value={best.datum || ""}
+                        onChange={(e) => updateWinkelbestelling(m.id, { datum: e.target.value })} />
+                    </Field>
+                    <Field label={t.winkel_aankoper}>
+                      <select className="select" value={best.aankoperId || ""}
+                        onChange={(e) => updateWinkelbestelling(m.id, {
+                          aankoperId: e.target.value,
+                          aankoperVrij: e.target.value === "__extern__" ? (best.aankoperVrij || "") : "",
+                        })}>
+                        <option value="">{t.mat_choose}</option>
+                        <optgroup label={t.tab_vrijwilligers}>
+                          {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+                        </optgroup>
+                        <option value="__extern__">{t.winkel_extern_koper}</option>
+                      </select>
+                    </Field>
+                  </div>
+                  {w && w.btw && (
+                    <p style={{ fontSize: "0.75rem", color: "var(--ink-soft)", margin: "0.4rem 0 0" }}>
+                      {t.winkel_btw}: {w.btw}
+                    </p>
+                  )}
+                  {!w && (
+                    <p style={{ fontSize: "0.78rem", color: "var(--accent)", margin: "0.4rem 0 0" }}>
+                      {t.winkel_geen_gekozen}
+                    </p>
+                  )}
+                  {aankoperIsExtern && (
+                    <div style={{ marginTop: "0.5rem" }}>
+                      <input className="input" placeholder={t.winkel_extern_naam} value={best.aankoperVrij || ""}
+                        onChange={(e) => updateWinkelbestelling(m.id, { aankoperVrij: e.target.value })} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Overzichtstabel per winkel */}
+          <div className="card" style={{ marginBottom: "1.5rem" }}>
+            <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.15rem" }}>{t.winkel_overzicht_titel}</h3>
+            {winkelKeys.map((key) => {
+              const w = key === "__geen__" ? null : winkelById(key);
+              return (
+                <div key={key} style={{ marginBottom: "1rem" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", flexWrap: "wrap",
+                    borderBottom: "2px solid var(--accent-soft)", paddingBottom: "0.3rem", marginBottom: "0.4rem" }}>
+                    <strong className="font-display" style={{ fontSize: "1rem" }}>
+                      {w ? w.naam : t.winkel_geen_winkel}
+                    </strong>
+                    {w && w.btw && (
+                      <span style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>{t.winkel_btw}: {w.btw}</span>
+                    )}
+                  </div>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                    <thead>
+                      <tr style={{ textAlign: "left", color: "var(--ink-soft)" }}>
+                        <th style={{ padding: "0.3rem 0.5rem 0.3rem 0" }}>{t.mat_naam}</th>
+                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.mat_aantal}</th>
+                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.winkel_datum}</th>
+                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.winkel_aankoper}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {perWinkel[key].map((m) => {
+                        const best = bestellingVoor(m.id);
+                        return (
+                          <tr key={m.id} style={{ borderTop: "1px solid var(--line)" }}>
+                            <td style={{ padding: "0.35rem 0.5rem 0.35rem 0" }}>{matNaam(m)}</td>
+                            <td style={{ padding: "0.35rem 0.5rem" }}>{m.aantal || "—"}</td>
+                            <td style={{ padding: "0.35rem 0.5rem" }}>{best.datum ? formatDate(best.datum, lang) : "—"}</td>
+                            <td style={{ padding: "0.35rem 0.5rem" }}>{aankoperNaam(best) || "—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Verzenden naar Angela */}
+          <div className="card">
+            <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.15rem" }}>{t.winkel_verzend_titel}</h3>
+            {!angela ? (
+              <p style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{t.winkel_geen_angela}</p>
+            ) : !angelaTel ? (
+              <p style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{t.winkel_angela_geen_gsm}</p>
+            ) : (
+              <p style={{ color: "var(--ink-soft)", fontSize: "0.85rem" }}>
+                {t.winkel_verzend_naar} <strong>{angela.voornaam} {angela.naam}</strong> · {angela.gsm1}
+              </p>
+            )}
+            <details style={{ margin: "0.7rem 0" }}>
+              <summary style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                <span className="chevron">▶</span> {t.show_msg}
+              </summary>
+              <pre style={{ marginTop: "0.5rem", padding: "0.8rem", background: "var(--bg)",
+                border: "1px solid var(--line)", borderRadius: 3, whiteSpace: "pre-wrap",
+                fontFamily: "inherit", fontSize: "0.85rem" }}>{overzichtTekst}</pre>
+            </details>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+              <button className="btn btn-ghost btn-sm" onClick={copyOverzicht}>{t.copy_msg}</button>
+              {waLink && (
+                <a className="btn btn-whatsapp btn-sm" href={waLink} target="_blank" rel="noopener"
+                  style={{ textDecoration: "none" }}>{t.open_wa}</a>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
