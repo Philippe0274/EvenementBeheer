@@ -196,8 +196,8 @@ const T = {
     msg_intro2: "en plak het zelf in WhatsApp.",
     no_templates: "Geen sjablonen beschikbaar. Voeg er een toe in het tabblad",
     no_volunteers_w_tasks: "Geen vrijwilligers met toegewezen taken. Wijs eerst taken toe in het tabblad",
-    geen_materiaalverantw: "Geen verantwoordelijke ingesteld voor de taak \"Materiaal beheer\". Stel die in op het tabblad Taken (een vrijwilliger, geen externe).",
     materiaalverantw_label: "Materiaalverantwoordelijke",
+    materiaal_geen_sjabloon: "geen materiaalbeheer-sjabloon gevonden — voeg er een toe in het tabblad Sjablonen",
     copy_msg: "📋 Kopieer bericht",
     open_wa: "📱 Open WhatsApp",
     show_msg: "Toon bericht",
@@ -376,8 +376,8 @@ const T = {
     msg_intro2: "et collez-le vous-même dans WhatsApp.",
     no_templates: "Aucun modèle disponible. Ajoutez-en un dans l'onglet",
     no_volunteers_w_tasks: "Aucun bénévole avec des tâches assignées. Assignez d'abord des tâches dans l'onglet",
-    geen_materiaalverantw: "Aucun responsable défini pour la tâche « Gestion de matériel ». Définissez-le dans l'onglet Tâches (un bénévole, pas un contact externe).",
     materiaalverantw_label: "Responsable du matériel",
+    materiaal_geen_sjabloon: "aucun modèle de gestion de matériel trouvé — ajoutez-en un dans l'onglet Modèles",
     copy_msg: "📋 Copier le message",
     open_wa: "📱 Ouvrir WhatsApp",
     show_msg: "Afficher le message",
@@ -756,6 +756,21 @@ const normalizeData = (raw) => {
         nl: raw.sjablonen[`${id}_nl`] || "",
         fr: raw.sjablonen[`${id}_fr`] || "",
       }));
+    }
+  }
+
+  // Zorg dat het materiaalbeheer-sjabloon altijd aanwezig is.
+  // Verdwenen uit oude opgeslagen data? Dan vullen we de standaardversie aan.
+  if (Array.isArray(safe.sjablonen)) {
+    const heeftMateriaal = safe.sjablonen.some((s) => {
+      const titel = (s.titel || "").trim().toLowerCase();
+      return s.id === "materiaalbeheer" ||
+        titel === "materiaalbeheer" || titel === "materiaal beheer" || titel === "gestion de matériel" ||
+        ((s.nl || "") + (s.fr || "")).includes("{materiaallijst}");
+    });
+    if (!heeftMateriaal) {
+      const standaard = defaultSjablonen.find((s) => s.id === "materiaalbeheer");
+      if (standaard) safe.sjablonen = [standaard, ...safe.sjablonen];
     }
   }
 
@@ -2526,10 +2541,22 @@ function BerichtenTab({ data, showToast, t }) {
 
   // ----------------------------------------------------------------
   // MATERIAALBEHEER
-  // Het sjabloon "materiaalbeheer" gaat enkel naar de verantwoordelijke
-  // van de taak "Materiaal beheer" / "Gestion de matériel".
+  // Het oranje kader bovenaan toont steeds de verantwoordelijke van de
+  // taak "Materiaal beheer" / "Gestion de matériel", los van welk
+  // sjabloon geselecteerd is. De verzendknoppen gebruiken altijd het
+  // vaste materiaalbeheer-sjabloon (met {materiaallijst}).
   // ----------------------------------------------------------------
-  const isMateriaalSjabloon = !!huidigSjabloon && huidigSjabloon.id === "materiaalbeheer";
+
+  // Zoek het materiaalbeheer-sjabloon: op id, anders op titel,
+  // anders elk sjabloon dat de {materiaallijst}-placeholder bevat.
+  const materiaalSjabloon =
+    data.sjablonen.find((s) => s.id === "materiaalbeheer") ||
+    data.sjablonen.find((s) => {
+      const titel = (s.titel || "").trim().toLowerCase();
+      return titel === "materiaalbeheer" || titel === "materiaal beheer" || titel === "gestion de matériel";
+    }) ||
+    data.sjablonen.find((s) => ((s.nl || "") + (s.fr || "")).includes("{materiaallijst}")) ||
+    null;
 
   // Zoek de taak "Materiaal beheer" (NL of FR), case-insensitief
   const materiaalTaak = data.taken.find((tt) => {
@@ -2546,25 +2573,31 @@ function BerichtenTab({ data, showToast, t }) {
       ? materiaalTaak.verantwoordelijkeId
       : "";
 
-  // Bouw de materiaallijst-tekst op voor in het bericht
+  // Bouw de materiaallijst-tekst op voor in het bericht.
+  // Enkel materiaal met een ingevuld aantal (> 0) komt in de lijst —
+  // de volledige materiaal-stamlijst blijft bewaard voor andere evenementen.
   const buildMateriaallijst = (lang) => {
-    const items = data.materiaal || [];
+    const items = (data.materiaal || []).filter((m) => {
+      const n = parseFloat(m.aantal);
+      return !isNaN(n) && n > 0;
+    });
     if (items.length === 0) {
       return lang === "fr" ? "(aucun matériel)" : "(geen materiaal)";
     }
     return items
       .map((m) => {
         const naam = capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?";
-        const aantal = m.aantal ? `${m.aantal}× ` : "";
+        const aantal = `${m.aantal}× `;
         const oorsprong = m.oorsprong ? ` (${m.oorsprong})` : "";
         return `• ${aantal}${naam}${oorsprong}`;
       })
       .join("\n");
   };
 
-  const buildBerichtVoor = (v) => {
+  const buildBerichtVoor = (v, sjabloonObj) => {
     const lang = v.taal === "fr" ? "fr" : "nl";
-    const sjabloon = huidigSjabloon ? (lang === "fr" ? (huidigSjabloon.fr || "") : (huidigSjabloon.nl || "")) : "";
+    const bron = sjabloonObj || huidigSjabloon;
+    const sjabloon = bron ? (lang === "fr" ? (bron.fr || "") : (bron.nl || "")) : "";
 
     // Hulpfunctie: krijg leesbare naam van verantwoordelijke
     const getVerantwNaam = (tt) => {
@@ -2687,37 +2720,82 @@ function BerichtenTab({ data, showToast, t }) {
           return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
         };
 
-        // Bij het materiaalbeheer-sjabloon: enkel de verantwoordelijke van de taak "Materiaal beheer"
-        let metTaken;
-        if (isMateriaalSjabloon) {
-          const verantw = materiaalVerantwId
-            ? data.vrijwilligers.find((v) => v.id === materiaalVerantwId)
-            : null;
-          if (!verantw) {
+        // Vrijwilliger-object van de materiaalverantwoordelijke (voor het oranje kader)
+        const materiaalVerantw = materiaalVerantwId
+          ? data.vrijwilligers.find((v) => v.id === materiaalVerantwId)
+          : null;
+
+        // Onderste lijst: alle vrijwilligers met minstens één toegewezen taak/subtaak
+        const metTaken = data.vrijwilligers
+          .filter((v) => aantalVoor(v.id) > 0)
+          .sort(sorteer);
+
+        // Oranje kader bovenaan — materiaalverantwoordelijke
+        const materiaalKader = (() => {
+          if (!materiaalVerantw) return null;
+          const naamVol = `${materiaalVerantw.voornaam} ${materiaalVerantw.naam}`.trim() || "vrijwilliger";
+          if (!materiaalSjabloon) {
             return (
-              <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>
-                {t.geen_materiaalverantw}
+              <div className="alert-bar alert-amber" style={{ marginBottom: "1.5rem", display: "block" }}>
+                <strong className="font-display" style={{ fontSize: "1.05rem" }}>{naamVol}</strong>
+                <div style={{ fontSize: "0.85rem", marginTop: "0.3rem", color: "var(--ink)" }}>
+                  {t.materiaalverantw_label} · {t.materiaal_geen_sjabloon}
+                </div>
               </div>
             );
           }
-          metTaken = [verantw];
-        } else {
-          // Andere sjablonen: vrijwilligers met minstens één toegewezen taak (ongewijzigd gedrag)
-          metTaken = data.vrijwilligers
-            .filter((v) => aantalVoor(v.id) > 0)
-            .sort(sorteer);
-        }
+          const bericht = buildBerichtVoor(materiaalVerantw, materiaalSjabloon);
+          const link = buildWaLink(materiaalVerantw, bericht);
+          return (
+            <div className="alert-bar alert-amber" style={{ marginBottom: "1.5rem", display: "block" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--amber)" }}>
+                    {t.materiaalverantw_label}
+                  </div>
+                  <strong className="font-display" style={{ fontSize: "1.1rem" }}>{naamVol}</strong>
+                  <div style={{ color: "var(--ink-soft)", fontSize: "0.85rem", marginTop: "0.2rem" }}>
+                    {materiaalVerantw.taal === "fr" ? "🇫🇷" : "🇳🇱"} · {materiaalVerantw.gsm1 || t.no_phone}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => copyToClipboard(bericht, materiaalVerantw.voornaam || naamVol)}>
+                    {t.copy_msg}
+                  </button>
+                  {link && (
+                    <a className="btn btn-whatsapp btn-sm" href={link} target="_blank" rel="noopener" style={{ textDecoration: "none" }}>
+                      {t.open_wa}
+                    </a>
+                  )}
+                </div>
+              </div>
+              <details style={{ marginTop: "0.7rem" }}>
+                <summary style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                  <span className="chevron">▶</span> {t.show_msg}
+                </summary>
+                <pre style={{ marginTop: "0.5rem", padding: "0.8rem", background: "var(--bg-card)",
+                  border: "1px solid var(--line)", borderRadius: 3, whiteSpace: "pre-wrap",
+                  fontFamily: "inherit", fontSize: "0.85rem" }}>{bericht}</pre>
+              </details>
+            </div>
+          );
+        })();
 
         if (metTaken.length === 0) {
           return (
-            <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>
-              {t.no_volunteers_w_tasks} <strong>{t.tab_taken}</strong>.
+            <div>
+              {materiaalKader}
+              <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+                {t.no_volunteers_w_tasks} <strong>{t.tab_taken}</strong>.
+              </div>
             </div>
           );
         }
 
         return (
-          <div style={{ display: "grid", gap: "1rem" }}>
+          <div>
+            {materiaalKader}
+            <div style={{ display: "grid", gap: "1rem" }}>
             {metTaken.map((v) => {
               const bericht = buildBerichtVoor(v);
               const link = buildWaLink(v, bericht);
@@ -2729,7 +2807,7 @@ function BerichtenTab({ data, showToast, t }) {
                     <div>
                       <strong className="font-display" style={{ fontSize: "1.1rem" }}>{naamVol}</strong>
                       <div style={{ color: "var(--ink-soft)", fontSize: "0.85rem", marginTop: "0.2rem" }}>
-                        {v.taal === "fr" ? "🇫🇷" : "🇳🇱"} · {v.gsm1 || t.no_phone} · {isMateriaalSjabloon ? t.materiaalverantw_label : t.taken_assigned(aantal)}
+                        {v.taal === "fr" ? "🇫🇷" : "🇳🇱"} · {v.gsm1 || t.no_phone} · {t.taken_assigned(aantal)}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -2754,6 +2832,7 @@ function BerichtenTab({ data, showToast, t }) {
                 </div>
               );
             })}
+            </div>
           </div>
         );
       })()}
