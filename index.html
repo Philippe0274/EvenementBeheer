@@ -111,9 +111,12 @@ const T = {
     reset: "Reset",
     help_button: "Werking", help_close: "Sluiten",
     nieuw_evenement: "Nieuw evenement",
-    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Bulk-zendgeschiedenis\n• Winkelbestellingen (datum + aankoper)\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaal\n• Winkels + BTW-nummers\n• Sjablonen + woordenboek\n• Externe contacten\n\nMaak eerst een Excel-export als backup van het huidige evenement!",
+    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nEr wordt eerst automatisch een Excel-backup gedownload van het huidige evenement.\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Materiaal-aantallen (lijst zelf blijft)\n• Bulk-zendgeschiedenis\n• Winkelbestellingen + kastickets\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaallijst (zonder aantallen)\n• Winkels + BTW-nummers\n• Sjablonen + woordenboek\n• Externe contacten\n\nDoorgaan?",
+    backup_mislukt: "De automatische Excel-backup is niet gelukt. Toch doorgaan met het nieuwe evenement? (Niet aanbevolen zonder backup.)",
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard", tab_event: "Event", tab_vrijwilligers: "Vrijwilligers",
+    weer_laden: "Weer ophalen…", weer_fout: "Weer momenteel niet beschikbaar (geen internet?).",
+    weer_nu: "Nu", weer_op_evenement: "Op de evenementdag",
     tab_taken: "Taken", tab_berichten: "Berichten", tab_bulk: "Bulk Send",
     tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal", tab_aankopen: "Aankopen",
     tab_winkelgegevens: "WinkelGegevens", tab_winkelbestellingen: "Winkelbestellingen",
@@ -151,6 +154,10 @@ const T = {
     mat_title: "Materiaal", mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
     mat_naam: "Materiaal", mat_aantal: "Aantal", mat_oorsprong: "Oorsprong", mat_verant: "Verantwoordelijke",
     mat_add: "+ Materiaal toevoegen", mat_no_items: "Nog geen materiaal. Voeg er één toe om te beginnen.",
+    mat_zoek_ph: "🔍 Zoek materiaal (NL of FR)…",
+    mat_zoek_geen: "Geen materiaal gevonden voor deze zoekterm.",
+    mat_zoek_resultaat: (n, totaal) => `${n} van ${totaal} getoond`,
+    mat_dubbel: "Let op: er bestaat al materiaal met deze naam. Mogelijk een dubbel.",
     mat_choose: "— Kies —", mat_other: "Andere…", mat_other_ph: "Vrije tekst",
     mat_new_loc: "+ Nieuwe locatie", mat_new_loc_prompt: "Naam van de nieuwe locatie?",
     mat_remove_loc: "Locatie verwijderen?", mat_export: "⬇ Exporteer materiaal",
@@ -200,7 +207,7 @@ const T = {
     taak_verant_none: "— Geen verantwoordelijke —",
     taak_verant_msg: (naam) => `Verantwoordelijke: ${naam}`,
     taak_verant_msg_fr: (naam) => `Responsable : ${naam}`,
-    add_task: "+ Taak toevoegen",
+    add_task: "+ Taak toevoegen", taak_dubbel: "Let op: er bestaat al een taak met deze naam. Mogelijk een dubbel.",
     no_tasks: "Nog geen taken. Voeg er een toe om te beginnen.",
     name_nl: "Naam (NL)", name_fr: "Nom (FR)", category: "Categorie",
     category_ph: "Logistiek, Onthaal…",
@@ -324,9 +331,12 @@ const T = {
     reset: "Réinitialiser",
     help_button: "Fonctionnement", help_close: "Fermer",
     nieuw_evenement: "Nouvel événement",
-    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Historique des envois groupés\n• Commandes via magasin (date + acheteur)\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Matériel\n• Magasins + numéros de TVA\n• Modèles + dictionnaire\n• Contacts externes\n\nFaites d'abord une exportation Excel comme sauvegarde de l'événement actuel !",
+    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nUne sauvegarde Excel de l'événement actuel sera d'abord téléchargée automatiquement.\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Quantités de matériel (la liste reste)\n• Historique des envois groupés\n• Commandes via magasin + tickets\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Liste du matériel (sans quantités)\n• Magasins + numéros de TVA\n• Modèles + dictionnaire\n• Contacts externes\n\nContinuer ?",
+    backup_mislukt: "La sauvegarde Excel automatique a échoué. Continuer quand même avec le nouvel événement ? (Déconseillé sans sauvegarde.)",
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord", tab_event: "Événement", tab_vrijwilligers: "Bénévoles",
+    weer_laden: "Chargement de la météo…", weer_fout: "Météo indisponible pour le moment (pas d'internet ?).",
+    weer_nu: "Maintenant", weer_op_evenement: "Le jour de l'événement",
     tab_taken: "Tâches", tab_berichten: "Messages", tab_bulk: "Envoi groupé",
     tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel", tab_aankopen: "Achats",
     tab_winkelgegevens: "Données du Magasin", tab_winkelbestellingen: "Commandes via Magasin",
@@ -364,6 +374,10 @@ const T = {
     mat_title: "Matériel", mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
     mat_naam: "Matériel", mat_aantal: "Quantité", mat_oorsprong: "Source", mat_verant: "Responsable",
     mat_add: "+ Ajouter du matériel", mat_no_items: "Pas encore de matériel. Ajoutez-en un pour commencer.",
+    mat_zoek_ph: "🔍 Rechercher du matériel (NL ou FR)…",
+    mat_zoek_geen: "Aucun matériel trouvé pour ce terme.",
+    mat_zoek_resultaat: (n, totaal) => `${n} sur ${totaal} affichés`,
+    mat_dubbel: "Attention : du matériel portant ce nom existe déjà. Doublon possible.",
     mat_choose: "— Choisir —", mat_other: "Autre…", mat_other_ph: "Texte libre",
     mat_new_loc: "+ Nouvelle source", mat_new_loc_prompt: "Nom de la nouvelle source ?",
     mat_remove_loc: "Supprimer la source ?", mat_export: "⬇ Exporter matériel",
@@ -413,7 +427,7 @@ const T = {
     taak_verant_none: "— Aucun responsable —",
     taak_verant_msg: (naam) => `Verantwoordelijke: ${naam}`,
     taak_verant_msg_fr: (naam) => `Responsable : ${naam}`,
-    add_task: "+ Ajouter une tâche",
+    add_task: "+ Ajouter une tâche", taak_dubbel: "Attention : une tâche portant ce nom existe déjà. Doublon possible.",
     no_tasks: "Pas encore de tâches. Ajoutez-en une pour commencer.",
     name_nl: "Naam (NL)", name_fr: "Nom (FR)", category: "Catégorie",
     category_ph: "Logistique, Accueil…",
@@ -1502,7 +1516,7 @@ function App() {
   const resetBulkHistory = () => setData((d) => ({ ...d, bulkGeschiedenis: {} }));
 
   // ---- Excel ----
-  const exportExcel = () => {
+  const exportExcel = (isBackup) => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([data.event]), "Event");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.vrijwilligers), "Vrijwilligers");
@@ -1590,7 +1604,8 @@ function App() {
       (data.oorsprongLijst || []).map((loc) => ({ locatie: loc }))
     ), "OorsprongLijst");
 
-    const fileName = `evenement_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const prefix = isBackup ? "backup" : "evenement";
+    const fileName = `${prefix}_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
@@ -1811,6 +1826,12 @@ function App() {
 
   const nieuwEvenement = () => {
     if (!confirm(t.confirm_nieuw_evenement)) return;
+    // Stap 1: automatische Excel-backup van het huidige evenement
+    try {
+      exportExcel(true);
+    } catch (e) {
+      if (!confirm(t.backup_mislukt)) return;
+    }
     setData((d) => ({
       ...d,
       // Wissen
@@ -1832,7 +1853,9 @@ function App() {
           status: "open",
         })),
       })),
-      // Behouden zoals ze zijn: vrijwilligers, materiaal, sjablonen, woordenboek, externeContacten, oorsprongLijst
+      // Materiaal: behouden, maar aantallen leegmaken (evenementspecifiek)
+      materiaal: (d.materiaal || []).map((m) => ({ ...m, aantal: "" })),
+      // Behouden zoals ze zijn: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst
     }));
     showToast(t.nieuw_evenement_klaar);
   };
@@ -1877,7 +1900,7 @@ function App() {
                 <input type="file" accept=".xlsx,.xls" style={{ display: "none" }}
                   onChange={(e) => e.target.files[0] && importExcelReplace(e.target.files[0])} />
               </label>
-              <button className="btn btn-primary btn-sm" onClick={exportExcel}>{t.export}</button>
+              <button className="btn btn-primary btn-sm" onClick={() => exportExcel(false)}>{t.export}</button>
               <button className="btn btn-ghost btn-sm" onClick={nieuwEvenement} title={t.nieuw_evenement}>
                 🆕 {t.nieuw_evenement}
               </button>
@@ -1957,6 +1980,121 @@ function App() {
 // ============================================================
 // DASHBOARD
 // ============================================================
+// ============================================================
+// WEER — toont het weer voor het evenementadres (Open-Meteo, geen sleutel nodig)
+// ============================================================
+const WEER_ICOON = (code) => {
+  // WMO weather codes → emoji
+  if (code === 0) return "☀️";
+  if (code === 1 || code === 2) return "🌤️";
+  if (code === 3) return "☁️";
+  if (code === 45 || code === 48) return "🌫️";
+  if (code >= 51 && code <= 57) return "🌦️";
+  if (code >= 61 && code <= 67) return "🌧️";
+  if (code >= 71 && code <= 77) return "🌨️";
+  if (code >= 80 && code <= 82) return "🌧️";
+  if (code >= 85 && code <= 86) return "🌨️";
+  if (code >= 95) return "⛈️";
+  return "🌡️";
+};
+
+function WeerKaart({ event, lang, t }) {
+  const [staat, setStaat] = React.useState("laden"); // laden | ok | geenadres | fout
+  const [weer, setWeer] = React.useState(null);
+
+  // Adres opbouwen voor geocoding
+  const plaats = (event.gemeente || "").trim();
+  const land = "BE";
+
+  React.useEffect(() => {
+    if (!plaats) { setStaat("geenadres"); return; }
+    let afgebroken = false;
+    setStaat("laden");
+
+    const haal = async () => {
+      try {
+        // 1. Geocoding: plaatsnaam → coördinaten
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(plaats)}&count=1&language=${lang}&country=${land}`;
+        const geoRes = await fetch(geoUrl);
+        const geo = await geoRes.json();
+        if (afgebroken) return;
+        if (!geo.results || geo.results.length === 0) { setStaat("fout"); return; }
+        const { latitude, longitude, name } = geo.results[0];
+
+        // 2. Forecast voor die coördinaten
+        const fcUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+          `&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+          `&timezone=auto&forecast_days=7`;
+        const fcRes = await fetch(fcUrl);
+        const fc = await fcRes.json();
+        if (afgebroken) return;
+        if (!fc.current) { setStaat("fout"); return; }
+
+        // Is de evenementdatum binnen de 7-daagse voorspelling?
+        let eventDag = null;
+        if (event.datum && fc.daily && fc.daily.time) {
+          const idx = fc.daily.time.indexOf(event.datum);
+          if (idx >= 0) {
+            eventDag = {
+              code: fc.daily.weather_code[idx],
+              max: Math.round(fc.daily.temperature_2m_max[idx]),
+              min: Math.round(fc.daily.temperature_2m_min[idx]),
+            };
+          }
+        }
+        setWeer({
+          plaats: name,
+          nuTemp: Math.round(fc.current.temperature_2m),
+          nuCode: fc.current.weather_code,
+          eventDag,
+        });
+        setStaat("ok");
+      } catch (e) {
+        if (!afgebroken) setStaat("fout");
+      }
+    };
+    haal();
+    return () => { afgebroken = true; };
+  }, [plaats, event.datum, lang]);
+
+  if (staat === "geenadres") return null; // geen gemeente ingevuld → niets tonen
+
+  return (
+    <div className="card" style={{ marginBottom: "1.5rem",
+      background: "linear-gradient(135deg, #eaf4fb 0%, #f5f1e8 100%)" }}>
+      {staat === "laden" && (
+        <div style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>⏳ {t.weer_laden}</div>
+      )}
+      {staat === "fout" && (
+        <div style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>🌐 {t.weer_fout}</div>
+      )}
+      {staat === "ok" && weer && (
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+            <span style={{ fontSize: "2.8rem", lineHeight: 1 }}>{WEER_ICOON(weer.nuCode)}</span>
+            <div>
+              <div className="font-display" style={{ fontSize: "1.6rem", fontWeight: 700 }}>{weer.nuTemp}°C</div>
+              <div style={{ fontSize: "0.8rem", color: "var(--ink-soft)" }}>{t.weer_nu} · {weer.plaats}</div>
+            </div>
+          </div>
+          {weer.eventDag && (
+            <div style={{ borderLeft: "1px solid var(--line)", paddingLeft: "1.5rem",
+              display: "flex", alignItems: "center", gap: "0.8rem" }}>
+              <span style={{ fontSize: "2.2rem", lineHeight: 1 }}>{WEER_ICOON(weer.eventDag.code)}</span>
+              <div>
+                <div className="font-display" style={{ fontSize: "1.15rem", fontWeight: 700 }}>
+                  {weer.eventDag.max}° / {weer.eventDag.min}°
+                </div>
+                <div style={{ fontSize: "0.8rem", color: "var(--ink-soft)" }}>{t.weer_op_evenement}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Dashboard({ data, dagen, setTab, t }) {
   const allUnits = [];
   data.taken.forEach((tt) => {
@@ -1991,6 +2129,8 @@ function Dashboard({ data, dagen, setTab, t }) {
           {alert.cta && <button className="btn btn-primary btn-sm" onClick={() => setTab("berichten")}>{alert.cta}</button>}
         </div>
       )}
+
+      <WeerKaart event={data.event} lang={data.taal === "fr" ? "fr" : "nl"} t={t} />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
         <div className="card">
@@ -2126,8 +2266,15 @@ function VrijwilligersTab({ vrijwilligers, add, update, remove, dedup, t }) {
           {vrijwilligers.length === 0 ? t.no_volunteers : t.no_results}
         </div>
       ) : (
-        <div style={{ display: "grid", gap: "0.8rem" }}>
-          {filtered.map((v) => <VrijwilligerKaart key={v.id} v={v} update={update} remove={remove} t={t} />)}
+        <div>
+          <div style={{ display: "grid", gap: "0.8rem" }}>
+            {filtered.map((v) => <VrijwilligerKaart key={v.id} v={v} update={update} remove={remove} t={t} />)}
+          </div>
+          {filtered.length > 3 && (
+            <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
+              <button className="btn btn-primary" onClick={add}>{t.add_volunteer}</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -2451,14 +2598,21 @@ function TakenTab({ taken, vrijwilligers, externeContacten, dict, addTaak, updat
       {taken.length === 0 ? (
         <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.no_tasks}</div>
       ) : (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          {taken.map((tt) => (
-            <TaakKaart key={tt.id} taak={tt} vrijwilligers={vrijwilligers}
-              externeContacten={externeContacten} dict={dict} t={t}
-              updateTaak={updateTaak} removeTaak={removeTaak}
-              addSubtaak={addSubtaak} updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak}
-              toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub} />
-          ))}
+        <div>
+          <div style={{ display: "grid", gap: "1rem" }}>
+            {taken.map((tt) => (
+              <TaakKaart key={tt.id} taak={tt} alleTaken={taken} vrijwilligers={vrijwilligers}
+                externeContacten={externeContacten} dict={dict} t={t}
+                updateTaak={updateTaak} removeTaak={removeTaak}
+                addSubtaak={addSubtaak} updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak}
+                toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub} />
+            ))}
+          </div>
+          {taken.length > 3 && (
+            <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
+              <button className="btn btn-primary" onClick={addTaak}>{t.add_task}</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -2483,10 +2637,21 @@ const useAutoTranslate = (item, updateFn, dict) => {
   return { handleNlBlur, handleFrBlur };
 };
 
-function TaakKaart({ taak, vrijwilligers, externeContacten, dict, updateTaak, removeTaak,
+function TaakKaart({ taak, alleTaken, vrijwilligers, externeContacten, dict, updateTaak, removeTaak,
   addSubtaak, updateSubtaak, removeSubtaak, toggleAssignmentTaak, toggleAssignmentSub, t }) {
 
   const { handleNlBlur, handleFrBlur } = useAutoTranslate(taak, (patch) => updateTaak(taak.id, patch), dict);
+
+  // Dubbeldetectie: zelfde taaknaam (NL of FR) bij een andere taak
+  const isDubbel = (() => {
+    const nl = normalizeName(taak.naamNl), fr = normalizeName(taak.naamFr);
+    if (!nl && !fr) return false;
+    return (alleTaken || []).some((x) => {
+      if (x.id === taak.id) return false;
+      const xnl = normalizeName(x.naamNl), xfr = normalizeName(x.naamFr);
+      return (nl && (nl === xnl || nl === xfr)) || (fr && (fr === xnl || fr === xfr));
+    });
+  })();
 
   const sortedVrij = [...(vrijwilligers || [])].sort((a, b) => {
     const an = (a.naam || "").toLowerCase();
@@ -2500,7 +2665,13 @@ function TaakKaart({ taak, vrijwilligers, externeContacten, dict, updateTaak, re
   const verantwIsAnder = taak.verantwoordelijkeId === "__ander__";
 
   return (
-    <div className="card" style={{ borderLeft: "3px solid var(--accent)" }}>
+    <div className="card" style={{ borderLeft: `3px solid ${isDubbel ? "var(--gold)" : "var(--accent)"}` }}>
+      {isDubbel && (
+        <div style={{ background: "#fdf6e3", border: "1px solid var(--gold)", borderRadius: 3,
+          padding: "0.5rem 0.7rem", marginBottom: "0.6rem", fontSize: "0.82rem", color: "var(--ink)" }}>
+          ⚠ {t.taak_dubbel}
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: "0.8rem", alignItems: "end" }}>
         <Field label={t.name_nl}>
           <input className="input" value={capitalize(taak.naamNl)}
@@ -2772,6 +2943,7 @@ function BerichtenTab({ data, showToast, t }) {
   // Bouw de materiaallijst-tekst op voor in het bericht.
   // Enkel materiaal met een ingevuld aantal (> 0) komt in de lijst —
   // de volledige materiaal-stamlijst blijft bewaard voor andere evenementen.
+  // Formaat: "4× BBQ uit Leuven" / "4× BBQ de Leuven"
   const buildMateriaallijst = (lang) => {
     const items = (data.materiaal || []).filter((m) => {
       const n = parseFloat(m.aantal);
@@ -2780,13 +2952,22 @@ function BerichtenTab({ data, showToast, t }) {
     if (items.length === 0) {
       return lang === "fr" ? "(aucun matériel)" : "(geen materiaal)";
     }
-    return items
+    const uitWoord = lang === "fr" ? "de" : "uit";
+    const winkelNaamVan = (id) => {
+      const w = (data.winkels || []).find((x) => x.id === id);
+      return w ? w.naam : (lang === "fr" ? "magasin non précisé" : "winkel niet gekozen");
+    };
+    return [...items]
       .map((m) => {
         const naam = capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?";
-        const aantal = `${m.aantal}× `;
-        const oorsprong = m.oorsprong ? ` (${m.oorsprong})` : "";
-        return `• ${aantal}${naam}${oorsprong}`;
+        // Herkomst: bij Winkel_Magasin de winkelnaam, anders de oorsprong
+        const herkomst = m.oorsprong === WINKEL_OORSPRONG
+          ? winkelNaamVan(m.winkelId)
+          : (m.oorsprong || (lang === "fr" ? "origine non précisée" : "oorsprong niet gekozen"));
+        return { tekst: `• ${m.aantal}× ${naam} ${uitWoord} ${herkomst}`, sorteer: naam.toLowerCase() };
       })
+      .sort((a, b) => a.sorteer.localeCompare(b.sorteer))
+      .map((x) => x.tekst)
       .join("\n");
   };
 
@@ -3409,6 +3590,7 @@ function SjablonenTab({ sjablonen, updateVeld, add, remove, t }) {
 // MATERIAAL
 // ============================================================
 function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContacten, winkels, dict, taal, add, update, remove, addLocatie, removeLocatie, exportMateriaal, t }) {
+  const [zoek, setZoek] = useState("");
   const sortedVrij = [...vrijwilligers].sort((a, b) => {
     const an = (a.naam || "").toLowerCase();
     const bn = (b.naam || "").toLowerCase();
@@ -3418,6 +3600,19 @@ function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContact
   const sortedExtern = [...(externeContacten || [])].sort((a, b) =>
     (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase())
   );
+
+  // Dynamisch alfabetisch sorteren op de schermtaal
+  const naamVoorTaal = (m) => (taal === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "";
+  const gesorteerd = [...materiaal].sort((a, b) =>
+    naamVoorTaal(a).toLowerCase().localeCompare(naamVoorTaal(b).toLowerCase())
+  );
+  // Zoekfilter (taalgebonden, maar zoekt voor de zekerheid in beide namen)
+  const zoekTerm = zoek.trim().toLowerCase();
+  const zichtbaar = zoekTerm
+    ? gesorteerd.filter((m) =>
+        (m.naamNl || "").toLowerCase().includes(zoekTerm) ||
+        (m.naamFr || "").toLowerCase().includes(zoekTerm))
+    : gesorteerd;
 
   return (
     <div>
@@ -3463,18 +3658,50 @@ function MateriaalTab({ materiaal, oorsprongLijst, vrijwilligers, externeContact
       {materiaal.length === 0 ? (
         <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.mat_no_items}</div>
       ) : (
-        <div style={{ display: "grid", gap: "0.7rem" }}>
-          {materiaal.map((m) => (
-            <MateriaalRij key={m.id} m={m} sortedVrij={sortedVrij} sortedExtern={sortedExtern} oorsprongLijst={oorsprongLijst}
-              winkels={winkels} dict={dict} update={update} remove={remove} addLocatie={addLocatie} removeLocatie={removeLocatie} t={t} />
-          ))}
+        <div>
+          <div style={{ marginBottom: "1rem" }}>
+            <input className="input" type="search" value={zoek}
+              onChange={(e) => setZoek(e.target.value)}
+              placeholder={t.mat_zoek_ph} style={{ maxWidth: 360 }} />
+            {zoekTerm && (
+              <span style={{ marginLeft: "0.7rem", fontSize: "0.83rem", color: "var(--ink-soft)" }}>
+                {t.mat_zoek_resultaat(zichtbaar.length, materiaal.length)}
+              </span>
+            )}
+          </div>
+          {zichtbaar.length === 0 ? (
+            <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.mat_zoek_geen}</div>
+          ) : (
+            <div style={{ display: "grid", gap: "0.7rem" }}>
+              {zichtbaar.map((m) => (
+                <MateriaalRij key={m.id} m={m} alleMateriaal={materiaal} sortedVrij={sortedVrij} sortedExtern={sortedExtern} oorsprongLijst={oorsprongLijst}
+                  winkels={winkels} dict={dict} update={update} remove={remove} addLocatie={addLocatie} removeLocatie={removeLocatie} t={t} />
+              ))}
+            </div>
+          )}
+          {materiaal.length > 3 && (
+            <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
+              <button className="btn btn-primary" onClick={add}>{t.mat_add}</button>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, winkels, dict, update, remove, addLocatie, removeLocatie, t }) {
+function MateriaalRij({ m, alleMateriaal, sortedVrij, sortedExtern, oorsprongLijst, winkels, dict, update, remove, addLocatie, removeLocatie, t }) {
+  // Dubbeldetectie: zelfde naam (NL of FR) bij een ander materiaal-item
+  const isDubbel = (() => {
+    const nl = normalizeName(m.naamNl), fr = normalizeName(m.naamFr);
+    if (!nl && !fr) return false;
+    return (alleMateriaal || []).some((x) => {
+      if (x.id === m.id) return false;
+      const xnl = normalizeName(x.naamNl), xfr = normalizeName(x.naamFr);
+      return (nl && (nl === xnl || nl === xfr)) || (fr && (fr === xnl || fr === xfr));
+    });
+  })();
+
   const handleNlBlur = () => {
     // Normaliseer naar lowercase bij verlaten van veld
     if (m.naamNl) update(m.id, { naamNl: normalizeName(m.naamNl) });
@@ -3494,7 +3721,13 @@ function MateriaalRij({ m, sortedVrij, sortedExtern, oorsprongLijst, winkels, di
   const verantwIsAnder = m.verantwoordelijkeId === "__ander__";
 
   return (
-    <div className="card" style={{ borderLeft: "3px solid var(--accent)" }}>
+    <div className="card" style={{ borderLeft: `3px solid ${isDubbel ? "var(--gold)" : "var(--accent)"}` }}>
+      {isDubbel && (
+        <div style={{ background: "#fdf6e3", border: "1px solid var(--gold)", borderRadius: 3,
+          padding: "0.5rem 0.7rem", marginBottom: "0.6rem", fontSize: "0.82rem", color: "var(--ink)" }}>
+          ⚠ {t.mat_dubbel}
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1.4fr 0.6fr 1fr 1.2fr auto", gap: "0.5rem", alignItems: "end" }}>
         <Field label={`${t.mat_naam} (NL)`}>
           <input className="input" value={capitalize(m.naamNl)}
