@@ -120,6 +120,24 @@ const T = {
     tab_taken: "Taken", tab_berichten: "Berichten", tab_bulk: "Bulk Send",
     tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal", tab_aankopen: "Aankopen",
     tab_winkelgegevens: "WinkelGegevens", tab_winkelbestellingen: "Winkelbestellingen",
+    tab_kostenbeheer: "Kostenbeheer", tab_history: "Event History",
+    kb_intro: "Beheer hier het budget en alle kosten van het evenement. Winkelkosten komen automatisch uit de kastickets.",
+    kb_budget: "Budget evenement", kb_zaal: "Zaal / locatie (huurprijs)",
+    kb_winkelkosten: "Winkelkosten", kb_winkel_auto: "Automatisch berekend uit de kasticketbedragen, gegroepeerd per winkel.",
+    kb_winkel_geen: "Nog geen kasticketbedragen ingevuld in het tabblad Winkelbestellingen.",
+    kb_winkel: "Winkel", kb_winkel_totaal: "Totaal winkelkosten",
+    kb_manuele_kosten: "Manuele kosten", kb_manueel: "Manuele kost",
+    kb_kost_add: "+ Kost toevoegen", kb_kost_geen: "Nog geen manuele kosten toegevoegd.",
+    kb_kost_naam: "Omschrijving", kb_resultaat: "Resultaat tegenover budget",
+    kb_totaal_uit: "Totaal uitgegeven", kb_saldo: "Resterend budget", kb_over: "Budget overschreden met",
+    kb_grafiek: "Budget vs. uitgaven", kb_verdeling: "Kostenverdeling",
+    kb_overzicht: "Kostenoverzicht",
+    kb_export: "Exporteren", kb_export_intro: "Exporteer het volledige kostenoverzicht met grafieken als PDF, klaar om naar het secretariaat te sturen.",
+    kb_pdf_knop: "⬇ PDF downloaden", kb_pdf_klaar: "✓ PDF aangemaakt",
+    kb_pdf_fout: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
+    history_intro: "Overzicht van afgesloten evenementen. Een evenement komt hier automatisch bij wanneer je 'Nieuw evenement' start.",
+    history_geen: "Nog geen afgesloten evenementen.",
+    history_afgesloten: "Afgesloten op",
     winkel_intro: "Beheer hier de winkels met hun BTW-nummer. Nieuwe winkels verschijnen alfabetisch in de winkel-keuzelijst bij materiaal.",
     winkel_add: "+ Winkel toevoegen", winkel_geen: "Nog geen winkels.",
     winkel_naam: "Winkel", winkel_btw: "BTW-nummer", winkel_btw_ph: "BE0123.456.789",
@@ -340,6 +358,24 @@ const T = {
     tab_taken: "Tâches", tab_berichten: "Messages", tab_bulk: "Envoi groupé",
     tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel", tab_aankopen: "Achats",
     tab_winkelgegevens: "Données du Magasin", tab_winkelbestellingen: "Commandes via Magasin",
+    tab_kostenbeheer: "Gestion des coûts", tab_history: "Historique",
+    kb_intro: "Gérez ici le budget et tous les coûts de l'événement. Les coûts en magasin proviennent automatiquement des tickets.",
+    kb_budget: "Budget de l'événement", kb_zaal: "Salle / lieu (prix de location)",
+    kb_winkelkosten: "Coûts en magasin", kb_winkel_auto: "Calculé automatiquement à partir des montants des tickets, groupés par magasin.",
+    kb_winkel_geen: "Aucun montant de ticket saisi dans l'onglet Commandes via Magasin.",
+    kb_winkel: "Magasin", kb_winkel_totaal: "Total coûts en magasin",
+    kb_manuele_kosten: "Coûts manuels", kb_manueel: "Coût manuel",
+    kb_kost_add: "+ Ajouter un coût", kb_kost_geen: "Aucun coût manuel ajouté.",
+    kb_kost_naam: "Description", kb_resultaat: "Résultat par rapport au budget",
+    kb_totaal_uit: "Total dépensé", kb_saldo: "Budget restant", kb_over: "Budget dépassé de",
+    kb_grafiek: "Budget vs. dépenses", kb_verdeling: "Répartition des coûts",
+    kb_overzicht: "Aperçu des coûts",
+    kb_export: "Exporter", kb_export_intro: "Exportez l'aperçu complet des coûts avec graphiques en PDF, prêt à envoyer au secrétariat.",
+    kb_pdf_knop: "⬇ Télécharger le PDF", kb_pdf_klaar: "✓ PDF créé",
+    kb_pdf_fout: "Impossible de créer le PDF (bibliothèque non chargée).",
+    history_intro: "Aperçu des événements clôturés. Un événement est ajouté ici automatiquement lorsque vous démarrez un 'Nouvel événement'.",
+    history_geen: "Aucun événement clôturé.",
+    history_afgesloten: "Clôturé le",
     winkel_intro: "Gérez ici les magasins et leur numéro de TVA. Les nouveaux magasins apparaissent par ordre alphabétique dans la liste de choix du matériel.",
     winkel_add: "+ Ajouter un magasin", winkel_geen: "Aucun magasin pour l'instant.",
     winkel_naam: "Magasin", winkel_btw: "Numéro de TVA", winkel_btw_ph: "BE0123.456.789",
@@ -676,10 +712,53 @@ const defaultData = {
   winkelbestellingen: {},
   // Kasticket-bedragen: per kasticket (winkel + aankoper + datum). {kasticketKey: bedrag}
   kastickets: {},
+  // Kostenbeheer: evenementspecifiek. budget + zaalhuur + vrije manuele kosten
+  kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] }, // manueleKosten: [{id, naam, bedrag}]
+  // Event History: afgesloten evenementen. [{id, naam, datum, gemeente, afgesloten, budget, zaalhuur, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo}]
+  eventHistory: [],
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
 const WINKEL_OORSPRONG = "Winkel_Magasin";
+
+// Parse een bedrag-string (komma of punt) naar getal
+const parseBedragNum = (v) => {
+  const n = parseFloat(String(v == null ? "" : v).replace(",", "."));
+  return isNaN(n) ? 0 : n;
+};
+// Bedrag formatteren als "€ 12,34"
+const fmtEuro = (n) => `€ ${(Number(n) || 0).toFixed(2).replace(".", ",")}`;
+
+// Bereken de kostensamenvatting van het huidige evenement
+function berekenKosten(data) {
+  const kb = data.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+  const budget = parseBedragNum(kb.budget);
+  const zaalhuur = parseBedragNum(kb.zaalhuur);
+
+  // Winkeltotalen: som van alle kasticketbedragen, gegroepeerd per winkel
+  const winkelPerNaam = {};
+  const kastickets = data.kastickets || {};
+  Object.keys(kastickets).forEach((key) => {
+    const bedrag = parseBedragNum(kastickets[key].bedrag);
+    if (bedrag === 0) return;
+    // key = "winkelId|aankoper|datum"
+    const winkelId = key.split("|")[0];
+    const w = (data.winkels || []).find((x) => x.id === winkelId);
+    const naam = w ? w.naam : "—";
+    winkelPerNaam[naam] = (winkelPerNaam[naam] || 0) + bedrag;
+  });
+  const winkelTotaal = Object.values(winkelPerNaam).reduce((a, b) => a + b, 0);
+
+  // Manuele kosten
+  const manueelTotaal = (kb.manueleKosten || [])
+    .reduce((a, k) => a + parseBedragNum(k.bedrag), 0);
+
+  const totaalUitgegeven = zaalhuur + winkelTotaal + manueelTotaal;
+  const saldo = budget - totaalUitgegeven;
+
+  return { budget, zaalhuur, winkelPerNaam, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo };
+}
+
 
 // ============================================================
 // HELPERS
@@ -938,6 +1017,35 @@ const normalizeData = (raw) => {
     safe.kastickets = raw.kastickets;
   }
 
+  // Kostenbeheer (evenementspecifiek)
+  if (raw.kostenbeheer && typeof raw.kostenbeheer === "object") {
+    safe.kostenbeheer = {
+      budget: raw.kostenbeheer.budget || "",
+      zaalhuur: raw.kostenbeheer.zaalhuur || "",
+      manueleKosten: Array.isArray(raw.kostenbeheer.manueleKosten)
+        ? raw.kostenbeheer.manueleKosten.map((k) => ({
+            id: k.id || uid(),
+            naam: (k.naam || "").toString(),
+            bedrag: k.bedrag || "",
+          }))
+        : [],
+    };
+  }
+
+  // Event History (afgesloten evenementen, behouden over evenementen heen)
+  if (Array.isArray(raw.eventHistory)) {
+    safe.eventHistory = raw.eventHistory
+      .filter((e) => e && typeof e === "object")
+      .map((e) => ({
+        id: e.id || uid(),
+        naam: e.naam || "", datum: e.datum || "", gemeente: e.gemeente || "",
+        afgesloten: e.afgesloten || "",
+        budget: e.budget || 0, zaalhuur: e.zaalhuur || 0,
+        winkelTotaal: e.winkelTotaal || 0, manueelTotaal: e.manueelTotaal || 0,
+        totaalUitgegeven: e.totaalUitgegeven || 0, saldo: e.saldo || 0,
+      }));
+  }
+
   return safe;
 };
 
@@ -1122,7 +1230,9 @@ const helpContentNl = [
       { naam: "Berichten", uitleg: "Genereert per vrijwilliger een persoonlijk bericht met zijn/haar taken in zijn taal. Klik 'Open WhatsApp' om met één klik een chat te openen met de tekst voorgevuld. Bovenaan staat een oranje kader met de materiaalverantwoordelijke." },
       { naam: "Bulk Send", uitleg: "Stuur hetzelfde bericht naar meerdere mensen tegelijk. Selecteer ontvangers (vrijwilligers + externe contacten), filter op taal, optioneel een afbeelding meesturen. App houdt bij wie al een bericht kreeg vandaag (groene markering)." },
       { naam: "Sjablonen", uitleg: "Beheer voorgedefinieerde berichten zoals welkomst, week-herinnering, dag-herinnering. Gebruik placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Sjablonen verschijnen automatisch als knoppen in de Berichten- en Bulk Send-tab." },
+      { naam: "Kostenbeheer", uitleg: "Beheer het budget en alle kosten. Vul budget en zaalhuur in; winkelkosten komen automatisch uit de kastickets (gegroepeerd per winkel). Voeg vrije manuele kosten toe. De app berekent dynamisch het saldo tegenover het budget en toont grafieken. Exporteer alles als PDF voor het secretariaat." },
       { naam: "Woordenboek", uitleg: "Lijst van NL↔FR vertalingen voor termen die in taken en materiaal voorkomen. Wordt automatisch toegepast wanneer je een NL-naam invult (FR wordt voorgesteld) en omgekeerd." },
+      { naam: "Event History", uitleg: "Verschijnt zodra er een afgesloten evenement is. Bij 'Nieuw evenement' wordt het oude evenement hier automatisch bewaard, samen met het volledige kostenresultaat (budget, uitgaven, saldo)." },
     ],
   },
   {
@@ -1165,7 +1275,9 @@ const helpContentFr = [
       { naam: "Messages", uitleg: "Génère par bénévole un message personnel avec ses tâches dans sa langue. Cliquez 'Ouvrir WhatsApp' pour ouvrir une conversation avec le texte pré-rempli. En haut figure un cadre orange avec le responsable du matériel." },
       { naam: "Envoi groupé", uitleg: "Envoyez le même message à plusieurs personnes à la fois. Sélectionnez les destinataires (bénévoles + contacts externes), filtrez par langue, joignez optionnellement une image. L'app suit qui a déjà reçu un message aujourd'hui (marquage vert)." },
       { naam: "Modèles", uitleg: "Gérez des messages prédéfinis comme bienvenue, rappel semaine, rappel jour. Utilisez les placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Les modèles apparaissent automatiquement comme boutons dans Messages et Envoi groupé." },
+      { naam: "Gestion des coûts", uitleg: "Gérez le budget et tous les coûts. Indiquez le budget et la location de salle ; les coûts en magasin proviennent automatiquement des tickets (groupés par magasin). Ajoutez des coûts manuels libres. L'app calcule dynamiquement le solde par rapport au budget et affiche des graphiques. Exportez le tout en PDF pour le secrétariat." },
       { naam: "Dictionnaire", uitleg: "Liste de traductions NL↔FR pour les termes utilisés dans les tâches et le matériel. Appliqué automatiquement quand vous remplissez un nom NL (FR proposé) et inversement." },
+      { naam: "Historique", uitleg: "Apparaît dès qu'un événement est clôturé. Lors d'un 'Nouvel événement', l'ancien événement est sauvegardé ici automatiquement, avec le résultat complet des coûts (budget, dépenses, solde)." },
     ],
   },
   {
@@ -1446,6 +1558,24 @@ function App() {
       [kasticketKey]: { ...((d.kastickets || {})[kasticketKey] || {}), ...patch },
     },
   }));
+
+  // Kostenbeheer
+  const updateKostenbeheer = (patch) => setData((d) => ({
+    ...d,
+    kostenbeheer: { ...(d.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] }), ...patch },
+  }));
+  const addManueleKost = () => setData((d) => {
+    const kb = d.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+    return { ...d, kostenbeheer: { ...kb, manueleKosten: [...(kb.manueleKosten || []), { id: uid(), naam: "", bedrag: "" }] } };
+  });
+  const updateManueleKost = (id, patch) => setData((d) => {
+    const kb = d.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+    return { ...d, kostenbeheer: { ...kb, manueleKosten: (kb.manueleKosten || []).map((k) => k.id === id ? { ...k, ...patch } : k) } };
+  });
+  const removeManueleKost = (id) => setData((d) => {
+    const kb = d.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+    return { ...d, kostenbeheer: { ...kb, manueleKosten: (kb.manueleKosten || []).filter((k) => k.id !== id) } };
+  });
 
   const addOorsprongLocatie = () => {
     const naam = prompt(t.mat_new_loc_prompt);
@@ -1832,31 +1962,44 @@ function App() {
     } catch (e) {
       if (!confirm(t.backup_mislukt)) return;
     }
-    setData((d) => ({
-      ...d,
-      // Wissen
-      event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
-      bulkGeschiedenis: {},
-      // Winkelbestellingen (datum + aankoper) zijn evenementspecifiek → wissen
-      winkelbestellingen: {},
-      kastickets: {},
-      // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
-      taken: d.taken.map((tt) => ({
-        ...tt,
-        toegewezen: [],
-        status: "open",
-        verantwoordelijkeId: "",
-        verantwoordelijkeVrij: "",
-        subtaken: tt.subtaken.map((s) => ({
-          ...s,
-          toegewezen: [],
-          status: "open",
+    setData((d) => {
+      // Stap 2: het oude evenement met kostenresultaat naar Event History
+      const k = berekenKosten(d);
+      const heeftInhoud = (d.event.naam || "").trim() || (d.event.datum || "").trim();
+      const historyEntry = heeftInhoud ? [{
+        id: uid(),
+        naam: d.event.naam || "(naamloos)",
+        datum: d.event.datum || "",
+        gemeente: d.event.gemeente || "",
+        afgesloten: new Date().toISOString().slice(0, 10),
+        budget: k.budget, zaalhuur: k.zaalhuur,
+        winkelTotaal: k.winkelTotaal, manueelTotaal: k.manueelTotaal,
+        totaalUitgegeven: k.totaalUitgegeven, saldo: k.saldo,
+      }] : [];
+
+      return {
+        ...d,
+        // Oud evenement bewaren in de geschiedenis
+        eventHistory: [...historyEntry, ...(d.eventHistory || [])],
+        // Wissen
+        event: { naam: "", datum: "", locatieNaam: "", straat: "", nummer: "", postcode: "", gemeente: "", beschrijving: "" },
+        bulkGeschiedenis: {},
+        winkelbestellingen: {},
+        kastickets: {},
+        // Kostenbeheer leegmaken
+        kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [] },
+        // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
+        taken: d.taken.map((tt) => ({
+          ...tt,
+          toegewezen: [], status: "open",
+          verantwoordelijkeId: "", verantwoordelijkeVrij: "",
+          subtaken: tt.subtaken.map((s) => ({ ...s, toegewezen: [], status: "open" })),
         })),
-      })),
-      // Materiaal: behouden, maar aantallen leegmaken (evenementspecifiek)
-      materiaal: (d.materiaal || []).map((m) => ({ ...m, aantal: "" })),
-      // Behouden zoals ze zijn: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst
-    }));
+        // Materiaal: behouden, maar aantallen leegmaken
+        materiaal: (d.materiaal || []).map((m) => ({ ...m, aantal: "" })),
+        // Behouden: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst, eventHistory
+      };
+    });
     showToast(t.nieuw_evenement_klaar);
   };
 
@@ -1917,8 +2060,10 @@ function App() {
               ["materiaal", t.tab_materiaal],
               ["winkelgegevens", t.tab_winkelgegevens],
               ...((data.materiaal || []).some((m) => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []),
+              ["kostenbeheer", t.tab_kostenbeheer],
               ["berichten", t.tab_berichten], ["bulk", t.tab_bulk],
               ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek],
+              ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : []),
             ].map(([k, label]) => (
               <button key={k} className={`tab-btn ${tab === k ? "active" : ""}`} onClick={() => setTab(k)}>{label}</button>
             ))}
@@ -1966,6 +2111,17 @@ function App() {
           updateWinkelbestelling={updateWinkelbestelling}
           updateKasticket={updateKasticket}
           showToast={showToast}
+          t={t} />}
+        {tab === "kostenbeheer" && <KostenbeheerTab
+          data={data}
+          updateKostenbeheer={updateKostenbeheer}
+          addManueleKost={addManueleKost}
+          updateManueleKost={updateManueleKost}
+          removeManueleKost={removeManueleKost}
+          showToast={showToast}
+          t={t} />}
+        {tab === "history" && <EventHistoryTab
+          eventHistory={data.eventHistory || []}
           t={t} />}
       </main>
 
@@ -4341,6 +4497,348 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, updateKasticket, 
   );
 }
 
+
+// ============================================================
+// KOSTENBEHEER — budget, zaalhuur, winkelkosten, manuele kosten, grafiek, PDF
+// ============================================================
+function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManueleKost, removeManueleKost, showToast, t }) {
+  const lang = data.taal === "fr" ? "fr" : "nl";
+  const kb = data.kostenbeheer || { budget: "", zaalhuur: "", manueleKosten: [] };
+  const k = berekenKosten(data);
+  const [bezig, setBezig] = React.useState(false);
+
+  // Grafiekdata: kostenposten
+  const posten = [];
+  if (k.zaalhuur > 0) posten.push({ label: t.kb_zaal, bedrag: k.zaalhuur, kleur: "#c4442a" });
+  Object.keys(k.winkelPerNaam).sort().forEach((naam, i) => {
+    const tinten = ["#3a7d44", "#4a9d54", "#5cb867", "#73c97e", "#8ad994"];
+    posten.push({ label: naam, bedrag: k.winkelPerNaam[naam], kleur: tinten[i % tinten.length] });
+  });
+  (kb.manueleKosten || []).forEach((mk) => {
+    const bedrag = parseBedragNum(mk.bedrag);
+    if (bedrag > 0) posten.push({ label: mk.naam || t.kb_manueel, bedrag, kleur: "#d99b2a" });
+  });
+
+  const maxWaarde = Math.max(k.budget, k.totaalUitgegeven, 1);
+  const overBudget = k.budget > 0 && k.saldo < 0;
+
+  // ----- PDF genereren -----
+  const genereerPDF = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) { alert(t.kb_pdf_fout); return null; }
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210, pageH = 297, marge = 16;
+    let y = marge;
+    const nieuwePagina = (nodig) => { if (y + nodig > pageH - marge) { doc.addPage(); y = marge; } };
+
+    // Kop
+    doc.setFillColor(200, 68, 42);
+    doc.rect(0, 0, pageW, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(t.tab_kostenbeheer, marge, 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${data.event.naam || t.no_event}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
+    y = 36;
+    doc.setTextColor(26, 22, 18);
+
+    // Budget-blok
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(t.kb_overzicht, marge, y); y += 7;
+    doc.setFontSize(9.5);
+    const regel = (label, waarde, vet) => {
+      nieuwePagina(7);
+      doc.setFont("helvetica", vet ? "bold" : "normal");
+      doc.text(label, marge + 2, y);
+      doc.text(fmtEuro(waarde), pageW - marge - 2, y, { align: "right" });
+      y += 6;
+    };
+    regel(t.kb_budget, k.budget, true);
+    y += 2;
+    regel(t.kb_zaal, k.zaalhuur);
+    Object.keys(k.winkelPerNaam).sort().forEach((naam) => regel(`${t.kb_winkel}: ${naam}`, k.winkelPerNaam[naam]));
+    (kb.manueleKosten || []).forEach((mk) => {
+      const b = parseBedragNum(mk.bedrag);
+      if (b > 0) regel(mk.naam || t.kb_manueel, b);
+    });
+    y += 1;
+    doc.setDrawColor(217, 207, 193);
+    doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
+    regel(t.kb_totaal_uit, k.totaalUitgegeven, true);
+    y += 3;
+
+    // Saldo-balk
+    nieuwePagina(14);
+    if (overBudget) doc.setFillColor(200, 68, 42); else doc.setFillColor(58, 125, 68);
+    doc.rect(marge, y, pageW - 2 * marge, 11, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(overBudget ? t.kb_over : t.kb_saldo, marge + 3, y + 7);
+    doc.text(fmtEuro(Math.abs(k.saldo)), pageW - marge - 3, y + 7, { align: "right" });
+    y += 18;
+    doc.setTextColor(26, 22, 18);
+
+    // Staafdiagram: budget vs uitgegeven
+    nieuwePagina(40);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(t.kb_grafiek, marge, y); y += 8;
+    const balkMaxW = pageW - 2 * marge - 40;
+    const tekenBalk = (label, waarde, kleurRGB) => {
+      nieuwePagina(12);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(label, marge, y + 4);
+      const w = maxWaarde > 0 ? (waarde / maxWaarde) * balkMaxW : 0;
+      doc.setFillColor(kleurRGB[0], kleurRGB[1], kleurRGB[2]);
+      doc.rect(marge + 32, y, Math.max(w, 0.5), 6, "F");
+      doc.text(fmtEuro(waarde), marge + 32 + Math.max(w, 0.5) + 2, y + 4.5);
+      y += 10;
+    };
+    tekenBalk(t.kb_budget, k.budget, [120, 120, 120]);
+    tekenBalk(t.kb_totaal_uit, k.totaalUitgegeven, overBudget ? [200, 68, 42] : [58, 125, 68]);
+    y += 4;
+
+    // Kostenverdeling
+    if (posten.length > 0) {
+      nieuwePagina(14 + posten.length * 10);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(t.kb_verdeling, marge, y); y += 7;
+      const maxPost = Math.max(...posten.map((p) => p.bedrag), 1);
+      posten.forEach((p) => {
+        nieuwePagina(12);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.text(p.label.length > 22 ? p.label.slice(0, 21) + "…" : p.label, marge, y + 4);
+        const w = (p.bedrag / maxPost) * balkMaxW;
+        const rgb = hexNaarRgb(p.kleur);
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        doc.rect(marge + 32, y, Math.max(w, 0.5), 6, "F");
+        doc.text(fmtEuro(p.bedrag), marge + 32 + Math.max(w, 0.5) + 2, y + 4.5);
+        y += 10;
+      });
+    }
+
+    return doc;
+  };
+
+  const downloadPDF = () => {
+    setBezig(true);
+    try {
+      const doc = genereerPDF();
+      if (!doc) return;
+      const naam = `kostenbeheer_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      doc.save(naam);
+      showToast(t.kb_pdf_klaar);
+    } finally { setBezig(false); }
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.tab_kostenbeheer}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.kb_intro}</p>
+      </div>
+
+      {/* Budget + zaalhuur */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <Field label={t.kb_budget}>
+            <input className="input" inputMode="decimal" placeholder="0,00"
+              value={kb.budget || ""}
+              onChange={(e) => updateKostenbeheer({ budget: e.target.value })} />
+          </Field>
+          <Field label={t.kb_zaal}>
+            <input className="input" inputMode="decimal" placeholder="0,00"
+              value={kb.zaalhuur || ""}
+              onChange={(e) => updateKostenbeheer({ zaalhuur: e.target.value })} />
+          </Field>
+        </div>
+      </div>
+
+      {/* Winkelkosten (automatisch) */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>{t.kb_winkelkosten}</h3>
+        <p style={{ fontSize: "0.8rem", color: "var(--ink-soft)", marginTop: 0 }}>{t.kb_winkel_auto}</p>
+        {Object.keys(k.winkelPerNaam).length === 0 ? (
+          <p style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>{t.kb_winkel_geen}</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
+            <tbody>
+              {Object.keys(k.winkelPerNaam).sort().map((naam) => (
+                <tr key={naam} style={{ borderTop: "1px solid var(--line)" }}>
+                  <td style={{ padding: "0.4rem 0" }}>{naam}</td>
+                  <td style={{ padding: "0.4rem 0", textAlign: "right", fontWeight: 600 }}>{fmtEuro(k.winkelPerNaam[naam])}</td>
+                </tr>
+              ))}
+              <tr style={{ borderTop: "2px solid var(--ink)" }}>
+                <td style={{ padding: "0.4rem 0", fontWeight: 700 }}>{t.kb_winkel_totaal}</td>
+                <td style={{ padding: "0.4rem 0", textAlign: "right", fontWeight: 700 }}>{fmtEuro(k.winkelTotaal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Manuele kosten */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+          <h3 className="font-display" style={{ margin: 0, fontSize: "1.1rem" }}>{t.kb_manuele_kosten}</h3>
+          <button className="btn btn-primary btn-sm" onClick={addManueleKost}>{t.kb_kost_add}</button>
+        </div>
+        {(kb.manueleKosten || []).length === 0 ? (
+          <p style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginBottom: 0 }}>{t.kb_kost_geen}</p>
+        ) : (
+          <div style={{ display: "grid", gap: "0.5rem", marginTop: "0.8rem" }}>
+            {kb.manueleKosten.map((mk) => (
+              <div key={mk.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr auto", gap: "0.5rem", alignItems: "center" }}>
+                <input className="input" placeholder={t.kb_kost_naam} value={mk.naam}
+                  onChange={(e) => updateManueleKost(mk.id, { naam: e.target.value })} />
+                <input className="input" inputMode="decimal" placeholder="0,00" value={mk.bedrag}
+                  onChange={(e) => updateManueleKost(mk.id, { bedrag: e.target.value })} />
+                <button className="btn btn-danger btn-sm" onClick={() => removeManueleKost(mk.id)}>🗑</button>
+              </div>
+            ))}
+          </div>
+        )}
+        {(kb.manueleKosten || []).length > 3 && (
+          <div style={{ marginTop: "0.8rem", display: "flex", justifyContent: "center" }}>
+            <button className="btn btn-primary btn-sm" onClick={addManueleKost}>{t.kb_kost_add}</button>
+          </div>
+        )}
+      </div>
+
+      {/* Resultaat + grafiek */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>{t.kb_resultaat}</h3>
+        <div style={{ display: "grid", gap: "0.3rem", fontSize: "0.9rem", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>{t.kb_budget}</span><strong>{fmtEuro(k.budget)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>{t.kb_totaal_uit}</span><strong>{fmtEuro(k.totaalUitgegeven)}</strong>
+          </div>
+        </div>
+
+        {/* Staafdiagram budget vs uitgegeven */}
+        <div style={{ display: "grid", gap: "0.6rem", marginBottom: "1rem" }}>
+          {[
+            { label: t.kb_budget, waarde: k.budget, kleur: "#8a8a8a" },
+            { label: t.kb_totaal_uit, waarde: k.totaalUitgegeven, kleur: overBudget ? "#c4442a" : "#3a7d44" },
+          ].map((b, i) => (
+            <div key={i}>
+              <div style={{ fontSize: "0.8rem", marginBottom: "0.2rem", display: "flex", justifyContent: "space-between" }}>
+                <span>{b.label}</span><span style={{ fontWeight: 600 }}>{fmtEuro(b.waarde)}</span>
+              </div>
+              <div style={{ background: "var(--bg)", borderRadius: 3, height: 22, overflow: "hidden", border: "1px solid var(--line)" }}>
+                <div style={{ width: `${Math.min(100, (b.waarde / maxWaarde) * 100)}%`, height: "100%",
+                  background: b.kleur, transition: "width 0.3s" }}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Kostenverdeling */}
+        {posten.length > 0 && (
+          <div style={{ marginBottom: "1rem" }}>
+            <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.4rem" }}>{t.kb_verdeling}</div>
+            <div style={{ display: "grid", gap: "0.4rem" }}>
+              {posten.map((p, i) => {
+                const maxPost = Math.max(...posten.map((x) => x.bedrag), 1);
+                return (
+                  <div key={i}>
+                    <div style={{ fontSize: "0.78rem", marginBottom: "0.15rem", display: "flex", justifyContent: "space-between" }}>
+                      <span>{p.label}</span><span>{fmtEuro(p.bedrag)}</span>
+                    </div>
+                    <div style={{ background: "var(--bg)", borderRadius: 3, height: 14, overflow: "hidden", border: "1px solid var(--line)" }}>
+                      <div style={{ width: `${(p.bedrag / maxPost) * 100}%`, height: "100%", background: p.kleur }}></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Saldo */}
+        <div className={`alert-bar ${overBudget ? "alert-red" : "alert-green"}`} style={{ marginBottom: 0 }}>
+          <span style={{ fontWeight: 600 }}>
+            {overBudget ? t.kb_over : t.kb_saldo}: {fmtEuro(Math.abs(k.saldo))}
+          </span>
+        </div>
+      </div>
+
+      {/* PDF-export */}
+      <div className="card">
+        <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.1rem" }}>{t.kb_export}</h3>
+        <p style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>{t.kb_export_intro}</p>
+        <button className="btn btn-primary btn-sm" onClick={downloadPDF} disabled={bezig}>
+          {t.kb_pdf_knop}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Hex-kleur naar [r,g,b]
+function hexNaarRgb(hex) {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+// ============================================================
+// EVENT HISTORY — afgesloten evenementen met kostenresultaat
+// ============================================================
+function EventHistoryTab({ eventHistory, t }) {
+  return (
+    <div>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="font-display" style={{ marginTop: 0, fontSize: "1.4rem" }}>{t.tab_history}</h2>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.history_intro}</p>
+      </div>
+
+      {eventHistory.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.history_geen}</div>
+      ) : (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {eventHistory.map((e) => {
+            const over = e.budget > 0 && e.saldo < 0;
+            return (
+              <div key={e.id} className="card" style={{ borderLeft: `3px solid ${over ? "var(--accent)" : "#3a7d44"}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <strong className="font-display" style={{ fontSize: "1.15rem" }}>{e.naam}</strong>
+                  <span style={{ fontSize: "0.82rem", color: "var(--ink-soft)" }}>
+                    {e.datum || "—"}{e.gemeente ? ` · ${e.gemeente}` : ""}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+                  gap: "0.5rem", marginTop: "0.8rem", fontSize: "0.85rem" }}>
+                  <div><div style={{ color: "var(--ink-soft)" }}>{t.kb_budget}</div><strong>{fmtEuro(e.budget)}</strong></div>
+                  <div><div style={{ color: "var(--ink-soft)" }}>{t.kb_zaal}</div><strong>{fmtEuro(e.zaalhuur)}</strong></div>
+                  <div><div style={{ color: "var(--ink-soft)" }}>{t.kb_winkel_totaal}</div><strong>{fmtEuro(e.winkelTotaal)}</strong></div>
+                  <div><div style={{ color: "var(--ink-soft)" }}>{t.kb_manuele_kosten}</div><strong>{fmtEuro(e.manueelTotaal)}</strong></div>
+                  <div><div style={{ color: "var(--ink-soft)" }}>{t.kb_totaal_uit}</div><strong>{fmtEuro(e.totaalUitgegeven)}</strong></div>
+                  <div>
+                    <div style={{ color: "var(--ink-soft)" }}>{over ? t.kb_over : t.kb_saldo}</div>
+                    <strong style={{ color: over ? "var(--accent)" : "#3a7d44" }}>{fmtEuro(Math.abs(e.saldo))}</strong>
+                  </div>
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--ink-soft)", marginTop: "0.6rem" }}>
+                  {t.history_afgesloten}: {e.afgesloten || "—"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ============================================================
 // WOORDENBOEK
