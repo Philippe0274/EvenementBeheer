@@ -16,6 +16,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --bg: #f5f1ea; --bg-card: #fbf8f2; --ink: #1a1612; --ink-soft: #5c544a;
@@ -133,6 +134,18 @@ const T = {
     winkel_overzicht_gekopieerd: "Overzicht gekopieerd",
     winkel_verzend_titel: "Verzenden via WhatsApp",
     winkel_verzend_naar: "Het overzicht wordt verstuurd naar",
+    winkel_bedrag: "Totaalbedrag kasticket", winkel_eindtotaal: "EINDTOTAAL", winkel_subtotaal: "Subtotaal",
+    winkel_foto: "Foto/scan kasticket", winkel_foto_geladen: "Foto geladen",
+    winkel_foto_fout: "Kon de afbeelding niet inladen. Probeer een andere foto.",
+    winkel_foto_verwijder: "Foto verwijderen",
+    winkel_kasticket_uitleg: "Eén kasticket = winkel + aankoper + datum. Aankopen die deze drie delen, vallen samen op één kasticket.",
+    winkel_toon_tekst: "Toon tekstoverzicht",
+    winkel_pdf_metfotos: "Kasticketfoto's meesturen in de PDF",
+    winkel_pdf_knop: "⬇ PDF downloaden", winkel_pdf_wa_knop: "📱 PDF + WhatsApp",
+    winkel_tekst_wa_knop: "📱 Tekst via WhatsApp",
+    winkel_pdf_klaar: "✓ PDF aangemaakt", winkel_pdf_wa: "✓ PDF aangemaakt — sleep ze in WhatsApp",
+    winkel_pdf_fout: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
+    winkel_pdf_hint: "WhatsApp kan geen bestand automatisch meesturen. De PDF wordt gedownload; sleep ze daarna zelf in het WhatsApp-gesprek met Angela.",
     winkel_geen_angela: "Angela Janett Flores staat niet in de vrijwilligerslijst. Voeg haar toe om het overzicht te kunnen versturen.",
     winkel_angela_geen_gsm: "Angela Janett Flores heeft geen GSM-nummer ingevuld in de vrijwilligerslijst.",
     mat_title: "Materiaal", mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
@@ -334,6 +347,18 @@ const T = {
     winkel_overzicht_gekopieerd: "Aperçu copié",
     winkel_verzend_titel: "Envoyer via WhatsApp",
     winkel_verzend_naar: "L'aperçu sera envoyé à",
+    winkel_bedrag: "Montant total du ticket", winkel_eindtotaal: "TOTAL GÉNÉRAL", winkel_subtotaal: "Sous-total",
+    winkel_foto: "Photo/scan du ticket", winkel_foto_geladen: "Photo chargée",
+    winkel_foto_fout: "Impossible de charger l'image. Essayez une autre photo.",
+    winkel_foto_verwijder: "Supprimer la photo",
+    winkel_kasticket_uitleg: "Un ticket = magasin + acheteur + date. Les achats partageant ces trois éléments forment un seul ticket.",
+    winkel_toon_tekst: "Afficher l'aperçu texte",
+    winkel_pdf_metfotos: "Inclure les photos des tickets dans le PDF",
+    winkel_pdf_knop: "⬇ Télécharger le PDF", winkel_pdf_wa_knop: "📱 PDF + WhatsApp",
+    winkel_tekst_wa_knop: "📱 Texte via WhatsApp",
+    winkel_pdf_klaar: "✓ PDF créé", winkel_pdf_wa: "✓ PDF créé — glissez-le dans WhatsApp",
+    winkel_pdf_fout: "Impossible de créer le PDF (bibliothèque non chargée).",
+    winkel_pdf_hint: "WhatsApp ne peut pas joindre un fichier automatiquement. Le PDF est téléchargé ; glissez-le ensuite vous-même dans la conversation WhatsApp avec Angela.",
     winkel_geen_angela: "Angela Janett Flores ne figure pas dans la liste des bénévoles. Ajoutez-la pour pouvoir envoyer l'aperçu.",
     winkel_angela_geen_gsm: "Angela Janett Flores n'a pas de numéro GSM dans la liste des bénévoles.",
     mat_title: "Matériel", mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
@@ -635,6 +660,8 @@ const defaultData = {
   ],
   // Winkelbestellingen: evenementspecifiek, per materiaal-item. {materiaalId: {datum, aankoperId, aankoperVrij}}
   winkelbestellingen: {},
+  // Kasticket-bedragen: per kasticket (winkel + aankoper + datum). {kasticketKey: bedrag}
+  kastickets: {},
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -892,6 +919,11 @@ const normalizeData = (raw) => {
     safe.winkelbestellingen = raw.winkelbestellingen;
   }
 
+  // Kasticket-bedragen + foto (evenementspecifiek): {kasticketKey: {bedrag, foto}}
+  if (raw.kastickets && typeof raw.kastickets === "object") {
+    safe.kastickets = raw.kastickets;
+  }
+
   return safe;
 };
 
@@ -1068,10 +1100,12 @@ const helpContentNl = [
     items: [
       { naam: "Dashboard", uitleg: "Overzicht: dagen tot het evenement, aantal vrijwilligers, taakstatussen, en herinneringen wanneer het tijd is om berichten te sturen." },
       { naam: "Event", uitleg: "Basisinfo van het evenement: naam, datum, locatie. Genereert automatisch links naar Google Maps en de NMBS-routeplanner." },
-      { naam: "Vrijwilligers", uitleg: "Beheer alle vrijwilligers met contactinfo, taal (NL/FR), beschikbaarheid en adres. GSM 1 wordt gebruikt voor WhatsApp, GSM 2 is enkel ter info." },
+      { naam: "Vrijwilligers", uitleg: "Beheer alle vrijwilligers met contactinfo, taal (NL/FR), beschikbaarheid en adres. GSM 1 wordt gebruikt voor WhatsApp, GSM 2 is enkel ter info. Het veld 'Roepnaam' is optioneel: is het ingevuld, dan gebruiken alle sjablonen die roepnaam in plaats van de voornaam." },
       { naam: "Taken", uitleg: "Maak taken aan en wijs vrijwilligers toe. Een taak met meerdere onderdelen kan je opsplitsen in subtaken via de schakelaar 'Heeft subtaken'. Naam wordt automatisch vertaald via het woordenboek." },
-      { naam: "Materiaal", uitleg: "Beheer alle materiaal met aantal, oorsprong (Leuven, Vilvoorde, of zelf toegevoegd) en verantwoordelijke. Lijst blijft beschikbaar voor volgende evenementen via Excel-export." },
-      { naam: "Berichten", uitleg: "Genereert per vrijwilliger een persoonlijk bericht met zijn/haar taken in zijn taal. Klik 'Open WhatsApp' om met één klik een chat te openen met de tekst voorgevuld." },
+      { naam: "Materiaal", uitleg: "Beheer alle materiaal met aantal, oorsprong en verantwoordelijke. Kies je als oorsprong 'Winkel_Magasin', dan verschijnt een winkel-keuzelijst voor die rij. Lijst blijft beschikbaar voor volgende evenementen." },
+      { naam: "WinkelGegevens", uitleg: "Stamlijst van winkels met hun BTW-nummer. Hier voeg je winkels toe; ze verschijnen daarna alfabetisch in de winkel-keuzelijst bij Materiaal. Deze lijst blijft behouden bij een nieuw evenement." },
+      { naam: "Winkelbestellingen", uitleg: "Verschijnt zodra er materiaal met oorsprong 'Winkel_Magasin' bestaat. Vul per item de aankoopdatum en aankoper in. Aankopen met dezelfde winkel + aankoper + datum vormen één kasticket, waarvoor je het totaalbedrag en een foto/scan kan ingeven. Het overzicht (per winkel, met subtotalen en eindtotaal) kan als PDF gedownload en via WhatsApp naar Angela gestuurd worden." },
+      { naam: "Berichten", uitleg: "Genereert per vrijwilliger een persoonlijk bericht met zijn/haar taken in zijn taal. Klik 'Open WhatsApp' om met één klik een chat te openen met de tekst voorgevuld. Bovenaan staat een oranje kader met de materiaalverantwoordelijke." },
       { naam: "Bulk Send", uitleg: "Stuur hetzelfde bericht naar meerdere mensen tegelijk. Selecteer ontvangers (vrijwilligers + externe contacten), filter op taal, optioneel een afbeelding meesturen. App houdt bij wie al een bericht kreeg vandaag (groene markering)." },
       { naam: "Sjablonen", uitleg: "Beheer voorgedefinieerde berichten zoals welkomst, week-herinnering, dag-herinnering. Gebruik placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Sjablonen verschijnen automatisch als knoppen in de Berichten- en Bulk Send-tab." },
       { naam: "Woordenboek", uitleg: "Lijst van NL↔FR vertalingen voor termen die in taken en materiaal voorkomen. Wordt automatisch toegepast wanneer je een NL-naam invult (FR wordt voorgesteld) en omgekeerd." },
@@ -1109,10 +1143,12 @@ const helpContentFr = [
     items: [
       { naam: "Tableau de bord", uitleg: "Aperçu : jours avant l'événement, nombre de bénévoles, statut des tâches, et rappels pour envoyer les messages." },
       { naam: "Événement", uitleg: "Informations de base : nom, date, lieu. Génère automatiquement des liens vers Google Maps et le planificateur SNCB." },
-      { naam: "Bénévoles", uitleg: "Gérez tous les bénévoles avec coordonnées, langue (NL/FR), disponibilité et adresse. GSM 1 est utilisé pour WhatsApp, GSM 2 est uniquement informatif." },
+      { naam: "Bénévoles", uitleg: "Gérez tous les bénévoles avec coordonnées, langue (NL/FR), disponibilité et adresse. GSM 1 est utilisé pour WhatsApp, GSM 2 est uniquement informatif. Le champ 'Surnom' est optionnel : s'il est rempli, tous les modèles utilisent ce surnom à la place du prénom." },
       { naam: "Tâches", uitleg: "Créez des tâches et assignez des bénévoles. Une tâche à plusieurs parties peut être divisée en sous-tâches via l'interrupteur 'A des sous-tâches'. Le nom est traduit automatiquement via le dictionnaire." },
-      { naam: "Matériel", uitleg: "Gérez tout le matériel avec quantité, source (Leuven, Vilvoorde, ou ajoutée par vous) et responsable. La liste reste disponible pour les événements suivants via l'export Excel." },
-      { naam: "Messages", uitleg: "Génère par bénévole un message personnel avec ses tâches dans sa langue. Cliquez 'Ouvrir WhatsApp' pour ouvrir une conversation avec le texte pré-rempli." },
+      { naam: "Matériel", uitleg: "Gérez tout le matériel avec quantité, source et responsable. Si vous choisissez la source 'Winkel_Magasin', une liste de magasins apparaît pour cette ligne. La liste reste disponible pour les événements suivants." },
+      { naam: "Données du Magasin", uitleg: "Liste de référence des magasins avec leur numéro de TVA. Ajoutez-y les magasins ; ils apparaissent ensuite par ordre alphabétique dans la liste de choix du matériel. Cette liste est conservée lors d'un nouvel événement." },
+      { naam: "Commandes via Magasin", uitleg: "Apparaît dès qu'il existe du matériel avec la source 'Winkel_Magasin'. Indiquez par article la date d'achat et l'acheteur. Les achats partageant le même magasin + acheteur + date forment un ticket, pour lequel vous pouvez saisir le montant total et une photo/scan. L'aperçu (par magasin, avec sous-totaux et total général) peut être téléchargé en PDF et envoyé à Angela via WhatsApp." },
+      { naam: "Messages", uitleg: "Génère par bénévole un message personnel avec ses tâches dans sa langue. Cliquez 'Ouvrir WhatsApp' pour ouvrir une conversation avec le texte pré-rempli. En haut figure un cadre orange avec le responsable du matériel." },
       { naam: "Envoi groupé", uitleg: "Envoyez le même message à plusieurs personnes à la fois. Sélectionnez les destinataires (bénévoles + contacts externes), filtrez par langue, joignez optionnellement une image. L'app suit qui a déjà reçu un message aujourd'hui (marquage vert)." },
       { naam: "Modèles", uitleg: "Gérez des messages prédéfinis comme bienvenue, rappel semaine, rappel jour. Utilisez les placeholders {voornaam}, {eventnaam}, {takenlijst}, etc. Les modèles apparaissent automatiquement comme boutons dans Messages et Envoi groupé." },
       { naam: "Dictionnaire", uitleg: "Liste de traductions NL↔FR pour les termes utilisés dans les tâches et le matériel. Appliqué automatiquement quand vous remplissez un nom NL (FR proposé) et inversement." },
@@ -1385,6 +1421,15 @@ function App() {
     winkelbestellingen: {
       ...(d.winkelbestellingen || {}),
       [materiaalId]: { ...((d.winkelbestellingen || {})[materiaalId] || {}), ...patch },
+    },
+  }));
+
+  // Kasticket (per winkel + aankoper + datum: bedrag + foto)
+  const updateKasticket = (kasticketKey, patch) => setData((d) => ({
+    ...d,
+    kastickets: {
+      ...(d.kastickets || {}),
+      [kasticketKey]: { ...((d.kastickets || {})[kasticketKey] || {}), ...patch },
     },
   }));
 
@@ -1773,6 +1818,7 @@ function App() {
       bulkGeschiedenis: {},
       // Winkelbestellingen (datum + aankoper) zijn evenementspecifiek → wissen
       winkelbestellingen: {},
+      kastickets: {},
       // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
       taken: d.taken.map((tt) => ({
         ...tt,
@@ -1895,6 +1941,7 @@ function App() {
         {tab === "winkelbestellingen" && (data.materiaal || []).some((m) => m.oorsprong === WINKEL_OORSPRONG) && <WinkelbestellingenTab
           data={data}
           updateWinkelbestelling={updateWinkelbestelling}
+          updateKasticket={updateKasticket}
           showToast={showToast}
           t={t} />}
       </main>
@@ -3569,12 +3616,48 @@ function WinkelGegevensTab({ winkels, materiaal, add, update, remove, t }) {
 }
 
 // ============================================================
-// WINKELBESTELLINGEN — overzicht van winkel-aankopen, per winkel gegroepeerd
+// WINKELBESTELLINGEN — overzicht van winkel-aankopen, per kasticket
+// (kasticket = winkel + aankoper + datum), per winkel gegroepeerd
 // ============================================================
-function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
+
+// Foto inladen + comprimeren tot een kleine JPEG-dataURL (localStorage-vriendelijk)
+function comprimeerAfbeelding(file, maxZijde, kwaliteit) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxZijde) {
+          height = Math.round(height * (maxZijde / width));
+          width = maxZijde;
+        } else if (height > maxZijde) {
+          width = Math.round(width * (maxZijde / height));
+          height = maxZijde;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", kwaliteit));
+      };
+      img.onerror = () => reject(new Error("beeld"));
+      img.src = ev.target.result;
+    };
+    reader.onerror = () => reject(new Error("lezen"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function WinkelbestellingenTab({ data, updateWinkelbestelling, updateKasticket, showToast, t }) {
   const lang = data.taal === "fr" ? "fr" : "nl";
   const winkels = data.winkels || [];
   const winkelById = (id) => winkels.find((w) => w.id === id) || null;
+  const [metFotos, setMetFotos] = React.useState(true);
+  const [bezig, setBezig] = React.useState(false);
 
   // Alleen materiaal met oorsprong Winkel_Magasin
   const items = (data.materiaal || []).filter((m) => m.oorsprong === WINKEL_OORSPRONG);
@@ -3596,12 +3679,28 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
 
   const matNaam = (m) => capitalize(lang === "fr" ? (m.naamFr || m.naamNl) : (m.naamNl || m.naamFr)) || "?";
 
-  // Groepeer per winkel voor de overzichtstabel
+  // Kasticket-sleutel = winkel + aankoper + datum (uniek per aankoper, ook zelfde winkel/datum)
+  const kasticketKey = (best, winkelId) => {
+    const wk = winkelId || "__geen__";
+    const ak = best.aankoperId === "__extern__"
+      ? `ext:${(best.aankoperVrij || "").trim().toLowerCase()}`
+      : (best.aankoperId || "__geen__");
+    const dt = best.datum || "__geen__";
+    return `${wk}|${ak}|${dt}`;
+  };
+  const kasticketData = (key) => (data.kastickets || {})[key] || {};
+
+  // Groepeer per winkel → per kasticket
   const perWinkel = {};
   items.forEach((m) => {
-    const key = m.winkelId || "__geen__";
-    if (!perWinkel[key]) perWinkel[key] = [];
-    perWinkel[key].push(m);
+    const wKey = m.winkelId || "__geen__";
+    if (!perWinkel[wKey]) perWinkel[wKey] = {};
+    const best = bestellingVoor(m.id);
+    const kKey = kasticketKey(best, m.winkelId);
+    if (!perWinkel[wKey][kKey]) {
+      perWinkel[wKey][kKey] = { key: kKey, best, items: [] };
+    }
+    perWinkel[wKey][kKey].items.push(m);
   });
   const winkelKeys = Object.keys(perWinkel).sort((a, b) => {
     const na = a === "__geen__" ? "zzz" : (winkelById(a)?.naam || "zzz").toLowerCase();
@@ -3609,31 +3708,59 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
     return na.localeCompare(nb);
   });
 
-  // Tekst van het WhatsApp-overzicht opbouwen
-  const buildOverzichtTekst = () => {
-    const regels = [];
-    regels.push(`${t.winkel_overzicht_titel} — ${data.event.naam || t.no_event}`);
-    regels.push("");
-    winkelKeys.forEach((key) => {
-      const w = key === "__geen__" ? null : winkelById(key);
-      const winkelLabel = w ? w.naam : t.winkel_geen_winkel;
-      const btw = w && w.btw ? ` (BTW: ${w.btw})` : "";
-      regels.push(`*${winkelLabel}*${btw}`);
-      perWinkel[key].forEach((m) => {
-        const best = bestellingVoor(m.id);
-        const aantal = m.aantal ? `${m.aantal}× ` : "";
-        const details = [];
-        if (best.datum) details.push(formatDate(best.datum, lang));
-        const an = aankoperNaam(best);
-        if (an) details.push(an);
-        const suffix = details.length > 0 ? ` — ${details.join(", ")}` : "";
-        regels.push(`• ${aantal}${matNaam(m)}${suffix}`);
-      });
-      regels.push("");
+  const parseBedrag = (v) => {
+    const n = parseFloat(String(v == null ? "" : v).replace(",", "."));
+    return isNaN(n) ? 0 : n;
+  };
+  const fmtBedrag = (n) => `€ ${n.toFixed(2).replace(".", ",")}`;
+
+  // Subtotaal per winkel (som van de kasticket-bedragen)
+  const subtotaalWinkel = (wKey) => {
+    let som = 0;
+    Object.values(perWinkel[wKey]).forEach((kt) => {
+      som += parseBedrag(kasticketData(kt.key).bedrag);
     });
-    return regels.join("\n").trim();
+    return som;
+  };
+  const eindtotaal = winkelKeys.reduce((acc, wKey) => acc + subtotaalWinkel(wKey), 0);
+
+  // Foto inladen voor een kasticket
+  const handleFoto = async (kKey, file) => {
+    if (!file) return;
+    try {
+      const dataUrl = await comprimeerAfbeelding(file, 1100, 0.7);
+      updateKasticket(kKey, { foto: dataUrl });
+      showToast(t.winkel_foto_geladen);
+    } catch (e) {
+      alert(t.winkel_foto_fout);
+    }
   };
 
+  // ----- Tekst-overzicht (WhatsApp) -----
+  const buildOverzichtTekst = () => {
+    const r = [];
+    r.push(`${t.winkel_overzicht_titel} — ${data.event.naam || t.no_event}`);
+    r.push("");
+    winkelKeys.forEach((wKey) => {
+      const w = wKey === "__geen__" ? null : winkelById(wKey);
+      const btw = w && w.btw ? ` (BTW: ${w.btw})` : "";
+      r.push(`*${w ? w.naam : t.winkel_geen_winkel}*${btw}`);
+      Object.values(perWinkel[wKey]).forEach((kt) => {
+        const an = aankoperNaam(kt.best) || "—";
+        const dt = kt.best.datum ? formatDate(kt.best.datum, lang) : "—";
+        const bedrag = parseBedrag(kasticketData(kt.key).bedrag);
+        r.push(`  ${an} · ${dt} — ${fmtBedrag(bedrag)}`);
+        kt.items.forEach((m) => {
+          const aantal = m.aantal ? `${m.aantal}× ` : "";
+          r.push(`    • ${aantal}${matNaam(m)}`);
+        });
+      });
+      r.push(`  ${t.winkel_subtotaal}: ${fmtBedrag(subtotaalWinkel(wKey))}`);
+      r.push("");
+    });
+    r.push(`*${t.winkel_eindtotaal}: ${fmtBedrag(eindtotaal)}*`);
+    return r.join("\n").trim();
+  };
   const overzichtTekst = buildOverzichtTekst();
 
   // Angela uit de vrijwilligerslijst zoeken
@@ -3658,6 +3785,136 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
       try { document.execCommand("copy"); showToast(t.winkel_overzicht_gekopieerd); }
       catch (e2) { alert(t.cant_copy); }
       document.body.removeChild(ta);
+    }
+  };
+
+  // ----- PDF genereren -----
+  const genereerPDF = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) { alert(t.winkel_pdf_fout); return null; }
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210, pageH = 297, marge = 16;
+    let y = marge;
+
+    const nieuwePagina = (nodig) => {
+      if (y + nodig > pageH - marge) { doc.addPage(); y = marge; }
+    };
+
+    // Kop
+    doc.setFillColor(200, 68, 42);
+    doc.rect(0, 0, pageW, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(t.winkel_overzicht_titel, marge, 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${data.event.naam || t.no_event}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
+    y = 34;
+
+    doc.setTextColor(26, 22, 18);
+
+    winkelKeys.forEach((wKey) => {
+      const w = wKey === "__geen__" ? null : winkelById(wKey);
+      nieuwePagina(20);
+      // Winkelkop
+      doc.setFillColor(232, 213, 205);
+      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(w ? w.naam : t.winkel_geen_winkel, marge + 2, y + 5.5);
+      if (w && w.btw) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text(`BTW: ${w.btw}`, pageW - marge - 2, y + 5.5, { align: "right" });
+      }
+      y += 12;
+
+      Object.values(perWinkel[wKey]).forEach((kt) => {
+        const an = aankoperNaam(kt.best) || "—";
+        const dt = kt.best.datum ? formatDate(kt.best.datum, lang) : "—";
+        const bedrag = parseBedrag(kasticketData(kt.key).bedrag);
+        nieuwePagina(14);
+        // Kasticket-regel
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.5);
+        doc.text(`${an}  ·  ${dt}`, marge + 2, y);
+        doc.text(fmtBedrag(bedrag), pageW - marge - 2, y, { align: "right" });
+        y += 5;
+        // Artikelen
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        kt.items.forEach((m) => {
+          nieuwePagina(5);
+          const aantal = m.aantal ? `${m.aantal}× ` : "";
+          doc.text(`   • ${aantal}${matNaam(m)}`, marge + 4, y);
+          y += 4.2;
+        });
+        // Foto van het kasticket
+        const foto = kasticketData(kt.key).foto;
+        if (metFotos && foto) {
+          try {
+            const props = doc.getImageProperties(foto);
+            const maxW = 60, maxH = 75;
+            let iw = maxW, ih = (props.height / props.width) * maxW;
+            if (ih > maxH) { ih = maxH; iw = (props.width / props.height) * maxH; }
+            nieuwePagina(ih + 4);
+            doc.addImage(foto, "JPEG", marge + 4, y, iw, ih);
+            y += ih + 4;
+          } catch (e) { /* foto overslaan bij fout */ }
+        }
+        y += 2;
+      });
+
+      // Subtotaal winkel
+      nieuwePagina(8);
+      doc.setDrawColor(217, 207, 193);
+      doc.line(marge + 2, y, pageW - marge - 2, y);
+      y += 4.5;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(`${t.winkel_subtotaal}`, marge + 2, y);
+      doc.text(fmtBedrag(subtotaalWinkel(wKey)), pageW - marge - 2, y, { align: "right" });
+      y += 9;
+    });
+
+    // Eindtotaal
+    nieuwePagina(14);
+    doc.setFillColor(26, 22, 18);
+    doc.rect(marge, y, pageW - 2 * marge, 10, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(t.winkel_eindtotaal, marge + 3, y + 6.5);
+    doc.text(fmtBedrag(eindtotaal), pageW - marge - 3, y + 6.5, { align: "right" });
+
+    return doc;
+  };
+
+  const downloadPDF = () => {
+    setBezig(true);
+    try {
+      const doc = genereerPDF();
+      if (!doc) return;
+      const naam = `winkelbestellingen_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      doc.save(naam);
+      showToast(t.winkel_pdf_klaar);
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const pdfEnWhatsApp = () => {
+    setBezig(true);
+    try {
+      const doc = genereerPDF();
+      if (!doc) return;
+      const naam = `winkelbestellingen_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      doc.save(naam);
+      if (waLink) window.open(waLink, "_blank", "noopener");
+      showToast(t.winkel_pdf_wa);
+    } finally {
+      setBezig(false);
     }
   };
 
@@ -3732,51 +3989,75 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
             })}
           </div>
 
-          {/* Overzichtstabel per winkel */}
+          {/* Overzicht per winkel + kasticket */}
           <div className="card" style={{ marginBottom: "1.5rem" }}>
             <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.15rem" }}>{t.winkel_overzicht_titel}</h3>
-            {winkelKeys.map((key) => {
-              const w = key === "__geen__" ? null : winkelById(key);
+            <p style={{ fontSize: "0.8rem", color: "var(--ink-soft)", marginTop: 0 }}>{t.winkel_kasticket_uitleg}</p>
+            {winkelKeys.map((wKey) => {
+              const w = wKey === "__geen__" ? null : winkelById(wKey);
               return (
-                <div key={key} style={{ marginBottom: "1rem" }}>
+                <div key={wKey} style={{ marginBottom: "1.2rem" }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", flexWrap: "wrap",
-                    borderBottom: "2px solid var(--accent-soft)", paddingBottom: "0.3rem", marginBottom: "0.4rem" }}>
-                    <strong className="font-display" style={{ fontSize: "1rem" }}>
+                    borderBottom: "2px solid var(--accent-soft)", paddingBottom: "0.3rem", marginBottom: "0.5rem" }}>
+                    <strong className="font-display" style={{ fontSize: "1.05rem" }}>
                       {w ? w.naam : t.winkel_geen_winkel}
                     </strong>
                     {w && w.btw && (
                       <span style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>{t.winkel_btw}: {w.btw}</span>
                     )}
                   </div>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-                    <thead>
-                      <tr style={{ textAlign: "left", color: "var(--ink-soft)" }}>
-                        <th style={{ padding: "0.3rem 0.5rem 0.3rem 0" }}>{t.mat_naam}</th>
-                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.mat_aantal}</th>
-                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.winkel_datum}</th>
-                        <th style={{ padding: "0.3rem 0.5rem" }}>{t.winkel_aankoper}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {perWinkel[key].map((m) => {
-                        const best = bestellingVoor(m.id);
-                        return (
-                          <tr key={m.id} style={{ borderTop: "1px solid var(--line)" }}>
-                            <td style={{ padding: "0.35rem 0.5rem 0.35rem 0" }}>{matNaam(m)}</td>
-                            <td style={{ padding: "0.35rem 0.5rem" }}>{m.aantal || "—"}</td>
-                            <td style={{ padding: "0.35rem 0.5rem" }}>{best.datum ? formatDate(best.datum, lang) : "—"}</td>
-                            <td style={{ padding: "0.35rem 0.5rem" }}>{aankoperNaam(best) || "—"}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  {Object.values(perWinkel[wKey]).map((kt) => {
+                    const an = aankoperNaam(kt.best) || "—";
+                    const dt = kt.best.datum ? formatDate(kt.best.datum, lang) : "—";
+                    const kd = kasticketData(kt.key);
+                    return (
+                      <div key={kt.key} style={{ border: "1px solid var(--line)", borderRadius: 3,
+                        padding: "0.7rem 0.8rem", marginBottom: "0.5rem", background: "white" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+                          <strong style={{ fontSize: "0.9rem" }}>{an} · {dt}</strong>
+                        </div>
+                        <ul style={{ margin: "0.4rem 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                          {kt.items.map((m) => (
+                            <li key={m.id}>{m.aantal ? `${m.aantal}× ` : ""}{matNaam(m)}</li>
+                          ))}
+                        </ul>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", alignItems: "end", marginTop: "0.4rem" }}>
+                          <Field label={t.winkel_bedrag}>
+                            <input className="input" inputMode="decimal" placeholder="0,00"
+                              value={kd.bedrag || ""}
+                              onChange={(e) => updateKasticket(kt.key, { bedrag: e.target.value })} />
+                          </Field>
+                          <Field label={t.winkel_foto}>
+                            <input type="file" accept="image/*" className="input"
+                              style={{ padding: "0.35rem" }}
+                              onChange={(e) => { handleFoto(kt.key, e.target.files[0]); e.target.value = ""; }} />
+                          </Field>
+                        </div>
+                        {kd.foto && (
+                          <div style={{ marginTop: "0.5rem", display: "flex", gap: "0.6rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                            <img src={kd.foto} alt="kasticket"
+                              style={{ maxWidth: 120, maxHeight: 150, border: "1px solid var(--line)", borderRadius: 3 }} />
+                            <button className="btn btn-danger btn-sm" onClick={() => updateKasticket(kt.key, { foto: "" })}>
+                              {t.winkel_foto_verwijder}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div style={{ textAlign: "right", fontSize: "0.9rem", fontWeight: 600, marginTop: "0.3rem" }}>
+                    {t.winkel_subtotaal}: {fmtBedrag(subtotaalWinkel(wKey))}
+                  </div>
                 </div>
               );
             })}
+            <div style={{ borderTop: "2px solid var(--ink)", marginTop: "0.5rem", paddingTop: "0.5rem",
+              textAlign: "right", fontSize: "1.05rem", fontWeight: 700 }} className="font-display">
+              {t.winkel_eindtotaal}: {fmtBedrag(eindtotaal)}
+            </div>
           </div>
 
-          {/* Verzenden naar Angela */}
+          {/* Verzenden */}
           <div className="card">
             <h3 className="font-display" style={{ marginTop: 0, fontSize: "1.15rem" }}>{t.winkel_verzend_titel}</h3>
             {!angela ? (
@@ -3788,27 +4069,45 @@ function WinkelbestellingenTab({ data, updateWinkelbestelling, showToast, t }) {
                 {t.winkel_verzend_naar} <strong>{angela.voornaam} {angela.naam}</strong> · {angela.gsm1}
               </p>
             )}
-            <details style={{ margin: "0.7rem 0" }}>
+
+            <div className={`switch ${metFotos ? "on" : ""}`} style={{ margin: "0.5rem 0 0.8rem" }}
+              onClick={() => setMetFotos(!metFotos)}>
+              <span className="switch-track"></span>
+              <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>{t.winkel_pdf_metfotos}</span>
+            </div>
+
+            <details style={{ margin: "0.3rem 0 0.7rem" }}>
               <summary style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
-                <span className="chevron">▶</span> {t.show_msg}
+                <span className="chevron">▶</span> {t.winkel_toon_tekst}
               </summary>
               <pre style={{ marginTop: "0.5rem", padding: "0.8rem", background: "var(--bg)",
                 border: "1px solid var(--line)", borderRadius: 3, whiteSpace: "pre-wrap",
                 fontFamily: "inherit", fontSize: "0.85rem" }}>{overzichtTekst}</pre>
             </details>
+
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+              <button className="btn btn-primary btn-sm" onClick={downloadPDF} disabled={bezig}>
+                {t.winkel_pdf_knop}
+              </button>
+              <button className="btn btn-whatsapp btn-sm" onClick={pdfEnWhatsApp} disabled={bezig || !waLink}>
+                {t.winkel_pdf_wa_knop}
+              </button>
               <button className="btn btn-ghost btn-sm" onClick={copyOverzicht}>{t.copy_msg}</button>
               {waLink && (
-                <a className="btn btn-whatsapp btn-sm" href={waLink} target="_blank" rel="noopener"
-                  style={{ textDecoration: "none" }}>{t.open_wa}</a>
+                <a className="btn btn-ghost btn-sm" href={waLink} target="_blank" rel="noopener"
+                  style={{ textDecoration: "none" }}>{t.winkel_tekst_wa_knop}</a>
               )}
             </div>
+            <p style={{ fontSize: "0.75rem", color: "var(--ink-soft)", margin: "0.7rem 0 0" }}>
+              {t.winkel_pdf_hint}
+            </p>
           </div>
         </div>
       )}
     </div>
   );
 }
+
 
 // ============================================================
 // WOORDENBOEK
