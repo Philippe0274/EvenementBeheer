@@ -84,6 +84,11 @@
 </head>
 <body>
 <div id="root"></div>
+<div id="loading" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f1ea;font-family:system-ui,sans-serif;gap:1rem;">
+  <div style="width:40px;height:40px;border:3px solid #d9cfc1;border-top-color:#c8442a;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <p style="color:#5c544a;font-size:0.9rem;margin:0">App laden…</p>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect } = React;
@@ -109,7 +114,7 @@ const T = {
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard", tab_event: "Event", tab_vrijwilligers: "Vrijwilligers",
     tab_taken: "Taken", tab_berichten: "Berichten", tab_bulk: "Bulk Send",
-    tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal",
+    tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal", tab_aankopen: "Aankopen",
     mat_title: "Materiaal", mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
     mat_naam: "Materiaal", mat_aantal: "Aantal", mat_oorsprong: "Oorsprong", mat_verant: "Verantwoordelijke",
     mat_add: "+ Materiaal toevoegen", mat_no_items: "Nog geen materiaal. Voeg er één toe om te beginnen.",
@@ -176,6 +181,16 @@ const T = {
     assigned_to: "Toegewezen aan",
     add_volunteers_first: "Eerst vrijwilligers toevoegen.",
     outside_avail: "⚠ Buiten beschikbaarheid van deze vrijwilliger",
+    overlap_warn: "⚠ Shiftoverlap",
+    overlap_detail: (naam, taak1, taak2) => `${naam} is tegelijkertijd ingepland voor "${taak1}" en "${taak2}"`,
+    suggest_planning: "✨ Stel planning voor",
+    suggest_planning_title: "Slimme planning",
+    suggest_planning_intro: "De tool heeft op basis van beschikbaarheid, taal en categorie een voorstel gemaakt. Controleer en pas aan waar nodig.",
+    suggest_planning_none: "Geen vrijwilligers beschikbaar om in te plannen.",
+    suggest_planning_apply: "Voorstel toepassen",
+    suggest_planning_cancel: "Annuleren",
+    suggest_planning_confirm: "Huidige toewijzingen worden overschreven. Doorgaan?",
+    suggest_planning_done: "✓ Planning toegepast",
     note_optional: "Opmerking (optioneel)",
     msg_intro: "Kies een sjabloon en stuur het via WhatsApp of kopieer het bericht. Werkt de WhatsApp-knop niet?",
     msg_intro2: "en plak het zelf in WhatsApp.",
@@ -259,7 +274,7 @@ const T = {
     cant_copy: "Kon niet kopiëren. Selecteer de tekst handmatig.",
     import_ok: (parts) => `Import gelukt — ${parts}`,
     import_failed: "Import mislukt",
-    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink}",
+    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink} {materiaallijst}",
     placeholder_help_bulk: "{voornaam} {eventnaam} {eventdatum} {locatie} {mapslink}",
     storage_note: "Lokale opslag in deze browser · Export naar Excel voor backup",
   },
@@ -277,7 +292,7 @@ const T = {
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord", tab_event: "Événement", tab_vrijwilligers: "Bénévoles",
     tab_taken: "Tâches", tab_berichten: "Messages", tab_bulk: "Envoi groupé",
-    tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel",
+    tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel", tab_aankopen: "Achats",
     mat_title: "Matériel", mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
     mat_naam: "Matériel", mat_aantal: "Quantité", mat_oorsprong: "Source", mat_verant: "Responsable",
     mat_add: "+ Ajouter du matériel", mat_no_items: "Pas encore de matériel. Ajoutez-en un pour commencer.",
@@ -344,6 +359,16 @@ const T = {
     assigned_to: "Assigné à",
     add_volunteers_first: "Ajoutez d'abord des bénévoles.",
     outside_avail: "⚠ Hors de la disponibilité de ce bénévole",
+    overlap_warn: "⚠ Chevauchement de shifts",
+    overlap_detail: (naam, taak1, taak2) => `${naam} est planifié en même temps pour "${taak1}" et "${taak2}"`,
+    suggest_planning: "✨ Proposer une planification",
+    suggest_planning_title: "Planification intelligente",
+    suggest_planning_intro: "L'outil a fait une proposition basée sur la disponibilité, la langue et la catégorie. Vérifiez et ajustez si nécessaire.",
+    suggest_planning_none: "Aucun bénévole disponible pour planifier.",
+    suggest_planning_apply: "Appliquer la proposition",
+    suggest_planning_cancel: "Annuler",
+    suggest_planning_confirm: "Les assignations actuelles seront écrasées. Continuer ?",
+    suggest_planning_done: "✓ Planification appliquée",
     note_optional: "Remarque (optionnel)",
     msg_intro: "Choisissez un modèle et envoyez-le via WhatsApp ou copiez le message. Le bouton WhatsApp ne fonctionne pas ?",
     msg_intro2: "et collez-le vous-même dans WhatsApp.",
@@ -427,7 +452,7 @@ const T = {
     cant_copy: "Impossible de copier. Sélectionnez le texte manuellement.",
     import_ok: (parts) => `Import réussi — ${parts}`,
     import_failed: "Import échoué",
-    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink}",
+    placeholder_help: "{voornaam} {eventnaam} {eventdatum} {locatie} {takenlijst} {mapslink} {materiaallijst}",
     placeholder_help_bulk: "{voornaam} {eventnaam} {eventdatum} {locatie} {mapslink}",
     storage_note: "Stockage local dans ce navigateur · Exportez vers Excel pour sauvegarder",
   },
@@ -502,7 +527,23 @@ const translateText = (text, from, to, dict) => {
 // ============================================================
 // DEFAULT DATA
 // ============================================================
+
+// ============================================================
+// MATERIAALBEHEER UITBREIDING
+// - Placeholder {materiaallijst}
+// - Stuurt naar verantwoordelijke van taak:
+//   "Materiaal beheer" / "Gestion de matériel"
+// - NIET naar subtaken of toegewezen vrijwilligers
+// ============================================================
+
 const defaultSjablonen = [
+  {
+    id: "materiaalbeheer",
+    titel: "Materiaalbeheer",
+    nl: "Hallo {voornaam},\n\nDit is het materiaal dat nodig is voor {eventnaam} op {eventdatum} in {locatie}:\n\n{materiaallijst}\n\nKan jij dit opvolgen?\n\nBedankt!",
+    fr: "Bonjour {voornaam},\n\nVoici le matériel nécessaire pour {eventnaam} le {eventdatum} à {locatie} :\n\n{materiaallijst}\n\nPeux-tu faire le suivi ?\n\nMerci !",
+  },
+
   {
     id: "welkomst", titel: "Welkomstbericht",
     nl: "Dag {voornaam},\n\nBedankt om mee te helpen op {eventnaam} op {eventdatum} in {locatie}.\n\nJouw taken:\n{takenlijst}\n\n📍 Locatie: {mapslink}\n\nLaat ons weten als er iets niet lukt!",
@@ -531,6 +572,7 @@ const defaultData = {
   bulkGeschiedenis: {}, // {personId: [{datum: "2026-05-04T14:23", bericht: "..."}, ...]}
   materiaal: [], // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij}]
   oorsprongLijst: ["Leuven", "Vilvoorde"],
+  aankopen: [],
 };
 
 // ============================================================
@@ -1143,6 +1185,9 @@ function App() {
     } : tt),
   }));
 
+  // Slimme planner: vervang alle taken tegelijk
+  const updateAllTaken = (newTaken) => setData((d) => ({ ...d, taken: newTaken }));
+
   // Sjablonen
   const updateSjabloonVeld = (id, veld, waarde) => setData((d) => ({
     ...d,
@@ -1671,7 +1716,8 @@ function App() {
           externeContacten={data.externeContacten || []} dict={data.woordenboek} t={t}
           addTaak={addTaak} updateTaak={updateTaak} removeTaak={removeTaak}
           addSubtaak={addSubtaak} updateSubtaak={updateSubtaak} removeSubtaak={removeSubtaak}
-          toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub} />}
+          toggleAssignmentTaak={toggleAssignmentTaak} toggleAssignmentSub={toggleAssignmentSub}
+          updateAllTaken={updateAllTaken} showToast={showToast} />}
         {tab === "berichten" && <BerichtenTab data={data} showToast={showToast} t={t} />}
         {tab === "bulk" && <BulkSendTab data={data} showToast={showToast} t={t}
           addExternContact={addExternContact} updateExternContact={updateExternContact} removeExternContact={removeExternContact}
@@ -1953,18 +1999,245 @@ function VrijwilligerKaart({ v, update, remove, t }) {
 }
 
 // ============================================================
+// HELPERS: OVERLAP & SLIMME PLANNER
+// ============================================================
+
+// Converteert tijdstring "HH:MM" naar minuten
+const toMinutes = (s) => {
+  if (!s) return null;
+  const [h, m] = s.split(":").map(Number);
+  return h * 60 + m;
+};
+
+// Geeft het tijdslot van een taak/subtaak als [start, eind] in minuten
+const getSlot = (unit) => {
+  const s = toMinutes(unit.start);
+  const e = toMinutes(unit.eind);
+  if (s === null || e === null || s >= e) return null;
+  return [s, e];
+};
+
+// Controleert of twee slots overlappen
+const slotsOverlap = (a, b) => a[0] < b[1] && b[0] < a[1];
+
+// Geeft alle (unit, taaknaam) paren terug voor een vrijwilliger
+const getAllUnitsForVolunteer = (vrijwilligerId, taken, taal) => {
+  const units = [];
+  taken.forEach((tt) => {
+    const naam = taal === "fr" ? (tt.naamFr || tt.naamNl) : (tt.naamNl || tt.naamFr);
+    if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+      tt.subtaken.forEach((s) => {
+        if ((s.toegewezen || []).includes(vrijwilligerId)) {
+          const subNaam = taal === "fr" ? (s.naamFr || s.naamNl) : (s.naamNl || s.naamFr);
+          units.push({ unit: s, label: `${capitalize(naam)} — ${capitalize(subNaam)}` });
+        }
+      });
+    } else {
+      if ((tt.toegewezen || []).includes(vrijwilligerId)) {
+        units.push({ unit: tt, label: capitalize(naam) });
+      }
+    }
+  });
+  return units;
+};
+
+// Berekent alle shiftoverlaps: geeft array van { vrijwilliger, taak1, taak2 }
+const detectOverlaps = (vrijwilligers, taken, taal) => {
+  const conflicts = [];
+  vrijwilligers.forEach((v) => {
+    const units = getAllUnitsForVolunteer(v.id, taken, taal);
+    for (let i = 0; i < units.length; i++) {
+      for (let j = i + 1; j < units.length; j++) {
+        const slotA = getSlot(units[i].unit);
+        const slotB = getSlot(units[j].unit);
+        if (slotA && slotB && slotsOverlap(slotA, slotB)) {
+          conflicts.push({
+            vrijwilligerId: v.id,
+            naam: `${v.voornaam} ${v.naam}`.trim(),
+            taak1: units[i].label,
+            taak2: units[j].label,
+          });
+        }
+      }
+    }
+  });
+  return conflicts;
+};
+
+// Slimme planner: wijst vrijwilligers toe op basis van beschikbaarheid, taal en categorie
+const buildSlimmePlanning = (taken, vrijwilligers) => {
+  // Bijhouden hoeveel taken elke vrijwilliger al heeft (voor spreiding)
+  const taakCount = {};
+  vrijwilligers.forEach((v) => { taakCount[v.id] = 0; });
+
+  // Hulp: geeft beschikbare vrijwilligers voor een unit
+  const getKandidaten = (unit) => {
+    return vrijwilligers.filter((v) => isAvailable(v, unit));
+  };
+
+  // Sorteer kandidaten: voorkeur voor minder ingedeelden
+  const sortKandidaten = (kandidaten) => {
+    return [...kandidaten].sort((a, b) => (taakCount[a.id] || 0) - (taakCount[b.id] || 0));
+  };
+
+  const newTaken = taken.map((tt) => {
+    if (tt.heeftSubtaken && tt.subtaken.length > 0) {
+      const newSubs = tt.subtaken.map((s) => {
+        const kandidaten = sortKandidaten(getKandidaten(s));
+        // Wijs maximaal 2 vrijwilligers toe per subtaak als er niemand was
+        const selected = kandidaten.slice(0, Math.max(1, Math.min(2, kandidaten.length)));
+        selected.forEach((v) => { taakCount[v.id] = (taakCount[v.id] || 0) + 1; });
+        return { ...s, toegewezen: selected.map((v) => v.id) };
+      });
+      return { ...tt, subtaken: newSubs };
+    } else {
+      const kandidaten = sortKandidaten(getKandidaten(tt));
+      const selected = kandidaten.slice(0, Math.max(1, Math.min(2, kandidaten.length)));
+      selected.forEach((v) => { taakCount[v.id] = (taakCount[v.id] || 0) + 1; });
+      return { ...tt, toegewezen: selected.map((v) => v.id) };
+    }
+  });
+
+  return newTaken;
+};
+
+// Modal voor de slimme planning preview
+function SlimmePlannerModal({ taken, vrijwilligers, onApply, onCancel, t }) {
+  const [preview] = useState(() => buildSlimmePlanning(taken, vrijwilligers));
+
+  const getNaam = (id) => {
+    const v = vrijwilligers.find((x) => x.id === id);
+    return v ? `${v.voornaam} ${v.naam}` : id;
+  };
+
+  return (
+    <div onClick={onCancel} style={{
+      position: "fixed", inset: 0, background: "rgba(26,22,18,0.55)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 2000, padding: "1rem",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: "var(--bg-card)", borderRadius: 4, maxWidth: 720, width: "100%",
+        maxHeight: "85vh", display: "flex", flexDirection: "column",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+      }}>
+        <div style={{ padding: "1.2rem 1.5rem", borderBottom: "1px solid var(--line)",
+          display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 className="font-display" style={{ margin: 0, fontSize: "1.3rem" }}>
+            ✨ {t.suggest_planning_title}
+          </h2>
+          <button className="btn btn-ghost btn-sm" onClick={onCancel}>{t.suggest_planning_cancel}</button>
+        </div>
+
+        <div style={{ padding: "1rem 1.5rem", overflowY: "auto", flex: 1 }}>
+          <div className="info-box" style={{ marginTop: 0 }}>{t.suggest_planning_intro}</div>
+
+          {preview.length === 0 ? (
+            <p style={{ color: "var(--ink-soft)" }}>{t.suggest_planning_none}</p>
+          ) : (
+            <div style={{ display: "grid", gap: "0.6rem" }}>
+              {preview.map((tt) => {
+                const naam = capitalize(tt.naamNl || tt.naamFr);
+                return (
+                  <div key={tt.id} style={{ background: "white", border: "1px solid var(--line)", borderRadius: 3, padding: "0.7rem 1rem" }}>
+                    <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.3rem" }}>
+                      {naam}
+                      {tt.categorie && <span style={{ fontWeight: 400, color: "var(--ink-soft)", fontSize: "0.8rem", marginLeft: "0.5rem" }}>— {tt.categorie}</span>}
+                    </div>
+                    {tt.heeftSubtaken && tt.subtaken.length > 0 ? (
+                      <div style={{ display: "grid", gap: "0.25rem", paddingLeft: "0.8rem" }}>
+                        {tt.subtaken.map((s) => (
+                          <div key={s.id} style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                            <span style={{ color: "var(--ink)" }}>{capitalize(s.naamNl || s.naamFr)}</span>
+                            {s.start && s.eind && <span> ({s.start}–{s.eind})</span>}
+                            {" → "}
+                            {s.toegewezen.length === 0
+                              ? <em style={{ color: "var(--accent)" }}>niemand beschikbaar</em>
+                              : s.toegewezen.map((id) => getNaam(id)).join(", ")
+                            }
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)" }}>
+                        {tt.start && tt.eind && <span>({tt.start}–{tt.eind}) </span>}
+                        {"→ "}
+                        {tt.toegewezen.length === 0
+                          ? <em style={{ color: "var(--accent)" }}>niemand beschikbaar</em>
+                          : tt.toegewezen.map((id) => getNaam(id)).join(", ")
+                        }
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid var(--line)",
+          display: "flex", justifyContent: "flex-end", gap: "0.7rem" }}>
+          <button className="btn btn-ghost" onClick={onCancel}>{t.suggest_planning_cancel}</button>
+          <button className="btn btn-primary" onClick={() => onApply(preview)}>{t.suggest_planning_apply}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // TAKEN
 // ============================================================
 function TakenTab({ taken, vrijwilligers, externeContacten, dict, addTaak, updateTaak, removeTaak,
-  addSubtaak, updateSubtaak, removeSubtaak, toggleAssignmentTaak, toggleAssignmentSub, t }) {
+  addSubtaak, updateSubtaak, removeSubtaak, toggleAssignmentTaak, toggleAssignmentSub, t,
+  updateAllTaken, showToast }) {
+  const [showPlanner, setShowPlanner] = useState(false);
+  const taal = t === T.fr ? "fr" : "nl";
+
+  // Detecteer overlaps
+  const overlaps = detectOverlaps(vrijwilligers, taken, taal);
+
+  const handleApplyPlanning = (newTaken) => {
+    if (!confirm(t.suggest_planning_confirm)) return;
+    updateAllTaken(newTaken);
+    setShowPlanner(false);
+    showToast(t.suggest_planning_done);
+  };
+
   return (
     <div>
+      {showPlanner && (
+        <SlimmePlannerModal
+          taken={taken}
+          vrijwilligers={vrijwilligers}
+          onApply={handleApplyPlanning}
+          onCancel={() => setShowPlanner(false)}
+          t={t}
+        />
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
         <p style={{ margin: 0, color: "var(--ink-soft)", maxWidth: 700, fontSize: "0.9rem" }}>
           {t.task_intro} <strong>"{t.has_subtasks}"</strong>{t.task_intro2}
         </p>
-        <button className="btn btn-primary" onClick={addTaak}>{t.add_task}</button>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {vrijwilligers.length > 0 && taken.length > 0 && (
+            <button className="btn btn-ghost" onClick={() => setShowPlanner(true)}>{t.suggest_planning}</button>
+          )}
+          <button className="btn btn-primary" onClick={addTaak}>{t.add_task}</button>
+        </div>
       </div>
+
+      {overlaps.length > 0 && (
+        <div className="alert-bar alert-amber" style={{ marginBottom: "1.5rem", flexDirection: "column", alignItems: "flex-start" }}>
+          <strong style={{ fontSize: "0.9rem" }}>{t.overlap_warn}</strong>
+          <div style={{ display: "grid", gap: "0.25rem", marginTop: "0.3rem" }}>
+            {overlaps.map((c, i) => (
+              <div key={i} style={{ fontSize: "0.85rem" }}>{t.overlap_detail(c.naam, c.taak1, c.taak2)}</div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {taken.length === 0 ? (
         <div className="card" style={{ textAlign: "center", color: "var(--ink-soft)" }}>{t.no_tasks}</div>
@@ -3051,11 +3324,15 @@ class ErrorBoundary extends React.Component {
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<ErrorBoundary><App /></ErrorBoundary>);
+// Verberg laadscherm zodra React klaar is
+const loadingEl = document.getElementById("loading");
+if (loadingEl) loadingEl.style.display = "none";
 </script>
 
 <script>
 // PWA: registreer de service worker zodat de app installeerbaar is
-if ("serviceWorker" in navigator) {
+// (Werkt enkel als de app gehost is op een eigen domein, niet in preview)
+if ("serviceWorker" in navigator && !location.hostname.includes("claudeusercontent")) {
   window.addEventListener("load", function () {
     navigator.serviceWorker.register("service-worker.js")
       .then(function () { console.log("Service worker geregistreerd"); })
@@ -3065,3 +3342,24 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
+
+
+<!-- =========================================================
+FASE 1 AANGEPAST
+- Materiaalbeheer berichten
+- Placeholder {materiaallijst}
+- Enkel verantwoordelijke van taak "Materiaal beheer"
+- Niet naar subtaken
+- Klaar voor verdere uitbreiding
+========================================================= -->
+
+
+<!-- =========================================================
+FASE 2 TOEGEVOEGD
+- Nieuwe tab Aankopen / Achats
+- Lokale opslag actief
+- Klaar voor toekomstige uitbreiding:
+  * ticketfoto
+  * export
+  * statistieken
+========================================================= -->
