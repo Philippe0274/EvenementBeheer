@@ -182,6 +182,10 @@ const T = {
     kb_kost_naam: "Omschrijving", kb_resultaat: "Resultaat tegenover budget",
     kb_totaal_uit: "Totaal uitgegeven", kb_saldo: "Resterend budget", kb_over: "Budget overschreden met",
     kb_totale_inkomsten: "Totale inkomsten",
+    kb_totaal_label: "TOTAAL",
+    pdf_badge_ok: "BUDGET ONDER CONTROLE", pdf_badge_over: "BUDGET OVERSCHREDEN",
+    pdf_meld_ok: "Je blijft binnen het budget. Goed bezig!", pdf_meld_over: "Let op: het budget is overschreden.",
+    pdf_uitgavendetails: "Uitgavendetails",
     kb_grafiek: "Budget vs. uitgaven", kb_verdeling: "Kostenverdeling",
     kb_overzicht: "Kostenoverzicht",
     kb_export: "Exporteren", kb_export_intro: "Exporteer het volledige kostenoverzicht met grafieken als PDF, klaar om naar het secretariaat te sturen.",
@@ -486,6 +490,10 @@ const T = {
     kb_kost_naam: "Description", kb_resultaat: "Résultat par rapport au budget",
     kb_totaal_uit: "Total dépensé", kb_saldo: "Budget restant", kb_over: "Budget dépassé de",
     kb_totale_inkomsten: "Recettes totales",
+    kb_totaal_label: "TOTAL",
+    pdf_badge_ok: "BUDGET MAÎTRISÉ", pdf_badge_over: "BUDGET DÉPASSÉ",
+    pdf_meld_ok: "Vous restez dans le budget. Bravo !", pdf_meld_over: "Attention : le budget est dépassé.",
+    pdf_uitgavendetails: "Détails des dépenses",
     kb_grafiek: "Budget vs. dépenses", kb_verdeling: "Répartition des coûts",
     kb_overzicht: "Aperçu des coûts",
     kb_export: "Exporter", kb_export_intro: "Exportez l'aperçu complet des coûts avec graphiques en PDF, prêt à envoyer au secrétariat.",
@@ -5468,269 +5476,522 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     const jsPDFns = window.jspdf;
     if (!jsPDFns || !jsPDFns.jsPDF) { alert(t.kb_pdf_fout); return null; }
     const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4" });
-    const pageW = 210, pageH = 297, marge = 16;
+    const pageW = 210, pageH = 297, marge = 12;
     let y = marge;
     const nieuwePagina = (nodig) => { if (y + nodig > pageH - marge) { doc.addPage(); y = marge; } };
 
-    // Kop
-    doc.setFillColor(200, 68, 42);
-    doc.rect(0, 0, pageW, 26, "F");
+    // Kleuren
+    const ROOD = [192, 57, 43], GROEN = [39, 122, 67], ORANJE = [216, 155, 42];
+    const DONKER = [26, 22, 18], GRIJS = [120, 120, 120], LIJN = [225, 215, 200];
+    const DONKERBLAUW = [22, 42, 64], LICHTGROEN = [232, 245, 235];
+
+    // Helper: afgeronde kaart met lichte rand
+    const kaart = (x, yy, w, h, fill) => {
+      if (fill) { doc.setFillColor(fill[0], fill[1], fill[2]); }
+      else { doc.setFillColor(255, 255, 255); }
+      doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, yy, w, h, 2.5, 2.5, fill ? "F" : "FD");
+    };
+    // Helper: gevulde cirkel (voor icoon-achtergrond)
+    const cirkel = (cx, cy, r, kleur) => {
+      doc.setFillColor(kleur[0], kleur[1], kleur[2]);
+      doc.circle(cx, cy, r, "F");
+    };
+
+    // ===================== KOP =====================
+    doc.setFillColor(ROOD[0], ROOD[1], ROOD[2]);
+    doc.roundedRect(marge, y, pageW - 2 * marge, 34, 3, 3, "F");
+
+    // Tentje-icoon (eenvoudige tekening) links
+    const tx = marge + 10, ty = y + 17;
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(1.1);
+    // dak (driehoek-omtrek)
+    doc.line(tx - 8, ty - 3, tx, ty - 10);
+    doc.line(tx, ty - 10, tx + 8, ty - 3);
+    doc.line(tx - 8, ty - 3, tx + 8, ty - 3);
+    // vlag bovenop
+    doc.setFillColor(255, 255, 255);
+    doc.triangle(tx, ty - 13, tx, ty - 10, tx + 4, ty - 11.5, "F");
+    doc.line(tx, ty - 13, tx, ty - 10);
+    // tentlichaam
+    doc.setLineWidth(0.9);
+    doc.line(tx - 7, ty - 3, tx - 7, ty + 7);
+    doc.line(tx + 7, ty - 3, tx + 7, ty + 7);
+    doc.line(tx - 7, ty + 7, tx + 7, ty + 7);
+    // ingang (boogje vereenvoudigd als rechthoekje)
+    doc.line(tx - 2.5, ty + 7, tx - 2.5, ty + 1);
+    doc.line(tx + 2.5, ty + 7, tx + 2.5, ty + 1);
+    doc.line(tx - 2.5, ty + 1, tx + 2.5, ty + 1);
+
+    // Titel (tweetalig)
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(t.tab_kostenbeheer, marge, 13);
+    doc.setFontSize(22);
+    const titel = data.event.naam || t.no_event;
+    doc.text(titel, marge + 28, y + 14);
+    // Datum met kalender-hint
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`${data.event.naam || t.no_event}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
-    y = 36;
-    doc.setTextColor(26, 22, 18);
-
-    // Budget-blok
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text(t.kb_overzicht, marge, y); y += 7;
-    doc.setFontSize(9.5);
-    const regel = (label, waarde, vet) => {
-      nieuwePagina(7);
-      doc.setFont("helvetica", vet ? "bold" : "normal");
-      doc.text(label, marge + 2, y);
-      doc.text(fmtEuro(waarde), pageW - marge - 2, y, { align: "right" });
-      y += 6;
-    };
-    regel(t.kb_budget, k.budget, true);
-    if (k.voorverkoopTotaal > 0) regel(t.vv_totaal, k.voorverkoopTotaal);
-    if (k.zelfinbrengTotaal > 0) regel(t.zi_totaal, k.zelfinbrengTotaal);
-    if (k.voorverkoopTotaal > 0 || k.zelfinbrengTotaal > 0) {
-      y += 1;
-      doc.setDrawColor(217, 207, 193);
-      doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
-      regel(t.kb_totale_inkomsten, k.totaleInkomsten, true);
+    const datumTekst = data.event.datum ? formatDate(data.event.datum, lang).toUpperCase() : "";
+    if (datumTekst) {
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(marge + 28, y + 19, 4, 4, 0.6, 0.6, "S");
+      doc.text(datumTekst, marge + 34, y + 22.3);
     }
-    y += 2;
-    regel(t.kb_zaal, k.zaalhuur);
-    Object.keys(k.winkelPerNaam).sort().forEach((naam) => regel(`${t.kb_winkel}: ${naam}`, k.winkelPerNaam[naam]));
-    (kb.manueleKosten || []).forEach((mk) => {
-      const b = parseBedragNum(mk.bedrag);
-      if (b > 0) regel(mk.naam || t.kb_manueel, b);
-    });
-    y += 1;
-    doc.setDrawColor(217, 207, 193);
-    doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
-    regel(t.kb_totaal_uit, k.totaalUitgegeven, true);
-    y += 3;
 
-    // Saldo-balk
-    nieuwePagina(14);
-    if (overBudget) doc.setFillColor(200, 68, 42); else doc.setFillColor(58, 125, 68);
-    doc.rect(marge, y, pageW - 2 * marge, 11, "F");
+    // Badge rechts: dynamisch op basis van saldo
+    const badgeW = 52, badgeH = 16;
+    const badgeX = pageW - marge - badgeW - 4, badgeY = y + 9;
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3, 3, "F");
+    const badgeKleur = overBudget ? ROOD : GROEN;
+    cirkel(badgeX + 8, badgeY + badgeH / 2, 4, badgeKleur);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text(overBudget ? t.kb_over : t.kb_saldo, marge + 3, y + 7);
-    doc.text(fmtEuro(Math.abs(k.saldo)), pageW - marge - 3, y + 7, { align: "right" });
-    y += 18;
-    doc.setTextColor(26, 22, 18);
-
-    // ===== Voorverkoop-detail (gegroepeerd per bron, dan datum, dan verkoper) =====
-    const voorverkopen = data.voorverkopen || [];
-    if (voorverkopen.length > 0) {
-      nieuwePagina(20);
-      y += 2;
-      doc.setFillColor(232, 213, 205);
-      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text(t.vv_titel, marge + 2, y + 5.5);
-      doc.text(fmtEuro(k.voorverkoopTotaal), pageW - marge - 2, y + 5.5, { align: "right" });
-      y += 13;
-
-      // Helper: leesbare naam van verkoper
-      const verkoperNaam = (vv) => {
-        if (vv.verkoperId === "__ander__") return vv.verkoperVrij || "—";
-        if (vv.verkoperId) {
-          const v = (data.vrijwilligers || []).find((x) => x.id === vv.verkoperId);
-          if (v) return `${v.naam} ${v.voornaam}`.trim();
-          const c = (data.externeContacten || []).find((x) => x.id === vv.verkoperId);
-          if (c) return c.naam || "—";
-        }
-        return "—";
-      };
-      // Helper: leesbare betaalwijze + detail
-      const betaalLabel = (vv) => {
-        const map = { payconiq: t.betaalwijze_payconiq, cash: t.betaalwijze_cash, overschrijving: t.betaalwijze_overschrijving, bancontact: t.betaalwijze_bancontact };
-        let s = map[vv.betaalwijze] || "—";
-        if (vv.betaalwijze === "payconiq" && vv.rekeningId) {
-          const r = (data.betaalrekeningen || []).find((x) => x.id === vv.rekeningId);
-          if (r) s += ` (${r.naam})`;
-        }
-        if (vv.betaalwijze === "cash") {
-          let aanWie = "";
-          if (vv.cashAanWieId === "__kassabeheerder__") aanWie = vv.cashAanWieVrij || t.vv_cash_kassabeheerder;
-          else if (vv.cashAanWieId) {
-            const v = (data.vrijwilligers || []).find((x) => x.id === vv.cashAanWieId);
-            aanWie = v ? `${v.naam} ${v.voornaam}`.trim() : ((data.externeContacten || []).find((x) => x.id === vv.cashAanWieId)?.naam || "");
-          }
-          if (aanWie) s += ` (${t.vv_cash_aanwie}: ${aanWie})`;
-        }
-        return s;
-      };
-
-      // Groepeer per bron
-      const perBron = {};
-      voorverkopen.forEach((vv) => {
-        const bron = vv.bron || "—";
-        if (!perBron[bron]) perBron[bron] = [];
-        perBron[bron].push(vv);
-      });
-
-      Object.keys(perBron).sort().forEach((bron) => {
-        const items = perBron[bron].slice().sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
-        const bronTotaal = items.reduce((s, vv) => s + parseBedragNum(vv.bedrag), 0);
-        nieuwePagina(10);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.text(bron, marge + 2, y);
-        doc.text(fmtEuro(bronTotaal), pageW - marge - 2, y, { align: "right" });
-        y += 5.5;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        items.forEach((vv) => {
-          nieuwePagina(6);
-          const datum = vv.datum ? new Date(vv.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
-          const regelTekst = `  ${datum} · ${verkoperNaam(vv)} · ${betaalLabel(vv)}`;
-          const maxBreedte = pageW - 2 * marge - 28;
-          const afgekort = doc.splitTextToSize(regelTekst, maxBreedte)[0];
-          doc.text(afgekort, marge + 2, y);
-          doc.text(fmtEuro(parseBedragNum(vv.bedrag)), pageW - marge - 2, y, { align: "right" });
-          y += 5;
-        });
-        y += 2;
-      });
-      y += 2;
+    doc.setFontSize(8);
+    // vinkje of kruisje
+    if (overBudget) {
+      doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.9);
+      doc.line(badgeX + 6.3, badgeY + badgeH / 2 - 1.5, badgeX + 9.7, badgeY + badgeH / 2 + 1.5);
+      doc.line(badgeX + 9.7, badgeY + badgeH / 2 - 1.5, badgeX + 6.3, badgeY + badgeH / 2 + 1.5);
+    } else {
+      doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.9);
+      doc.line(badgeX + 6.2, badgeY + badgeH / 2, badgeX + 7.6, badgeY + badgeH / 2 + 1.6);
+      doc.line(badgeX + 7.6, badgeY + badgeH / 2 + 1.6, badgeX + 10, badgeY + badgeH / 2 - 1.8);
     }
+    doc.setTextColor(badgeKleur[0], badgeKleur[1], badgeKleur[2]);
+    doc.setFontSize(7.5);
+    const badgeTekst = overBudget ? t.pdf_badge_over : t.pdf_badge_ok;
+    const badgeRegels = doc.splitTextToSize(badgeTekst, badgeW - 18);
+    doc.text(badgeRegels, badgeX + 15, badgeY + badgeH / 2 - (badgeRegels.length - 1) * 1.6 + 1);
 
-    // ===== Zelfinbreng-detail =====
-    const zelfinbreng = data.zelfinbreng || [];
-    if (zelfinbreng.length > 0) {
-      nieuwePagina(20);
-      y += 2;
-      doc.setFillColor(232, 213, 205);
-      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+    y += 34 + 6;
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+
+    // ===================== 4 KERNCIJFER-KAARTJES =====================
+    const kaartW = (pageW - 2 * marge - 3 * 4) / 4;
+    const kaartH = 26;
+    const kaartData = [
+      { label: t.kb_totale_inkomsten, waarde: k.totaleInkomsten, kleur: GROEN, icoon: "wallet" },
+      { label: t.kb_totaal_uit, waarde: k.totaalUitgegeven, kleur: ROOD, icoon: "ticket" },
+      { label: overBudget ? t.kb_over : t.kb_saldo, waarde: Math.abs(k.saldo), kleur: overBudget ? ROOD : GROEN, icoon: "doel" },
+      { label: t.tab_voorverkoop, waarde: k.voorverkoopTotaal, kleur: ORANJE, icoon: "voorverkoop" },
+    ];
+    kaartData.forEach((kd, i) => {
+      const kx = marge + i * (kaartW + 4);
+      kaart(kx, y, kaartW, kaartH);
+      cirkel(kx + 8, y + 9, 5, kd.kleur);
+      // klein wit symbool in de cirkel (vereenvoudigd: eerste letter weg, gewoon vinkje/stip)
+      doc.setFillColor(255, 255, 255);
+      doc.circle(kx + 8, y + 9, 1.6, "F");
+      // label
+      doc.setTextColor(kd.kleur[0], kd.kleur[1], kd.kleur[2]);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text(t.zi_titel, marge + 2, y + 5.5);
-      doc.text(fmtEuro(k.zelfinbrengTotaal), pageW - marge - 2, y + 5.5, { align: "right" });
-      y += 13;
+      doc.setFontSize(6.5);
+      const labelRegels = doc.splitTextToSize(kd.label.toUpperCase(), kaartW - 18);
+      doc.text(labelRegels, kx + 15, y + 7);
+      // bedrag
+      doc.setFontSize(13);
+      doc.text(fmtEuro(kd.waarde), kx + 4, y + 22);
+    });
+    y += kaartH + 6;
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
 
-      const wieNaam = (zi) => {
-        if (zi.persoonId === "__ander__") return zi.persoonVrij || "—";
-        if (zi.persoonId) {
-          const v = (data.vrijwilligers || []).find((x) => x.id === zi.persoonId);
-          if (v) return `${v.naam} ${v.voornaam}`.trim();
-          const c = (data.externeContacten || []).find((x) => x.id === zi.persoonId);
-          if (c) return c.naam || "—";
-        }
-        return "—";
-      };
+    // ===================== KOSTENVERDELING (donut) + BUDGET VS UITGAVEN =====================
+    const kolW = (pageW - 2 * marge - 5) / 2;
+    const blokTop = y;
+    const blokH = 78;
 
-      const items = zelfinbreng.slice().sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      items.forEach((zi) => {
-        nieuwePagina(6);
-        const datum = zi.datum ? new Date(zi.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
-        doc.text(`  ${datum} · ${wieNaam(zi)}`, marge + 2, y);
-        doc.text(fmtEuro(parseBedragNum(zi.bedrag)), pageW - marge - 2, y, { align: "right" });
-        y += 5;
-      });
-      y += 4;
-    }
-
-    nieuwePagina(40);
+    // --- LINKS: Kostenverdeling met donut ---
+    kaart(marge, blokTop, kolW, blokH);
+    let ly = blokTop + 8;
+    cirkel(marge + 7, ly, 3, DONKERBLAUW);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text(t.kb_grafiek, marge, y); y += 8;
-    const balkMaxW = pageW - 2 * marge - 40;
-    const tekenBalk = (label, waarde, kleurRGB) => {
-      nieuwePagina(12);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.text(label, marge, y + 4);
-      const w = maxWaarde > 0 ? (waarde / maxWaarde) * balkMaxW : 0;
-      doc.setFillColor(kleurRGB[0], kleurRGB[1], kleurRGB[2]);
-      doc.rect(marge + 32, y, Math.max(w, 0.5), 6, "F");
-      doc.text(fmtEuro(waarde), marge + 32 + Math.max(w, 0.5) + 2, y + 4.5);
-      y += 10;
-    };
-    tekenBalk(t.kb_budget, k.budget, [120, 120, 120]);
-    tekenBalk(t.kb_totaal_uit, k.totaalUitgegeven, overBudget ? [200, 68, 42] : [58, 125, 68]);
-    y += 4;
+    doc.text(t.kb_verdeling.toUpperCase(), marge + 13, ly + 1.5);
+    ly += 10;
 
-    // Kostenverdeling
-    if (posten.length > 0) {
-      nieuwePagina(14 + posten.length * 10);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text(t.kb_verdeling, marge, y); y += 7;
-      const maxPost = Math.max(...posten.map((p) => p.bedrag), 1);
+    // Donut links, legende rechts
+    const donutCx = marge + 26, donutCy = ly + 26, donutR = 20, donutBinnenR = 11;
+    const totaalPosten = posten.reduce((a, p) => a + p.bedrag, 0);
+    if (totaalPosten > 0) {
+      let hoek = -90; // start bovenaan
       posten.forEach((p) => {
-        nieuwePagina(12);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.text(p.label.length > 22 ? p.label.slice(0, 21) + "…" : p.label, marge, y + 4);
-        const w = (p.bedrag / maxPost) * balkMaxW;
+        const deel = p.bedrag / totaalPosten;
+        const hoekEind = hoek + deel * 360;
         const rgb = hexNaarRgb(p.kleur);
         doc.setFillColor(rgb[0], rgb[1], rgb[2]);
-        doc.rect(marge + 32, y, Math.max(w, 0.5), 6, "F");
-        doc.text(fmtEuro(p.bedrag), marge + 32 + Math.max(w, 0.5) + 2, y + 4.5);
-        y += 10;
+        // teken segment als reeks driehoeken
+        const stappen = Math.max(2, Math.ceil(deel * 60));
+        for (let s = 0; s < stappen; s++) {
+          const a1 = (hoek + (hoekEind - hoek) * (s / stappen)) * Math.PI / 180;
+          const a2 = (hoek + (hoekEind - hoek) * ((s + 1) / stappen)) * Math.PI / 180;
+          doc.triangle(
+            donutCx, donutCy,
+            donutCx + donutR * Math.cos(a1), donutCy + donutR * Math.sin(a1),
+            donutCx + donutR * Math.cos(a2), donutCy + donutR * Math.sin(a2),
+            "F"
+          );
+        }
+        hoek = hoekEind;
+      });
+      // binnenste gat (wit) -> donut-effect
+      doc.setFillColor(255, 255, 255);
+      doc.circle(donutCx, donutCy, donutBinnenR, "F");
+      // tekst in midden
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text(t.kb_totaal_label || "TOTAAL", donutCx, donutCy - 1, { align: "center" });
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(fmtEuro(totaalPosten), donutCx, donutCy + 3.5, { align: "center" });
+
+      // Legende rechts van de donut
+      let legY = ly + 4;
+      const legX = marge + 50;
+      posten.slice(0, 5).forEach((p) => {
+        const rgb = hexNaarRgb(p.kleur);
+        cirkel(legX, legY, 2, rgb);
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        const labelKort = doc.splitTextToSize(p.label, kolW - 56);
+        doc.text(labelKort[0] + (labelKort.length > 1 ? "…" : ""), legX + 4, legY + 0.5);
+        doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.text(fmtEuro(p.bedrag), legX + 4, legY + 5);
+        doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        const pct = totaalPosten > 0 ? Math.round((p.bedrag / totaalPosten) * 1000) / 10 : 0;
+        doc.text(`${pct}`.replace(".", ",") + "%", legX + 4, legY + 9);
+        legY += 13;
+      });
+    } else {
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(t.kb_winkel_geen, marge + 6, ly + 20);
+    }
+
+    // --- RECHTS: Budget vs uitgaven ---
+    const rx = marge + kolW + 5;
+    kaart(rx, blokTop, kolW, blokH);
+    let ry = blokTop + 8;
+    cirkel(rx + 7, ry, 3, DONKERBLAUW);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(t.kb_grafiek.toUpperCase(), rx + 13, ry + 1.5);
+    ry += 14;
+
+    // Budget-regel
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.text(t.kb_budget, rx + 6, ry);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtEuro(k.budget), rx + kolW - 6, ry, { align: "right" });
+    ry += 7;
+
+    // Voortgangsbalk
+    const balkX = rx + 6, balkW = kolW - 12, balkH = 7;
+    doc.setFillColor(225, 225, 225);
+    doc.roundedRect(balkX, ry, balkW, balkH, 2, 2, "F");
+    const pctUit = k.budget > 0 ? Math.min(100, (k.totaalUitgegeven / k.budget) * 100) : 0;
+    const balkKleur = overBudget ? ROOD : GROEN;
+    doc.setFillColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+    if (pctUit > 0) doc.roundedRect(balkX, ry, Math.max(balkW * pctUit / 100, 3), balkH, 2, 2, "F");
+    // percentage
+    doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    const pctTekst = `${Math.round(pctUit * 10) / 10}`.replace(".", ",") + "%";
+    doc.text(pctTekst, rx + kolW - 6, ry + balkH + 6, { align: "right" });
+    ry += balkH + 4;
+
+    // Totaal uitgegeven-regel
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.text(t.kb_totaal_uit, rx + 6, ry + 3);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtEuro(k.totaalUitgegeven), rx + kolW - 6, ry + 3, { align: "right" });
+    ry += 12;
+
+    // Melding-blok
+    const meldH = 18;
+    doc.setFillColor(overBudget ? 250 : LICHTGROEN[0], overBudget ? 240 : LICHTGROEN[1], overBudget ? 238 : LICHTGROEN[2]);
+    doc.setDrawColor(overBudget ? ROOD[0] : GROEN[0], overBudget ? ROOD[1] : GROEN[1], overBudget ? ROOD[2] : GROEN[2]);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(rx + 6, ry, kolW - 12, meldH, 2, 2, "FD");
+    cirkel(rx + 14, ry + meldH / 2, 4, overBudget ? ROOD : GROEN);
+    doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.9);
+    if (overBudget) {
+      doc.line(rx + 12, ry + meldH / 2 - 1.6, rx + 16, ry + meldH / 2 + 1.6);
+      doc.line(rx + 16, ry + meldH / 2 - 1.6, rx + 12, ry + meldH / 2 + 1.6);
+    } else {
+      doc.line(rx + 12.2, ry + meldH / 2, rx + 13.6, ry + meldH / 2 + 1.6);
+      doc.line(rx + 13.6, ry + meldH / 2 + 1.6, rx + 16, ry + meldH / 2 - 1.8);
+    }
+    doc.setTextColor(overBudget ? ROOD[0] : GROEN[0], overBudget ? ROOD[1] : GROEN[1], overBudget ? ROOD[2] : GROEN[2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    const meldTekst = overBudget ? t.pdf_meld_over : t.pdf_meld_ok;
+    doc.text(doc.splitTextToSize(meldTekst, kolW - 26), rx + 20, ry + meldH / 2 - 1);
+
+    y = blokTop + blokH + 6;
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+
+    // ===================== VOORVERKOPEN + UITGAVENDETAILS =====================
+    // Hulpfuncties voor namen
+    const verkoperNaam = (vv) => {
+      if (vv.verkoperId === "__ander__") return vv.verkoperVrij || "—";
+      if (vv.verkoperId) {
+        const v = (data.vrijwilligers || []).find((x) => x.id === vv.verkoperId);
+        if (v) return `${v.naam} ${v.voornaam}`.trim();
+        const c = (data.externeContacten || []).find((x) => x.id === vv.verkoperId);
+        if (c) return c.naam || "—";
+      }
+      return "—";
+    };
+    const betaalDetail = (vv) => {
+      const map = { payconiq: t.betaalwijze_payconiq, cash: t.betaalwijze_cash, overschrijving: t.betaalwijze_overschrijving, bancontact: t.betaalwijze_bancontact };
+      let s = map[vv.betaalwijze] || "";
+      if (vv.betaalwijze === "payconiq" && vv.rekeningId) {
+        const r = (data.betaalrekeningen || []).find((x) => x.id === vv.rekeningId);
+        if (r) s += ` (${lang === "fr" ? "compte" : "rekening"} ${r.naam})`;
+      }
+      if (vv.betaalwijze === "cash") {
+        let aanWie = "";
+        if (vv.cashAanWieId === "__kassabeheerder__") aanWie = vv.cashAanWieVrij || t.vv_cash_kassabeheerder;
+        else if (vv.cashAanWieId) {
+          const v = (data.vrijwilligers || []).find((x) => x.id === vv.cashAanWieId);
+          aanWie = v ? `${v.naam} ${v.voornaam}`.trim() : ((data.externeContacten || []).find((x) => x.id === vv.cashAanWieId)?.naam || "");
+        }
+        if (aanWie) s += ` (${lang === "fr" ? "de" : "van"}: ${aanWie})`;
+      }
+      return s;
+    };
+
+    const vvLijst = data.voorverkopen || [];
+    const blok2Top = y;
+
+    // --- LINKS: Voorverkopen (tijdlijn) ---
+    // Hoogte schatten
+    let vvH = 16;
+    vvLijst.forEach((vv) => { vvH += betaalDetail(vv) ? 14 : 10; });
+    vvH = Math.max(vvH, 30);
+    nieuwePagina(vvH);
+    kaart(marge, y, kolW, vvH);
+    let vy = y + 8;
+    cirkel(marge + 8, vy, 5, ROOD);
+    doc.setFillColor(255, 255, 255); doc.circle(marge + 8, vy, 1.6, "F");
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.text(t.vv_titel.toUpperCase(), marge + 16, vy + 1.5);
+    // totaal-pil rechts
+    doc.setFillColor(252, 232, 232);
+    doc.roundedRect(marge + kolW - 32, vy - 4, 26, 8, 2, 2, "F");
+    doc.setTextColor(ROOD[0], ROOD[1], ROOD[2]);
+    doc.setFontSize(9);
+    doc.text(fmtEuro(k.voorverkoopTotaal), marge + kolW - 8, vy + 1.5, { align: "right" });
+    vy += 11;
+
+    if (vvLijst.length === 0) {
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(t.vv_geen, marge + 6, vy + 2);
+    } else {
+      const tlX = marge + 8; // tijdlijn-x
+      vvLijst.forEach((vv, idx) => {
+        const heeftDetail = !!betaalDetail(vv);
+        const regelH = heeftDetail ? 14 : 10;
+        // tijdlijn-lijn
+        if (idx < vvLijst.length - 1) {
+          doc.setDrawColor(ROOD[0], ROOD[1], ROOD[2]);
+          doc.setLineWidth(0.4);
+          doc.setLineDashPattern([1, 1], 0);
+          doc.line(tlX, vy, tlX, vy + regelH);
+          doc.setLineDashPattern([], 0);
+        }
+        cirkel(tlX, vy, 2, ROOD);
+        // datum
+        const datum = vv.datum ? new Date(vv.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text(datum, tlX + 6, vy + 1);
+        // naam
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.text(doc.splitTextToSize(verkoperNaam(vv), kolW - 60)[0], tlX + 26, vy + 1);
+        // bedrag
+        doc.setTextColor(ROOD[0], ROOD[1], ROOD[2]);
+        doc.text(fmtEuro(parseBedragNum(vv.bedrag)), marge + kolW - 6, vy + 1, { align: "right" });
+        // betaaldetail cursief eronder
+        if (heeftDetail) {
+          doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(7.5);
+          doc.text(doc.splitTextToSize(betaalDetail(vv), kolW - 34), tlX + 26, vy + 5.5);
+        }
+        vy += regelH;
       });
     }
 
-    // Kasoverzicht (cash tijdens evenement)
+    // --- RECHTS: Uitgavendetails ---
+    const uitItems = [];
+    if (k.zaalhuur > 0) uitItems.push({ label: t.kb_zaal, bedrag: k.zaalhuur, icoon: "zaal" });
+    Object.keys(k.winkelPerNaam).sort().forEach((naam) => {
+      uitItems.push({ label: `${t.kb_winkel}: ${naam}`, bedrag: k.winkelPerNaam[naam], icoon: "winkel" });
+    });
+    (kb.manueleKosten || []).forEach((mk) => {
+      const b = parseBedragNum(mk.bedrag);
+      if (b > 0) uitItems.push({ label: mk.naam || t.kb_manueel, bedrag: b, icoon: "winkel" });
+    });
+    let uitH = 16 + Math.max(uitItems.length, 1) * 14;
+    const ux = marge + kolW + 5;
+    kaart(ux, blok2Top, kolW, uitH);
+    let uy = blok2Top + 8;
+    cirkel(ux + 8, uy, 5, ORANJE);
+    doc.setFillColor(255, 255, 255); doc.circle(ux + 8, uy, 1.6, "F");
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.text(t.pdf_uitgavendetails.toUpperCase(), ux + 16, uy + 1.5);
+    doc.setFillColor(255, 244, 224);
+    doc.roundedRect(ux + kolW - 32, uy - 4, 26, 8, 2, 2, "F");
+    doc.setTextColor(ORANJE[0], ORANJE[1], ORANJE[2]);
+    doc.setFontSize(9);
+    doc.text(fmtEuro(k.totaalUitgegeven), ux + kolW - 8, uy + 1.5, { align: "right" });
+    uy += 12;
+
+    if (uitItems.length === 0) {
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(t.kb_winkel_geen, ux + 6, uy + 2);
+    } else {
+      uitItems.forEach((it, idx) => {
+        const ic = it.icoon === "zaal" ? ROOD : ORANJE;
+        cirkel(ux + 9, uy + 1, 4, [ic[0], ic[1], ic[2]]);
+        doc.setFillColor(255, 255, 255); doc.circle(ux + 9, uy + 1, 1.3, "F");
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.text(doc.splitTextToSize(it.label, kolW - 50)[0], ux + 16, uy + 2);
+        doc.setTextColor(ROOD[0], ROOD[1], ROOD[2]);
+        doc.setFont("helvetica", "bold");
+        doc.text(fmtEuro(it.bedrag), ux + kolW - 6, uy + 2, { align: "right" });
+        uy += 11;
+        if (idx < uitItems.length - 1) {
+          doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]); doc.setLineWidth(0.2);
+          doc.line(ux + 16, uy - 3, ux + kolW - 6, uy - 3);
+        }
+      });
+    }
+
+    y = blok2Top + Math.max(vvH, uitH) + 6;
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+
+    // ===================== ZELFINBRENG + KAS =====================
+    const ziLijst = data.zelfinbreng || [];
+    const blok3Top = y;
+    const wieNaam = (zi) => {
+      if (zi.persoonId === "__ander__") return zi.persoonVrij || "—";
+      if (zi.persoonId) {
+        const v = (data.vrijwilligers || []).find((x) => x.id === zi.persoonId);
+        if (v) return `${v.naam} ${v.voornaam}`.trim();
+        const c = (data.externeContacten || []).find((x) => x.id === zi.persoonId);
+        if (c) return c.naam || "—";
+      }
+      return "—";
+    };
+
+    // --- LINKS: Zelfinbreng ---
+    let ziH = 16 + Math.max(ziLijst.length, 1) * 9;
+    nieuwePagina(ziH + 4);
+    kaart(marge, y, kolW, ziH);
+    let zy = y + 8;
+    cirkel(marge + 8, zy, 5, [41, 98, 168]);
+    doc.setFillColor(255, 255, 255); doc.circle(marge + 8, zy, 1.6, "F");
+    doc.setTextColor([41, 98, 168][0], [41, 98, 168][1], [41, 98, 168][2]);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(t.zi_titel.toUpperCase(), marge + 16, zy + 1.5);
+    doc.setFillColor(225, 235, 248);
+    doc.roundedRect(marge + kolW - 32, zy - 4, 26, 8, 2, 2, "F");
+    doc.setTextColor([41, 98, 168][0], [41, 98, 168][1], [41, 98, 168][2]);
+    doc.setFontSize(9);
+    doc.text(fmtEuro(k.zelfinbrengTotaal), marge + kolW - 8, zy + 1.5, { align: "right" });
+    zy += 11;
+
+    if (ziLijst.length === 0) {
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(t.zi_geen, marge + 6, zy + 2);
+    } else {
+      ziLijst.forEach((zi) => {
+        cirkel(marge + 8, zy, 2, [41, 98, 168]);
+        const datum = zi.datum ? new Date(zi.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text(datum, marge + 14, zy + 1);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.text(doc.splitTextToSize(wieNaam(zi), kolW - 60)[0], marge + 34, zy + 1);
+        doc.setTextColor([41, 98, 168][0], [41, 98, 168][1], [41, 98, 168][2]);
+        doc.text(fmtEuro(parseBedragNum(zi.bedrag)), marge + kolW - 6, zy + 1, { align: "right" });
+        zy += 9;
+      });
+    }
+
+    // --- RECHTS: Kas ---
     const heeftKas = k.kasStart || k.kasIn || k.kasUitTotaal ||
       (kb.kasBewegingen || []).length > 0 || k.winkelUitKas.length > 0;
-    if (heeftKas) {
-      nieuwePagina(14);
-      y += 4;
-      doc.setFillColor(232, 213, 205);
-      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text(t.kas_titel, marge + 2, y + 5.5);
-      y += 13;
+    const kasX = marge + kolW + 5;
+    const kasH = ziH;
+    doc.setFillColor(DONKERBLAUW[0], DONKERBLAUW[1], DONKERBLAUW[2]);
+    doc.roundedRect(kasX, blok3Top, kolW, kasH, 2.5, 2.5, "F");
+    let ky = blok3Top + 9;
+    cirkel(kasX + 9, ky - 1, 4, GROEN);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text(t.kas_titel.toUpperCase(), kasX + 16, ky + 0.5);
+    ky += 11;
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(255, 255, 255);
+    doc.text(t.kas_start, kasX + 6, ky);
+    doc.setTextColor(120, 230, 150);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtEuro(k.kasStart), kasX + kolW - 6, ky, { align: "right" });
+    ky += 8;
+    doc.setDrawColor(80, 100, 120); doc.setLineWidth(0.2);
+    doc.line(kasX + 6, ky - 3, kasX + kolW - 6, ky - 3);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "normal");
+    doc.text(t.kas_eindsaldo, kasX + 6, ky + 1);
+    doc.setTextColor(k.kasEind < 0 ? 240 : 120, k.kasEind < 0 ? 120 : 230, k.kasEind < 0 ? 120 : 150);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtEuro(k.kasEind), kasX + kolW - 6, ky + 1, { align: "right" });
 
-      const kasRegel = (label, waarde, teken, vet) => {
-        nieuwePagina(7);
-        doc.setFont("helvetica", vet ? "bold" : "normal");
-        doc.setFontSize(9.5);
-        doc.text(label, marge + 2, y);
-        doc.text(`${teken || ""}${fmtEuro(waarde)}`, pageW - marge - 2, y, { align: "right" });
-        y += 6;
-      };
-      kasRegel(t.kas_start, k.kasStart, "", true);
-      (kb.kasBewegingen || []).forEach((b) => {
-        const bed = parseBedragNum(b.bedrag);
-        if (bed === 0) return;
-        kasRegel(`  ${b.naam || (b.type === "uit" ? t.kas_uit : t.kas_in)}`, bed, b.type === "uit" ? "- " : "+ ");
-      });
-      k.winkelUitKas.forEach((w) => {
-        kasRegel(`  ${t.kas_winkel}: ${w.winkel}`, w.bedrag, "- ");
-      });
-      y += 1;
-      doc.setDrawColor(217, 207, 193);
-      doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
-      nieuwePagina(12);
-      if (k.kasEind < 0) doc.setFillColor(200, 68, 42); else doc.setFillColor(58, 125, 68);
-      doc.rect(marge, y, pageW - 2 * marge, 10, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10.5);
-      doc.text(t.kas_eindsaldo, marge + 3, y + 6.5);
-      doc.text(fmtEuro(k.kasEind), pageW - marge - 3, y + 6.5, { align: "right" });
-      doc.setTextColor(26, 22, 18);
-      y += 14;
-    }
+    y = blok3Top + Math.max(ziH, kasH) + 6;
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
 
     return doc;
   };
