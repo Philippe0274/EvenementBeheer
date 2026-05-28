@@ -155,6 +155,23 @@ const T = {
     tab_sjablonen: "Sjablonen", tab_woordenboek: "Woordenboek", tab_materiaal: "Materiaal", tab_aankopen: "Aankopen",
     tab_winkelgegevens: "WinkelGegevens", tab_winkelbestellingen: "Winkelbestellingen",
     tab_kostenbeheer: "Kostenbeheer", tab_history: "Event History",
+    tab_voorverkoop: "Voorverkoop",
+    vv_intro: "Beheer hier de voorverkoop en de zelfinbreng. Alle bedragen tellen mee in het kostenplaatje.",
+    vv_streefdoel: "Streefdoel voorverkoop", vv_streefdoel_ph: "bv. 750",
+    vv_binnengehaald: "Binnengehaald", vv_nog_te_gaan: "Nog te gaan", vv_streefdoel_behaald: "Streefdoel behaald! 🎉",
+    vv_titel: "Voorverkopen", vv_add: "+ Voorverkoop toevoegen", vv_geen: "Nog geen voorverkopen ingegeven.",
+    vv_bron: "Bron", vv_bron_kies: "— Kies bron —", vv_nieuwe_bron: "+ Nieuwe bron",
+    vv_nieuwe_bron_prompt: "Naam van de nieuwe bron?",
+    vv_datum: "Datum", vv_verkoper: "Verkoper", vv_bedrag: "Bedrag (€)",
+    vv_betaalwijze: "Betaalwijze", vv_betaalwijze_kies: "— Kies —",
+    vv_rekening: "Rekening", vv_rekening_kies: "— Kies rekening —", vv_nieuwe_rekening: "+ Nieuwe rekening",
+    vv_nieuwe_rekening_prompt: "Naam van de rekening? (bv. 'Rekening afdeling' of 'Rekening Jan')",
+    vv_kies_persoon: "— Kies persoon —", vv_andere: "Andere…", vv_andere_ph: "Vrije tekst",
+    vv_totaal: "Totaal voorverkoop",
+    zi_titel: "Zelfinbreng / Apport personnel", zi_add: "+ Zelfinbreng toevoegen", zi_geen: "Nog geen zelfinbreng ingegeven.",
+    zi_datum: "Datum", zi_bedrag: "Bedrag (€)", zi_wie: "Wie", zi_totaal: "Totaal zelfinbreng",
+    betaalwijze_payconiq: "Payconiq", betaalwijze_cash: "Cash", betaalwijze_overschrijving: "Overschrijving", betaalwijze_bancontact: "Bancontact",
+    vv_cash_aanwie: "Aan wie", vv_cash_kassabeheerder: "Kassabeheerder", vv_cash_naam_ph: "Naam (aanpasbaar)",
     kb_intro: "Beheer hier het budget en alle kosten van het evenement. Winkelkosten komen automatisch uit de kastickets.",
     kb_budget: "Budget evenement", kb_zaal: "Zaal / locatie (huurprijs)",
     kb_winkelkosten: "Winkelkosten", kb_winkel_auto: "Automatisch berekend uit de kasticketbedragen, gegroepeerd per winkel.",
@@ -164,6 +181,7 @@ const T = {
     kb_kost_add: "+ Kost toevoegen", kb_kost_geen: "Nog geen manuele kosten toegevoegd.",
     kb_kost_naam: "Omschrijving", kb_resultaat: "Resultaat tegenover budget",
     kb_totaal_uit: "Totaal uitgegeven", kb_saldo: "Resterend budget", kb_over: "Budget overschreden met",
+    kb_totale_inkomsten: "Totale inkomsten",
     kb_grafiek: "Budget vs. uitgaven", kb_verdeling: "Kostenverdeling",
     kb_overzicht: "Kostenoverzicht",
     kb_export: "Exporteren", kb_export_intro: "Exporteer het volledige kostenoverzicht met grafieken als PDF, klaar om naar het secretariaat te sturen.",
@@ -441,6 +459,23 @@ const T = {
     tab_sjablonen: "Modèles", tab_woordenboek: "Dictionnaire", tab_materiaal: "Matériel", tab_aankopen: "Achats",
     tab_winkelgegevens: "Données du Magasin", tab_winkelbestellingen: "Commandes via Magasin",
     tab_kostenbeheer: "Gestion des coûts", tab_history: "Historique",
+    tab_voorverkoop: "Prévente",
+    vv_intro: "Gérez ici les préventes et l'apport personnel. Tous les montants comptent dans le bilan des coûts.",
+    vv_streefdoel: "Objectif de prévente", vv_streefdoel_ph: "p.ex. 750",
+    vv_binnengehaald: "Récolté", vv_nog_te_gaan: "Reste à faire", vv_streefdoel_behaald: "Objectif atteint ! 🎉",
+    vv_titel: "Préventes", vv_add: "+ Ajouter une prévente", vv_geen: "Aucune prévente saisie.",
+    vv_bron: "Source", vv_bron_kies: "— Choisir la source —", vv_nieuwe_bron: "+ Nouvelle source",
+    vv_nieuwe_bron_prompt: "Nom de la nouvelle source ?",
+    vv_datum: "Date", vv_verkoper: "Vendeur", vv_bedrag: "Montant (€)",
+    vv_betaalwijze: "Mode de paiement", vv_betaalwijze_kies: "— Choisir —",
+    vv_rekening: "Compte", vv_rekening_kies: "— Choisir le compte —", vv_nieuwe_rekening: "+ Nouveau compte",
+    vv_nieuwe_rekening_prompt: "Nom du compte ? (p.ex. 'Compte section' ou 'Compte Jan')",
+    vv_kies_persoon: "— Choisir une personne —", vv_andere: "Autre…", vv_andere_ph: "Texte libre",
+    vv_totaal: "Total préventes",
+    zi_titel: "Apport personnel / Zelfinbreng", zi_add: "+ Ajouter un apport", zi_geen: "Aucun apport saisi.",
+    zi_datum: "Date", zi_bedrag: "Montant (€)", zi_wie: "Qui", zi_totaal: "Total apport personnel",
+    betaalwijze_payconiq: "Payconiq", betaalwijze_cash: "Cash", betaalwijze_overschrijving: "Virement", betaalwijze_bancontact: "Bancontact",
+    vv_cash_aanwie: "À qui", vv_cash_kassabeheerder: "Gestionnaire de caisse", vv_cash_naam_ph: "Nom (modifiable)",
     kb_intro: "Gérez ici le budget et tous les coûts de l'événement. Les coûts en magasin proviennent automatiquement des tickets.",
     kb_budget: "Budget de l'événement", kb_zaal: "Salle / lieu (prix de location)",
     kb_winkelkosten: "Coûts en magasin", kb_winkel_auto: "Calculé automatiquement à partir des montants des tickets, groupés par magasin.",
@@ -450,6 +485,7 @@ const T = {
     kb_kost_add: "+ Ajouter un coût", kb_kost_geen: "Aucun coût manuel ajouté.",
     kb_kost_naam: "Description", kb_resultaat: "Résultat par rapport au budget",
     kb_totaal_uit: "Total dépensé", kb_saldo: "Budget restant", kb_over: "Budget dépassé de",
+    kb_totale_inkomsten: "Recettes totales",
     kb_grafiek: "Budget vs. dépenses", kb_verdeling: "Répartition des coûts",
     kb_overzicht: "Aperçu des coûts",
     kb_export: "Exporter", kb_export_intro: "Exportez l'aperçu complet des coûts avec graphiques en PDF, prêt à envoyer au secrétariat.",
@@ -810,6 +846,15 @@ const defaultData = {
   kastickets: {},
   // Kostenbeheer: evenementspecifiek. budget + zaalhuur + vrije manuele kosten
   kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [], kasStart: "", kasBewegingen: [] }, // manueleKosten/kasBewegingen: [{id, naam, bedrag(, type)}]
+  // Voorverkoop: evenementspecifiek. Streefdoel + losse voorverkopen.
+  voorverkoopStreefdoel: "", // bv. "750"
+  voorverkopen: [], // [{id, bron, datum, verkoperId, verkoperVrij, bedrag, betaalwijze, rekeningId, rekeningVrij}]
+  // Zelfinbreng / Apport personnel: evenementspecifiek.
+  zelfinbreng: [], // [{id, datum, bedrag, persoonId, persoonVrij}]
+  // Bronnen voor voorverkoop: stamlijst, uitbreidbaar, behouden over evenementen heen.
+  voorverkoopBronnen: ["Tickets", "Eetkaarten", "Drankbonnen", "Tombola", "Sponsoring", "Steunkaarten", "Inkom vooraf"],
+  // Betaalrekeningen (voor Payconiq): stamlijst, uitbreidbaar, behouden over evenementen heen. [{id, naam}]
+  betaalrekeningen: [],
   // Event History: afgesloten evenementen. [{id, naam, datum, gemeente, afgesloten, budget, zaalhuur, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo}]
   eventHistory: [],
   // Datum (ISO) van de laatste algemene backup — voor de herinnering
@@ -862,9 +907,23 @@ function berekenKosten(data) {
   const manueelTotaal = (kb.manueleKosten || [])
     .reduce((a, k) => a + parseBedragNum(k.bedrag), 0);
 
+  // Voorverkoop-inkomsten
+  const voorverkoopTotaal = (data.voorverkopen || [])
+    .reduce((a, v) => a + parseBedragNum(v.bedrag), 0);
+
+  // Zelfinbreng-inkomsten
+  const zelfinbrengTotaal = (data.zelfinbreng || [])
+    .reduce((a, z) => a + parseBedragNum(z.bedrag), 0);
+
+  // Streefdoel voorverkoop + restant
+  const voorverkoopStreefdoel = parseBedragNum(data.voorverkoopStreefdoel);
+  const voorverkoopRestant = voorverkoopStreefdoel - voorverkoopTotaal;
+
   // Budget: zaalhuur + winkelkosten (niet uit kas) + manuele kosten
   const totaalUitgegeven = zaalhuur + winkelTotaal + manueelTotaal;
-  const saldo = budget - totaalUitgegeven;
+  // Saldo: budget + voorverkoop + zelfinbreng - uitgaven
+  const totaleInkomsten = budget + voorverkoopTotaal + zelfinbrengTotaal;
+  const saldo = totaleInkomsten - totaalUitgegeven;
 
   // --- Kasberekening (apart van het budget) ---
   const kasStart = parseBedragNum(kb.kasStart);
@@ -880,6 +939,7 @@ function berekenKosten(data) {
 
   return {
     budget, zaalhuur, winkelPerNaam, winkelTotaal, manueelTotaal, totaalUitgegeven, saldo,
+    voorverkoopTotaal, zelfinbrengTotaal, totaleInkomsten, voorverkoopStreefdoel, voorverkoopRestant,
     kasStart, kasIn, kasUitBewegingen: kasUit, winkelUitKas, winkelUitKasTotaal, kasUitTotaal, kasEind,
   };
 }
@@ -1165,6 +1225,56 @@ const normalizeData = (raw) => {
           }))
         : [],
     };
+  }
+
+  // Voorverkoop streefdoel
+  if (raw.voorverkoopStreefdoel !== undefined) {
+    safe.voorverkoopStreefdoel = (raw.voorverkoopStreefdoel || "").toString();
+  }
+
+  // Voorverkopen
+  if (Array.isArray(raw.voorverkopen)) {
+    safe.voorverkopen = raw.voorverkopen
+      .filter((v) => v && typeof v === "object")
+      .map((v) => ({
+        id: v.id || uid(),
+        bron: (v.bron || "").toString(),
+        datum: v.datum || "",
+        verkoperId: v.verkoperId || "",
+        verkoperVrij: v.verkoperVrij || "",
+        bedrag: v.bedrag || "",
+        betaalwijze: v.betaalwijze || "",
+        rekeningId: v.rekeningId || "",
+        rekeningVrij: v.rekeningVrij || "",
+        cashAanWieId: v.cashAanWieId || "",
+        cashAanWieVrij: v.cashAanWieVrij || "",
+      }));
+  }
+
+  // Zelfinbreng
+  if (Array.isArray(raw.zelfinbreng)) {
+    safe.zelfinbreng = raw.zelfinbreng
+      .filter((z) => z && typeof z === "object")
+      .map((z) => ({
+        id: z.id || uid(),
+        datum: z.datum || "",
+        bedrag: z.bedrag || "",
+        persoonId: z.persoonId || "",
+        persoonVrij: z.persoonVrij || "",
+      }));
+  }
+
+  // Voorverkoop-bronnen (stamlijst)
+  if (Array.isArray(raw.voorverkoopBronnen) && raw.voorverkoopBronnen.length > 0) {
+    safe.voorverkoopBronnen = raw.voorverkoopBronnen
+      .filter((b) => typeof b === "string" && b.trim());
+  }
+
+  // Betaalrekeningen (stamlijst)
+  if (Array.isArray(raw.betaalrekeningen)) {
+    safe.betaalrekeningen = raw.betaalrekeningen
+      .filter((r) => r && typeof r === "object")
+      .map((r) => ({ id: r.id || uid(), naam: (r.naam || "").toString() }));
   }
 
   // Event History (afgesloten evenementen, behouden over evenementen heen)
@@ -1668,6 +1778,91 @@ function App() {
     ...d,
     externeContacten: d.externeContacten.filter((c) => c.id !== id),
   }));
+
+  // Voegt een extern contact toe met een gegeven naam en geeft het id terug.
+  // Als er al een contact met exact die naam bestaat, wordt dat id hergebruikt (geen duplicaat).
+  const addExternContactMetNaam = (naam) => {
+    const schoon = (naam || "").trim();
+    if (!schoon) return "";
+    const bestaand = (data.externeContacten || []).find(
+      (c) => (c.naam || "").trim().toLowerCase() === schoon.toLowerCase()
+    );
+    if (bestaand) return bestaand.id;
+    const nieuwId = uid();
+    setData((d) => {
+      // Dubbelcheck binnen de actuele state (race-veilig)
+      const al = (d.externeContacten || []).find(
+        (c) => (c.naam || "").trim().toLowerCase() === schoon.toLowerCase()
+      );
+      if (al) return d;
+      return { ...d, externeContacten: [...(d.externeContacten || []), { id: nieuwId, naam: schoon, gsm1: "", taal: "nl" }] };
+    });
+    return nieuwId;
+  };
+
+  // Voorverkoop
+  const setVoorverkoopStreefdoel = (waarde) => setData((d) => ({ ...d, voorverkoopStreefdoel: waarde }));
+
+  const addVoorverkoop = () => setData((d) => ({
+    ...d,
+    voorverkopen: [...(d.voorverkopen || []), {
+      id: uid(), bron: "", datum: "", verkoperId: "", verkoperVrij: "",
+      bedrag: "", betaalwijze: "", rekeningId: "", rekeningVrij: "",
+      cashAanWieId: "", cashAanWieVrij: "",
+    }],
+  }));
+
+  const updateVoorverkoop = (id, patch) => setData((d) => ({
+    ...d,
+    voorverkopen: (d.voorverkopen || []).map((v) => v.id === id ? { ...v, ...patch } : v),
+  }));
+
+  const removeVoorverkoop = (id) => setData((d) => ({
+    ...d,
+    voorverkopen: (d.voorverkopen || []).filter((v) => v.id !== id),
+  }));
+
+  // Zelfinbreng
+  const addZelfinbreng = () => setData((d) => ({
+    ...d,
+    zelfinbreng: [...(d.zelfinbreng || []), {
+      id: uid(), datum: "", bedrag: "", persoonId: "", persoonVrij: "",
+    }],
+  }));
+
+  const updateZelfinbreng = (id, patch) => setData((d) => ({
+    ...d,
+    zelfinbreng: (d.zelfinbreng || []).map((z) => z.id === id ? { ...z, ...patch } : z),
+  }));
+
+  const removeZelfinbreng = (id) => setData((d) => ({
+    ...d,
+    zelfinbreng: (d.zelfinbreng || []).filter((z) => z.id !== id),
+  }));
+
+  // Voorverkoop-bronnen (stamlijst)
+  const addVoorverkoopBron = () => {
+    const naam = prompt(t.vv_nieuwe_bron_prompt);
+    if (!naam || !naam.trim()) return;
+    const trimmed = naam.trim();
+    setData((d) => ({
+      ...d,
+      voorverkoopBronnen: (d.voorverkoopBronnen || []).includes(trimmed)
+        ? d.voorverkoopBronnen
+        : [...(d.voorverkoopBronnen || []), trimmed],
+    }));
+  };
+
+  // Betaalrekeningen (stamlijst, voor Payconiq)
+  const addBetaalrekening = () => {
+    const naam = prompt(t.vv_nieuwe_rekening_prompt);
+    if (!naam || !naam.trim()) return;
+    const trimmed = naam.trim();
+    setData((d) => {
+      if ((d.betaalrekeningen || []).some((r) => r.naam.toLowerCase() === trimmed.toLowerCase())) return d;
+      return { ...d, betaalrekeningen: [...(d.betaalrekeningen || []), { id: uid(), naam: trimmed }] };
+    });
+  };
 
   // Materiaal
   const addMateriaal = () => setData((d) => ({
@@ -2223,6 +2418,8 @@ function App() {
         afgesloten: new Date().toISOString().slice(0, 10),
         budget: k.budget, zaalhuur: k.zaalhuur,
         winkelTotaal: k.winkelTotaal, manueelTotaal: k.manueelTotaal,
+        voorverkoopTotaal: k.voorverkoopTotaal, zelfinbrengTotaal: k.zelfinbrengTotaal,
+        totaleInkomsten: k.totaleInkomsten,
         totaalUitgegeven: k.totaalUitgegeven, saldo: k.saldo,
       }] : [];
 
@@ -2239,6 +2436,10 @@ function App() {
         overgeslagenAandachtspunten: [],
         // Kostenbeheer leegmaken
         kostenbeheer: { budget: "", zaalhuur: "", manueleKosten: [], kasStart: "", kasBewegingen: [] },
+        // Voorverkoop + zelfinbreng leegmaken (projectgebonden), maar streefdoel ook resetten
+        voorverkoopStreefdoel: "",
+        voorverkopen: [],
+        zelfinbreng: [],
         // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
         taken: d.taken.map((tt) => ({
           ...tt,
@@ -2248,7 +2449,7 @@ function App() {
         })),
         // Materiaal: behouden, maar aantallen leegmaken
         materiaal: (d.materiaal || []).map((m) => ({ ...m, aantal: "" })),
-        // Behouden: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst, eventHistory
+        // Behouden: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst, eventHistory, voorverkoopBronnen, betaalrekeningen
       };
     });
     showToast(t.nieuw_evenement_klaar);
@@ -2320,6 +2521,7 @@ function App() {
               ["winkelgegevens", t.tab_winkelgegevens],
               ...((data.materiaal || []).some((m) => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []),
               ["kostenbeheer", t.tab_kostenbeheer],
+              ["voorverkoop", t.tab_voorverkoop],
               ["berichten", t.tab_berichten], ["bulk", t.tab_bulk],
               ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek],
               ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : []),
@@ -2389,6 +2591,19 @@ function App() {
           removeKasBeweging={removeKasBeweging}
           updateKasticket={updateKasticket}
           showToast={showToast}
+          t={t} />}
+        {tab === "voorverkoop" && <VoorverkoopTab
+          data={data}
+          setVoorverkoopStreefdoel={setVoorverkoopStreefdoel}
+          addVoorverkoop={addVoorverkoop}
+          updateVoorverkoop={updateVoorverkoop}
+          removeVoorverkoop={removeVoorverkoop}
+          addZelfinbreng={addZelfinbreng}
+          updateZelfinbreng={updateZelfinbreng}
+          removeZelfinbreng={removeZelfinbreng}
+          addVoorverkoopBron={addVoorverkoopBron}
+          addBetaalrekening={addBetaalrekening}
+          addExternContactMetNaam={addExternContactMetNaam}
           t={t} />}
         {tab === "history" && <EventHistoryTab
           eventHistory={data.eventHistory || []}
@@ -5627,6 +5842,21 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>{t.kb_budget}</span><strong>{fmtEuro(k.budget)}</strong>
           </div>
+          {k.voorverkoopTotaal > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>{t.vv_totaal}</span><strong>{fmtEuro(k.voorverkoopTotaal)}</strong>
+            </div>
+          )}
+          {k.zelfinbrengTotaal > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>{t.zi_totaal}</span><strong>{fmtEuro(k.zelfinbrengTotaal)}</strong>
+            </div>
+          )}
+          {(k.voorverkoopTotaal > 0 || k.zelfinbrengTotaal > 0) && (
+            <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--line)", paddingTop: "0.3rem" }}>
+              <span>{t.kb_totale_inkomsten}</span><strong>{fmtEuro(k.totaleInkomsten)}</strong>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>{t.kb_totaal_uit}</span><strong>{fmtEuro(k.totaalUitgegeven)}</strong>
           </div>
@@ -5696,6 +5926,291 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
 function hexNaarRgb(hex) {
   const h = hex.replace("#", "");
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+// ============================================================
+// VOORVERKOOP + ZELFINBRENG
+// ============================================================
+function VoorverkoopTab({ data, setVoorverkoopStreefdoel, addVoorverkoop, updateVoorverkoop, removeVoorverkoop,
+  addZelfinbreng, updateZelfinbreng, removeZelfinbreng, addVoorverkoopBron, addBetaalrekening, addExternContactMetNaam, t }) {
+  const lang = data.taal;
+  const k = berekenKosten(data);
+
+  // Personenlijst: vrijwilligers + externe contacten, gesorteerd
+  const sortedVrij = [...(data.vrijwilligers || [])].sort((a, b) => {
+    const an = (a.naam || "").toLowerCase(), bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+  const sortedExtern = [...(data.externeContacten || [])].sort((a, b) =>
+    (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase())
+  );
+
+  // Naam van een persoon (vrijwilliger of extern contact) op basis van id
+  const persoonNaamVanId = (id) => {
+    if (!id) return "";
+    const v = (data.vrijwilligers || []).find((x) => x.id === id);
+    if (v) return `${v.naam} ${v.voornaam}`.trim();
+    const c = (data.externeContacten || []).find((x) => x.id === id);
+    if (c) return c.naam || "";
+    return "";
+  };
+
+  // Zoek de verantwoordelijke van de "Kassa"/"Caisse"-taak (woordherkenning in de taaknaam)
+  const kassaVerantwoordelijkeNaam = () => {
+    const taak = (data.taken || []).find((tt) => {
+      const nl = (tt.naamNl || "").toLowerCase();
+      const fr = (tt.naamFr || "").toLowerCase();
+      return nl.includes("kassa") || fr.includes("caisse");
+    });
+    if (!taak) return "";
+    if (taak.verantwoordelijkeId === "__ander__") return taak.verantwoordelijkeVrij || "";
+    return persoonNaamVanId(taak.verantwoordelijkeId);
+  };
+
+  // Herbruikbare personen-dropdown (verkoper / wie).
+  // "Andere…" toont een tekstveld; bij het verlaten van het veld wordt de naam
+  // een echt extern contact en springt de selectie naar dat contact (overal herbruikbaar).
+  const PersoonSelect = ({ idVal, vrijVal, onChangeId, onChangeVrij }) => {
+    const isAnder = idVal === "__ander__";
+    const verwerkVrijeNaam = () => {
+      const naam = (vrijVal || "").trim();
+      if (!naam) return;
+      const nieuwId = addExternContactMetNaam(naam);
+      if (nieuwId) {
+        onChangeId(nieuwId);   // koppel aan het (nieuwe of bestaande) contact
+        onChangeVrij("");      // vrije tekst opruimen
+      }
+    };
+    return (
+      <div style={{ display: "grid", gap: "0.3rem" }}>
+        <select className="select" value={idVal || ""}
+          onChange={(e) => onChangeId(e.target.value)}>
+          <option value="">{t.vv_kies_persoon}</option>
+          {sortedVrij.length > 0 && (
+            <optgroup label={t.tab_vrijwilligers}>
+              {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+            </optgroup>
+          )}
+          {sortedExtern.length > 0 && (
+            <optgroup label={t.external_contacts}>
+              {sortedExtern.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+            </optgroup>
+          )}
+          <option value="__ander__">{t.vv_andere}</option>
+        </select>
+        {isAnder && (
+          <input className="input" placeholder={t.vv_andere_ph} value={vrijVal || ""}
+            autoFocus
+            onChange={(e) => onChangeVrij(e.target.value)}
+            onBlur={verwerkVrijeNaam}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.target.blur(); } }} />
+        )}
+      </div>
+    );
+  };
+
+  // Streefdoel-voortgang
+  const streefdoel = k.voorverkoopStreefdoel;
+  const binnen = k.voorverkoopTotaal;
+  const restant = k.voorverkoopRestant;
+  const pct = streefdoel > 0 ? Math.min(100, Math.round((binnen / streefdoel) * 100)) : 0;
+  const behaald = streefdoel > 0 && binnen >= streefdoel;
+
+  const betaalwijzen = [
+    { val: "payconiq", label: t.betaalwijze_payconiq },
+    { val: "cash", label: t.betaalwijze_cash },
+    { val: "overschrijving", label: t.betaalwijze_overschrijving },
+    { val: "bancontact", label: t.betaalwijze_bancontact },
+  ];
+
+  return (
+    <div>
+      {/* Streefdoel + voortgang */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <p style={{ marginTop: 0, color: "var(--ink-soft)", fontSize: "0.9rem" }}>{t.vv_intro}</p>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "1.5rem", alignItems: "center" }}>
+          <Field label={t.vv_streefdoel}>
+            <input className="input" inputMode="decimal" placeholder={t.vv_streefdoel_ph}
+              style={{ maxWidth: 160 }}
+              value={data.voorverkoopStreefdoel || ""}
+              onChange={(e) => setVoorverkoopStreefdoel(e.target.value)} />
+          </Field>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.3rem" }}>
+              <span>{t.vv_binnengehaald}: <strong>{fmtEuro(binnen)}</strong></span>
+              {streefdoel > 0 && (
+                behaald
+                  ? <span style={{ color: "var(--accent)", fontWeight: 600 }}>{t.vv_streefdoel_behaald}</span>
+                  : <span>{t.vv_nog_te_gaan}: <strong>{fmtEuro(restant)}</strong></span>
+              )}
+            </div>
+            <div style={{ height: 14, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 999, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", transition: "width 0.3s" }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Voorverkopen */}
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
+          <h2 className="font-display" style={{ margin: 0, fontSize: "1.3rem" }}>{t.vv_titel}</h2>
+          <button className="btn btn-primary btn-sm" onClick={addVoorverkoop}>{t.vv_add}</button>
+        </div>
+
+        {(data.voorverkopen || []).length === 0 ? (
+          <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.vv_geen}</p>
+        ) : (
+          <div style={{ display: "grid", gap: "0.8rem" }}>
+            {(data.voorverkopen || []).map((vv) => (
+              <div key={vv.id} style={{ border: "1px solid var(--line)", borderRadius: 3, padding: "0.8rem", background: "white" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1.3fr 0.8fr auto", gap: "0.6rem", alignItems: "start" }}>
+                  <Field label={t.vv_bron}>
+                    <select className="select" value={vv.bron || ""}
+                      onChange={(e) => {
+                        if (e.target.value === "__add__") { addVoorverkoopBron(); return; }
+                        updateVoorverkoop(vv.id, { bron: e.target.value });
+                      }}>
+                      <option value="">{t.vv_bron_kies}</option>
+                      {(data.voorverkoopBronnen || []).map((b) => <option key={b} value={b}>{b}</option>)}
+                      <option value="__add__">{t.vv_nieuwe_bron}</option>
+                    </select>
+                  </Field>
+                  <Field label={t.vv_datum}>
+                    <input type="date" className="input" value={vv.datum || ""}
+                      onChange={(e) => updateVoorverkoop(vv.id, { datum: e.target.value })} />
+                  </Field>
+                  <Field label={t.vv_verkoper}>
+                    <PersoonSelect idVal={vv.verkoperId} vrijVal={vv.verkoperVrij}
+                      onChangeId={(val) => updateVoorverkoop(vv.id, { verkoperId: val, verkoperVrij: val === "__ander__" ? vv.verkoperVrij : "" })}
+                      onChangeVrij={(val) => updateVoorverkoop(vv.id, { verkoperVrij: val })} />
+                  </Field>
+                  <Field label={t.vv_bedrag}>
+                    <input className="input" inputMode="decimal" placeholder="0,00"
+                      value={vv.bedrag || ""}
+                      onChange={(e) => updateVoorverkoop(vv.id, { bedrag: e.target.value })} />
+                  </Field>
+                  <div style={{ paddingTop: "1.5rem" }}>
+                    <button className="btn btn-danger btn-sm" onClick={() => removeVoorverkoop(vv.id)}>🗑</button>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: "0.6rem", marginTop: "0.6rem" }}>
+                  <Field label={t.vv_betaalwijze}>
+                    <select className="select" value={vv.betaalwijze || ""}
+                      onChange={(e) => updateVoorverkoop(vv.id, { betaalwijze: e.target.value, rekeningId: "", rekeningVrij: "", cashAanWieId: "", cashAanWieVrij: "" })}>
+                      <option value="">{t.vv_betaalwijze_kies}</option>
+                      {betaalwijzen.map((b) => <option key={b.val} value={b.val}>{b.label}</option>)}
+                    </select>
+                  </Field>
+                  {vv.betaalwijze === "payconiq" && (
+                    <Field label={t.vv_rekening}>
+                      <select className="select" value={vv.rekeningId || ""}
+                        onChange={(e) => {
+                          if (e.target.value === "__add__") { addBetaalrekening(); return; }
+                          updateVoorverkoop(vv.id, { rekeningId: e.target.value });
+                        }}>
+                        <option value="">{t.vv_rekening_kies}</option>
+                        {(data.betaalrekeningen || []).map((r) => <option key={r.id} value={r.id}>{r.naam}</option>)}
+                        <option value="__add__">{t.vv_nieuwe_rekening}</option>
+                      </select>
+                    </Field>
+                  )}
+                  {vv.betaalwijze === "cash" && (
+                    <Field label={t.vv_cash_aanwie}>
+                      <div style={{ display: "grid", gap: "0.3rem" }}>
+                        <select className="select" value={vv.cashAanWieId || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "__add__") {
+                              // Nieuwe persoon: maak extern contact, koppel id
+                              const naam = prompt(t.vv_andere_ph);
+                              if (naam && naam.trim()) {
+                                const nieuwId = addExternContactMetNaam(naam.trim());
+                                if (nieuwId) updateVoorverkoop(vv.id, { cashAanWieId: nieuwId, cashAanWieVrij: "" });
+                              }
+                              return;
+                            }
+                            if (val === "__kassabeheerder__") {
+                              // Bevries de huidige kassa-taak-verantwoordelijke als bewerkbare waarde
+                              updateVoorverkoop(vv.id, { cashAanWieId: "__kassabeheerder__", cashAanWieVrij: kassaVerantwoordelijkeNaam() });
+                              return;
+                            }
+                            updateVoorverkoop(vv.id, { cashAanWieId: val, cashAanWieVrij: "" });
+                          }}>
+                          <option value="">{t.vv_kies_persoon}</option>
+                          <option value="__kassabeheerder__">{t.vv_cash_kassabeheerder}</option>
+                          {sortedVrij.length > 0 && (
+                            <optgroup label={t.tab_vrijwilligers}>
+                              {sortedVrij.map((v) => <option key={v.id} value={v.id}>{v.naam} {v.voornaam}</option>)}
+                            </optgroup>
+                          )}
+                          {sortedExtern.length > 0 && (
+                            <optgroup label={t.external_contacts}>
+                              {sortedExtern.map((c) => <option key={c.id} value={c.id}>{c.naam}</option>)}
+                            </optgroup>
+                          )}
+                          <option value="__add__">{t.vv_andere}</option>
+                        </select>
+                        {vv.cashAanWieId === "__kassabeheerder__" && (
+                          <input className="input" placeholder={t.vv_cash_naam_ph} value={vv.cashAanWieVrij || ""}
+                            onChange={(e) => updateVoorverkoop(vv.id, { cashAanWieVrij: e.target.value })} />
+                        )}
+                      </div>
+                    </Field>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div style={{ textAlign: "right", fontSize: "0.95rem", fontWeight: 600 }}>
+              {t.vv_totaal}: {fmtEuro(k.voorverkoopTotaal)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Zelfinbreng */}
+      <div className="card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
+          <h2 className="font-display" style={{ margin: 0, fontSize: "1.3rem" }}>{t.zi_titel}</h2>
+          <button className="btn btn-primary btn-sm" onClick={addZelfinbreng}>{t.zi_add}</button>
+        </div>
+
+        {(data.zelfinbreng || []).length === 0 ? (
+          <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem", margin: 0 }}>{t.zi_geen}</p>
+        ) : (
+          <div style={{ display: "grid", gap: "0.8rem" }}>
+            {(data.zelfinbreng || []).map((zi) => (
+              <div key={zi.id} style={{ border: "1px solid var(--line)", borderRadius: 3, padding: "0.8rem", background: "white" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 0.8fr 1.3fr auto", gap: "0.6rem", alignItems: "start" }}>
+                  <Field label={t.zi_datum}>
+                    <input type="date" className="input" value={zi.datum || ""}
+                      onChange={(e) => updateZelfinbreng(zi.id, { datum: e.target.value })} />
+                  </Field>
+                  <Field label={t.zi_bedrag}>
+                    <input className="input" inputMode="decimal" placeholder="0,00"
+                      value={zi.bedrag || ""}
+                      onChange={(e) => updateZelfinbreng(zi.id, { bedrag: e.target.value })} />
+                  </Field>
+                  <Field label={t.zi_wie}>
+                    <PersoonSelect idVal={zi.persoonId} vrijVal={zi.persoonVrij}
+                      onChangeId={(val) => updateZelfinbreng(zi.id, { persoonId: val, persoonVrij: val === "__ander__" ? zi.persoonVrij : "" })}
+                      onChangeVrij={(val) => updateZelfinbreng(zi.id, { persoonVrij: val })} />
+                  </Field>
+                  <div style={{ paddingTop: "1.5rem" }}>
+                    <button className="btn btn-danger btn-sm" onClick={() => removeZelfinbreng(zi.id)}>🗑</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div style={{ textAlign: "right", fontSize: "0.95rem", fontWeight: 600 }}>
+              {t.zi_totaal}: {fmtEuro(k.zelfinbrengTotaal)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ============================================================
