@@ -186,6 +186,9 @@ const T = {
     pdf_badge_ok: "BUDGET ONDER CONTROLE", pdf_badge_over: "BUDGET OVERSCHREDEN",
     pdf_meld_ok: "Je blijft binnen het budget. Goed bezig!", pdf_meld_over: "Let op: het budget is overschreden.",
     pdf_uitgavendetails: "Uitgavendetails",
+    kb_basisbudget: "Basisbudget", kb_totaal_beschikbaar: "Totaal beschikbaar",
+    zi_titel_kort: "Eigen inbreng",
+    kas_cash_in: "Inkomsten in cash", kas_cash_uit: "Uitgaven in cash",
     kb_grafiek: "Budget vs. uitgaven", kb_verdeling: "Kostenverdeling",
     kb_overzicht: "Kostenoverzicht",
     kb_export: "Exporteren", kb_export_intro: "Exporteer het volledige kostenoverzicht met grafieken als PDF, klaar om naar het secretariaat te sturen.",
@@ -494,6 +497,9 @@ const T = {
     pdf_badge_ok: "BUDGET MAÎTRISÉ", pdf_badge_over: "BUDGET DÉPASSÉ",
     pdf_meld_ok: "Vous restez dans le budget. Bravo !", pdf_meld_over: "Attention : le budget est dépassé.",
     pdf_uitgavendetails: "Détails des dépenses",
+    kb_basisbudget: "Budget de base", kb_totaal_beschikbaar: "Total disponible",
+    zi_titel_kort: "Apport personnel",
+    kas_cash_in: "Recettes en espèces", kas_cash_uit: "Dépenses en espèces",
     kb_grafiek: "Budget vs. dépenses", kb_verdeling: "Répartition des coûts",
     kb_overzicht: "Aperçu des coûts",
     kb_export: "Exporter", kb_export_intro: "Exportez l'aperçu complet des coûts avec graphiques en PDF, prêt à envoyer au secrétariat.",
@@ -5469,7 +5475,7 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
   });
 
   const maxWaarde = Math.max(k.budget, k.totaalUitgegeven, 1);
-  const overBudget = k.budget > 0 && k.saldo < 0;
+  const overBudget = k.totaleInkomsten > 0 && k.totaalUitgegeven > k.totaleInkomsten;
 
   // ----- PDF genereren -----
   const genereerPDF = () => {
@@ -5693,39 +5699,80 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     doc.text(t.kb_grafiek.toUpperCase(), rx + 13, ry + 1.5);
     ry += 14;
 
-    // Budget-regel
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-    doc.text(t.kb_budget, rx + 6, ry);
-    doc.setFont("helvetica", "bold");
-    doc.text(fmtEuro(k.budget), rx + kolW - 6, ry, { align: "right" });
-    ry += 7;
+    // Beschikbaar budget — opgebouwd uit 3 delen (basisbudget altijd, rest indien > 0)
+    const regelRechts = (label, waarde, vet) => {
+      doc.setFont("helvetica", vet ? "bold" : "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(label, rx + 6, ry);
+      doc.text(fmtEuro(waarde), rx + kolW - 6, ry, { align: "right" });
+      ry += 5.5;
+    };
+    regelRechts(t.kb_basisbudget, k.budget);
+    if (k.voorverkoopTotaal > 0) regelRechts(t.tab_voorverkoop, k.voorverkoopTotaal);
+    if (k.zelfinbrengTotaal > 0) regelRechts(t.zi_titel_kort, k.zelfinbrengTotaal);
+    // streep + totaal beschikbaar
+    ry += 0.5;
+    doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]); doc.setLineWidth(0.3);
+    doc.line(rx + 6, ry - 2, rx + kolW - 6, ry - 2);
+    ry += 1.5;
+    regelRechts(t.kb_totaal_beschikbaar, k.totaleInkomsten, true);
+    ry += 3;
 
-    // Voortgangsbalk
-    const balkX = rx + 6, balkW = kolW - 12, balkH = 7;
-    doc.setFillColor(225, 225, 225);
+    // Voortgangsbalk: uitgaven ÷ totaal beschikbaar
+    const beschikbaar = k.totaleInkomsten;
+    const balkX = rx + 6, balkW = kolW - 12, balkH = 9;
+    const pctRuw = beschikbaar > 0 ? (k.totaalUitgegeven / beschikbaar) * 100 : 0;
+    const pctVisueel = Math.min(100, pctRuw); // balkvulling nooit > 100%
+    const isOver = beschikbaar > 0 && k.totaalUitgegeven > beschikbaar;
+    const balkKleur = isOver ? ROOD : GROEN;
+    // achtergrond
+    doc.setFillColor(228, 228, 228);
     doc.roundedRect(balkX, ry, balkW, balkH, 2, 2, "F");
-    const pctUit = k.budget > 0 ? Math.min(100, (k.totaalUitgegeven / k.budget) * 100) : 0;
-    const balkKleur = overBudget ? ROOD : GROEN;
-    doc.setFillColor(balkKleur[0], balkKleur[1], balkKleur[2]);
-    if (pctUit > 0) doc.roundedRect(balkX, ry, Math.max(balkW * pctUit / 100, 3), balkH, 2, 2, "F");
-    // percentage
-    doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+    // gevuld deel
+    const vulW = Math.max(balkW * pctVisueel / 100, pctVisueel > 0 ? 2 : 0);
+    if (vulW > 0) {
+      doc.setFillColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+      doc.roundedRect(balkX, ry, vulW, balkH, 2, 2, "F");
+    }
+    // percentage, gecentreerd in de balk, met split wit/gekleurd op de vulgrens
+    const pctTekst = `${Math.round(pctRuw)}%`;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    const pctTekst = `${Math.round(pctUit * 10) / 10}`.replace(".", ",") + "%";
-    doc.text(pctTekst, rx + kolW - 6, ry + balkH + 6, { align: "right" });
-    ry += balkH + 4;
+    doc.setFontSize(11);
+    const tekstX = balkX + balkW / 2;
+    const tekstY = ry + balkH / 2 + 1.6;
+    const vulGrens = balkX + vulW;
+    if (vulW <= 0.5) {
+      // niets/bijna niets gevuld -> alles gekleurd
+      doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
+    } else if (vulW >= balkW - 0.5) {
+      // volledig gevuld -> alles wit
+      doc.setTextColor(255, 255, 255);
+      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
+    } else {
+      // split: deel op gevulde balk wit, deel op lege balk gekleurd
+      doc.saveGraphicsState();
+      doc.rect(balkX, ry, vulW, balkH); doc.clip(); if (doc.discardPath) doc.discardPath();
+      doc.setTextColor(255, 255, 255);
+      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
+      doc.restoreGraphicsState();
+      doc.saveGraphicsState();
+      doc.rect(vulGrens, ry, balkW - vulW + 0.5, balkH); doc.clip(); if (doc.discardPath) doc.discardPath();
+      doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
+      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
+      doc.restoreGraphicsState();
+    }
+    ry += balkH + 5;
 
     // Totaal uitgegeven-regel
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-    doc.text(t.kb_totaal_uit, rx + 6, ry + 3);
+    doc.text(t.kb_totaal_uit, rx + 6, ry + 1);
     doc.setFont("helvetica", "bold");
-    doc.text(fmtEuro(k.totaalUitgegeven), rx + kolW - 6, ry + 3, { align: "right" });
-    ry += 12;
+    doc.text(fmtEuro(k.totaalUitgegeven), rx + kolW - 6, ry + 1, { align: "right" });
+    ry += 10;
 
     // Melding-blok
     const meldH = 18;
@@ -5960,10 +6007,14 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     }
 
     // --- RECHTS: Kas ---
-    const heeftKas = k.kasStart || k.kasIn || k.kasUitTotaal ||
-      (kb.kasBewegingen || []).length > 0 || k.winkelUitKas.length > 0;
     const kasX = marge + kolW + 5;
-    const kasH = ziH;
+    // Kas-blokhoogte: kop + startregel + (cash-in indien>0) + (cash-uit indien>0) + eindsaldo
+    const heeftCashIn = k.kasIn > 0;
+    const heeftCashUit = k.kasUitTotaal > 0;
+    let kasRegels = 1; // start
+    if (heeftCashIn) kasRegels++;
+    if (heeftCashUit) kasRegels++;
+    const kasH = Math.max(ziH, 18 + kasRegels * 8 + 10);
     doc.setFillColor(DONKERBLAUW[0], DONKERBLAUW[1], DONKERBLAUW[2]);
     doc.roundedRect(kasX, blok3Top, kolW, kasH, 2.5, 2.5, "F");
     let ky = blok3Top + 9;
@@ -5972,22 +6023,34 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
     doc.text(t.kas_titel.toUpperCase(), kasX + 16, ky + 0.5);
-    ky += 11;
-    doc.setFontSize(9.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(255, 255, 255);
-    doc.text(t.kas_start, kasX + 6, ky);
-    doc.setTextColor(120, 230, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(fmtEuro(k.kasStart), kasX + kolW - 6, ky, { align: "right" });
-    ky += 8;
-    doc.setDrawColor(80, 100, 120); doc.setLineWidth(0.2);
+    ky += 12;
+
+    // Hulp: kasregel met label links, bedrag rechts (kleur instelbaar)
+    const kasRegel = (label, waarde, teken, kleurRGB, vet) => {
+      doc.setFont("helvetica", vet ? "bold" : "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(label, kasX + 6, ky);
+      doc.setTextColor(kleurRGB[0], kleurRGB[1], kleurRGB[2]);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${teken || ""}${fmtEuro(waarde)}`, kasX + kolW - 6, ky, { align: "right" });
+      ky += 8;
+    };
+
+    const GROENLICHT = [120, 230, 150], ROODLICHT = [240, 130, 120];
+    kasRegel(t.kas_start, k.kasStart, "", GROENLICHT);
+    if (heeftCashIn) kasRegel(t.kas_cash_in, k.kasIn, "+ ", GROENLICHT);
+    if (heeftCashUit) kasRegel(t.kas_cash_uit, k.kasUitTotaal, "- ", ROODLICHT);
+
+    // streep + eindsaldo
+    doc.setDrawColor(80, 100, 120); doc.setLineWidth(0.3);
     doc.line(kasX + 6, ky - 3, kasX + kolW - 6, ky - 3);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "normal");
-    doc.text(t.kas_eindsaldo, kasX + 6, ky + 1);
-    doc.setTextColor(k.kasEind < 0 ? 240 : 120, k.kasEind < 0 ? 120 : 230, k.kasEind < 0 ? 120 : 150);
+    ky += 1;
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(t.kas_eindsaldo, kasX + 6, ky + 1);
+    doc.setTextColor(k.kasEind < 0 ? ROODLICHT[0] : GROENLICHT[0], k.kasEind < 0 ? ROODLICHT[1] : GROENLICHT[1], k.kasEind < 0 ? ROODLICHT[2] : GROENLICHT[2]);
     doc.text(fmtEuro(k.kasEind), kasX + kolW - 6, ky + 1, { align: "right" });
 
     y = blok3Top + Math.max(ziH, kasH) + 6;
