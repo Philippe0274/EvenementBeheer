@@ -5610,7 +5610,7 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     // ===================== KOSTENVERDELING (donut) + BUDGET VS UITGAVEN =====================
     const kolW = (pageW - 2 * marge - 5) / 2;
     const blokTop = y;
-    const blokH = 78;
+    const blokH = 92;
 
     // --- LINKS: Kostenverdeling met donut ---
     kaart(marge, blokTop, kolW, blokH);
@@ -5735,33 +5735,19 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
       doc.setFillColor(balkKleur[0], balkKleur[1], balkKleur[2]);
       doc.roundedRect(balkX, ry, vulW, balkH, 2, 2, "F");
     }
-    // percentage, gecentreerd in de balk, met split wit/gekleurd op de vulgrens
+    // percentage — betrouwbaar leesbaar geplaatst
     const pctTekst = `${Math.round(pctRuw)}%`;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    const tekstX = balkX + balkW / 2;
     const tekstY = ry + balkH / 2 + 1.6;
-    const vulGrens = balkX + vulW;
-    if (vulW <= 0.5) {
-      // niets/bijna niets gevuld -> alles gekleurd
-      doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
-      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
-    } else if (vulW >= balkW - 0.5) {
-      // volledig gevuld -> alles wit
+    if (pctVisueel >= 55) {
+      // balk reikt ver genoeg: wit, gecentreerd in het gevulde deel
       doc.setTextColor(255, 255, 255);
-      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
+      doc.text(pctTekst, balkX + vulW / 2, tekstY, { align: "center" });
     } else {
-      // split: deel op gevulde balk wit, deel op lege balk gekleurd
-      doc.saveGraphicsState();
-      doc.rect(balkX, ry, vulW, balkH); doc.clip(); if (doc.discardPath) doc.discardPath();
-      doc.setTextColor(255, 255, 255);
-      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
-      doc.restoreGraphicsState();
-      doc.saveGraphicsState();
-      doc.rect(vulGrens, ry, balkW - vulW + 0.5, balkH); doc.clip(); if (doc.discardPath) doc.discardPath();
+      // balk te kort: in de balkkleur, in het lege deel rechts van de vulling
       doc.setTextColor(balkKleur[0], balkKleur[1], balkKleur[2]);
-      doc.text(pctTekst, tekstX, tekstY, { align: "center" });
-      doc.restoreGraphicsState();
+      doc.text(pctTekst, balkX + vulW + 3, tekstY, { align: "left" });
     }
     ry += balkH + 5;
 
@@ -5774,26 +5760,27 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     doc.text(fmtEuro(k.totaalUitgegeven), rx + kolW - 6, ry + 1, { align: "right" });
     ry += 10;
 
-    // Melding-blok
-    const meldH = 18;
+    // Melding-blok — vast onderaan binnen de kaart
+    const meldH = 16;
+    const meldY = blokTop + blokH - meldH - 5;
     doc.setFillColor(overBudget ? 250 : LICHTGROEN[0], overBudget ? 240 : LICHTGROEN[1], overBudget ? 238 : LICHTGROEN[2]);
     doc.setDrawColor(overBudget ? ROOD[0] : GROEN[0], overBudget ? ROOD[1] : GROEN[1], overBudget ? ROOD[2] : GROEN[2]);
     doc.setLineWidth(0.3);
-    doc.roundedRect(rx + 6, ry, kolW - 12, meldH, 2, 2, "FD");
-    cirkel(rx + 14, ry + meldH / 2, 4, overBudget ? ROOD : GROEN);
+    doc.roundedRect(rx + 6, meldY, kolW - 12, meldH, 2, 2, "FD");
+    cirkel(rx + 14, meldY + meldH / 2, 4, overBudget ? ROOD : GROEN);
     doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.9);
     if (overBudget) {
-      doc.line(rx + 12, ry + meldH / 2 - 1.6, rx + 16, ry + meldH / 2 + 1.6);
-      doc.line(rx + 16, ry + meldH / 2 - 1.6, rx + 12, ry + meldH / 2 + 1.6);
+      doc.line(rx + 12, meldY + meldH / 2 - 1.6, rx + 16, meldY + meldH / 2 + 1.6);
+      doc.line(rx + 16, meldY + meldH / 2 - 1.6, rx + 12, meldY + meldH / 2 + 1.6);
     } else {
-      doc.line(rx + 12.2, ry + meldH / 2, rx + 13.6, ry + meldH / 2 + 1.6);
-      doc.line(rx + 13.6, ry + meldH / 2 + 1.6, rx + 16, ry + meldH / 2 - 1.8);
+      doc.line(rx + 12.2, meldY + meldH / 2, rx + 13.6, meldY + meldH / 2 + 1.6);
+      doc.line(rx + 13.6, meldY + meldH / 2 + 1.6, rx + 16, meldY + meldH / 2 - 1.8);
     }
     doc.setTextColor(overBudget ? ROOD[0] : GROEN[0], overBudget ? ROOD[1] : GROEN[1], overBudget ? ROOD[2] : GROEN[2]);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     const meldTekst = overBudget ? t.pdf_meld_over : t.pdf_meld_ok;
-    doc.text(doc.splitTextToSize(meldTekst, kolW - 26), rx + 20, ry + meldH / 2 - 1);
+    doc.text(doc.splitTextToSize(meldTekst, kolW - 26), rx + 20, meldY + meldH / 2 - 1);
 
     y = blokTop + blokH + 6;
     doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
