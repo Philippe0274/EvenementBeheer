@@ -5498,6 +5498,14 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
       y += 6;
     };
     regel(t.kb_budget, k.budget, true);
+    if (k.voorverkoopTotaal > 0) regel(t.vv_totaal, k.voorverkoopTotaal);
+    if (k.zelfinbrengTotaal > 0) regel(t.zi_totaal, k.zelfinbrengTotaal);
+    if (k.voorverkoopTotaal > 0 || k.zelfinbrengTotaal > 0) {
+      y += 1;
+      doc.setDrawColor(217, 207, 193);
+      doc.line(marge + 2, y, pageW - marge - 2, y); y += 5;
+      regel(t.kb_totale_inkomsten, k.totaleInkomsten, true);
+    }
     y += 2;
     regel(t.kb_zaal, k.zaalhuur);
     Object.keys(k.winkelPerNaam).sort().forEach((naam) => regel(`${t.kb_winkel}: ${naam}`, k.winkelPerNaam[naam]));
@@ -5523,7 +5531,121 @@ function KostenbeheerTab({ data, updateKostenbeheer, addManueleKost, updateManue
     y += 18;
     doc.setTextColor(26, 22, 18);
 
-    // Staafdiagram: budget vs uitgegeven
+    // ===== Voorverkoop-detail (gegroepeerd per bron, dan datum, dan verkoper) =====
+    const voorverkopen = data.voorverkopen || [];
+    if (voorverkopen.length > 0) {
+      nieuwePagina(20);
+      y += 2;
+      doc.setFillColor(232, 213, 205);
+      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(t.vv_titel, marge + 2, y + 5.5);
+      doc.text(fmtEuro(k.voorverkoopTotaal), pageW - marge - 2, y + 5.5, { align: "right" });
+      y += 13;
+
+      // Helper: leesbare naam van verkoper
+      const verkoperNaam = (vv) => {
+        if (vv.verkoperId === "__ander__") return vv.verkoperVrij || "—";
+        if (vv.verkoperId) {
+          const v = (data.vrijwilligers || []).find((x) => x.id === vv.verkoperId);
+          if (v) return `${v.naam} ${v.voornaam}`.trim();
+          const c = (data.externeContacten || []).find((x) => x.id === vv.verkoperId);
+          if (c) return c.naam || "—";
+        }
+        return "—";
+      };
+      // Helper: leesbare betaalwijze + detail
+      const betaalLabel = (vv) => {
+        const map = { payconiq: t.betaalwijze_payconiq, cash: t.betaalwijze_cash, overschrijving: t.betaalwijze_overschrijving, bancontact: t.betaalwijze_bancontact };
+        let s = map[vv.betaalwijze] || "—";
+        if (vv.betaalwijze === "payconiq" && vv.rekeningId) {
+          const r = (data.betaalrekeningen || []).find((x) => x.id === vv.rekeningId);
+          if (r) s += ` (${r.naam})`;
+        }
+        if (vv.betaalwijze === "cash") {
+          let aanWie = "";
+          if (vv.cashAanWieId === "__kassabeheerder__") aanWie = vv.cashAanWieVrij || t.vv_cash_kassabeheerder;
+          else if (vv.cashAanWieId) {
+            const v = (data.vrijwilligers || []).find((x) => x.id === vv.cashAanWieId);
+            aanWie = v ? `${v.naam} ${v.voornaam}`.trim() : ((data.externeContacten || []).find((x) => x.id === vv.cashAanWieId)?.naam || "");
+          }
+          if (aanWie) s += ` (${t.vv_cash_aanwie}: ${aanWie})`;
+        }
+        return s;
+      };
+
+      // Groepeer per bron
+      const perBron = {};
+      voorverkopen.forEach((vv) => {
+        const bron = vv.bron || "—";
+        if (!perBron[bron]) perBron[bron] = [];
+        perBron[bron].push(vv);
+      });
+
+      Object.keys(perBron).sort().forEach((bron) => {
+        const items = perBron[bron].slice().sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+        const bronTotaal = items.reduce((s, vv) => s + parseBedragNum(vv.bedrag), 0);
+        nieuwePagina(10);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.5);
+        doc.text(bron, marge + 2, y);
+        doc.text(fmtEuro(bronTotaal), pageW - marge - 2, y, { align: "right" });
+        y += 5.5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        items.forEach((vv) => {
+          nieuwePagina(6);
+          const datum = vv.datum ? new Date(vv.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
+          const regelTekst = `  ${datum} · ${verkoperNaam(vv)} · ${betaalLabel(vv)}`;
+          const maxBreedte = pageW - 2 * marge - 28;
+          const afgekort = doc.splitTextToSize(regelTekst, maxBreedte)[0];
+          doc.text(afgekort, marge + 2, y);
+          doc.text(fmtEuro(parseBedragNum(vv.bedrag)), pageW - marge - 2, y, { align: "right" });
+          y += 5;
+        });
+        y += 2;
+      });
+      y += 2;
+    }
+
+    // ===== Zelfinbreng-detail =====
+    const zelfinbreng = data.zelfinbreng || [];
+    if (zelfinbreng.length > 0) {
+      nieuwePagina(20);
+      y += 2;
+      doc.setFillColor(232, 213, 205);
+      doc.rect(marge, y, pageW - 2 * marge, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(t.zi_titel, marge + 2, y + 5.5);
+      doc.text(fmtEuro(k.zelfinbrengTotaal), pageW - marge - 2, y + 5.5, { align: "right" });
+      y += 13;
+
+      const wieNaam = (zi) => {
+        if (zi.persoonId === "__ander__") return zi.persoonVrij || "—";
+        if (zi.persoonId) {
+          const v = (data.vrijwilligers || []).find((x) => x.id === zi.persoonId);
+          if (v) return `${v.naam} ${v.voornaam}`.trim();
+          const c = (data.externeContacten || []).find((x) => x.id === zi.persoonId);
+          if (c) return c.naam || "—";
+        }
+        return "—";
+      };
+
+      const items = zelfinbreng.slice().sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      items.forEach((zi) => {
+        nieuwePagina(6);
+        const datum = zi.datum ? new Date(zi.datum).toLocaleDateString(lang === "fr" ? "fr-BE" : "nl-BE") : "—";
+        doc.text(`  ${datum} · ${wieNaam(zi)}`, marge + 2, y);
+        doc.text(fmtEuro(parseBedragNum(zi.bedrag)), pageW - marge - 2, y, { align: "right" });
+        y += 5;
+      });
+      y += 4;
+    }
+
     nieuwePagina(40);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
