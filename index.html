@@ -551,7 +551,7 @@ const T = {
     storage_note: "Lokale opslag in deze browser · Export naar Excel voor backup",
     tab_groepverzendingen: "Groepverzendingen",
     gv_title: "Groepverzendingen",
-    gv_intro: "Verzend berichten in groepen per taal. Importeer DatabaseContacten, stel je bericht op en open WhatsApp.",
+    gv_intro: "Verzend gepersonaliseerde berichten naar contacten per taal. Importeer DatabaseContacten, stel je bericht op en open WhatsApp per persoon.",
     gv_section_import: "1️⃣ DatabaseContacten laden",
     gv_download_template: "⬇️ Download template",
     gv_import_excel: "⬆️ Import Excel",
@@ -562,22 +562,21 @@ const T = {
     gv_campaign_title_ph: "Zomerfeest 2026",
     gv_message: "Bericht",
     gv_use_genders: "Geslacht-varianten gebruiken",
+    gv_section_links: "3️⃣ Links",
     gv_link_nl: "Link Nederlands",
     gv_link_fr: "Link Frans",
+    gv_link_help: "Links worden opgeslagen en kunnen als {link}, {link_nl} of {link_fr} in het bericht gebruikt worden.",
+    gv_section_flyer: "4️⃣ Flyer/PDF",
     gv_flyer_nl: "Flyer Nederlands",
     gv_flyer_fr: "Flyer Frans",
-    gv_section_send: "3️⃣ Verzenden",
-    gv_preview_nl: "Voorbeeld NL",
-    gv_preview_fr: "Voorbeeld FR",
+    gv_flyer_upload: "Bestand uploaden",
+    gv_flyer_uploaded: "Bestand geüpload",
+    gv_flyer_help: "Upload een afbeelding of PDF. Deze wordt als link aan het bericht toegevoegd.",
+    gv_section_individual: "5️⃣ Individueel verzenden (per persoon)",
+    gv_individual_help: "Onder staan je contacten in twee groepen. Klik per persoon op 'Open WhatsApp' — het nummer én het bericht staan al klaar, jij klikt enkel verzenden. {voornaam} en de aanhef worden per persoon ingevuld.",
     gv_group_nl: n => `🇳🇱 Nederlands (${n})`,
     gv_group_fr: n => `🇫🇷 Frans (${n})`,
-    gv_send_nl: "Verzend NL",
-    gv_send_fr: "Verzend FR",
-    gv_sent: (lang, count) => `✓ Verzonden naar ${count} ${lang}`,
-    gv_history: "Verzendhistorie",
     gv_no_history: "Nog geen campagnes verzonden",
-    gv_section_individual: "4️⃣ Individueel verzenden (per persoon)",
-    gv_individual_help: "Na de import staan je contacten hieronder in twee groepen. Klik per persoon op 'Open WhatsApp' — het nummer én het bericht staan al klaar, jij klikt enkel verzenden. {voornaam} en de aanhef worden per persoon ingevuld."
   },
   fr: {
     app_subtitle: "Gestion d'événement",
@@ -1028,7 +1027,7 @@ const T = {
     // ===== ENVOIS GROUPÉS =====
     tab_groepverzendingen: "Envois groupés",
     gv_title: "Envois groupés",
-    gv_intro: "Envoyez des messages par groupes de langue.",
+    gv_intro: "Envoyez des messages personnalisés aux contacts par langue. Importez DatabaseContacten, rédigez votre message et ouvrez WhatsApp par personne.",
     gv_section_import: "1️⃣ Charger DatabaseContacten",
     gv_download_template: "⬇️ Télécharger",
     gv_import_excel: "⬆️ Importer",
@@ -1039,21 +1038,21 @@ const T = {
     gv_campaign_title_ph: "Fête d'été 2026",
     gv_message: "Message",
     gv_use_genders: "Variantes de sexe",
+    gv_section_links: "3️⃣ Liens",
     gv_link_nl: "Lien néerlandais",
     gv_link_fr: "Lien français",
+    gv_link_help: "Les liens sont sauvegardés et peuvent être utilisés dans le message sous {link}, {link_nl} ou {link_fr}.",
+    gv_section_flyer: "4️⃣ Dépliant/PDF",
     gv_flyer_nl: "Dépliant néerlandais",
     gv_flyer_fr: "Dépliant français",
-    gv_section_send: "3️⃣ Envoyer",
-    gv_preview_nl: "Aperçu NL",
-    gv_preview_fr: "Aperçu FR",
+    gv_flyer_upload: "Charger le fichier",
+    gv_flyer_uploaded: "Fichier chargé",
+    gv_flyer_help: "Chargez une image ou un PDF. Celui-ci sera ajouté en tant que lien au message.",
+    gv_section_individual: "5️⃣ Envoi individuel (par personne)",
+    gv_individual_help: "Vos contacts apparaissent ci-dessous en deux groupes. Cliquez par personne sur 'Ouvrir WhatsApp' — le numéro et le message sont déjà prêts, vous ne faites que cliquer envoyer. {voornaam} et la salutation sont remplis par personne.",
     gv_group_nl: n => `🇳🇱 Néerlandais (${n})`,
     gv_group_fr: n => `🇫🇷 Français (${n})`,
-    gv_send_nl: "Envoyer NL",
-    gv_send_fr: "Envoyer FR",
-    gv_sent: (lang, count) => `✓ Envoyé à ${count} ${lang}`,
-    gv_history: "Historique d'envoi",
     gv_no_history: "Aucune campagne envoyée",
-    gv_section_individual: "4️⃣ Envoi individuel (par personne)",
     gv_individual_help: "Après l'import, vos contacts apparaissent ci-dessous en deux groupes. Cliquez sur 'Ouvrir WhatsApp' par personne — le numéro et le message sont prêts, il suffit d'envoyer. {voornaam} et la formule d'appel sont remplis par personne."
   }
 };
@@ -1307,7 +1306,13 @@ const defaultData = {
   databaseContacten: [],
   groepverzendingen: [],
   groepverzendingHistory: {},
-  gvVerzonden: {}
+  gvVerzonden: {},
+  groepverzendingenSettings: {
+    linkNl: "",
+    linkFr: "",
+    flyerNl: "",
+    flyerFr: ""
+  }
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -2291,542 +2296,7 @@ const importGvContacten = (file, setData, t, showToast) => {
   };
   reader.readAsArrayBuffer(file);
 };
-function GroepverzendingenTab({
-  data,
-  setData,
-  showToast,
-  t
-}) {
-  const [titel, setTitel] = useState("");
-  const [berichtNl, setBerichtNl] = useState("");
-  const [berichtFr, setBerichtFr] = useState("");
-  const [useTemplateId, setUseTemplateId] = useState("");
-  const [useGenders, setUseGenders] = useState(false);
-  const [aanhefNlM, setAanhefNlM] = useState("Beste");
-  const [aanhefNlF, setAanhefNlF] = useState("Beste");
-  const [aanhefFrM, setAanhefFrM] = useState("Cher");
-  const [aanhefFrF, setAanhefFrF] = useState("Chère");
-  const [linkNl, setLinkNl] = useState("");
-  const [linkFr, setLinkFr] = useState("");
-  const [flyerNl, setFlyerNl] = useState("");
-  const [flyerFr, setFlyerFr] = useState("");
-  const [previewNl, setPreviewNl] = useState(false);
-  const [previewFr, setPreviewFr] = useState(false);
-  const contacten = data.databaseContacten || [];
-  const nlContacten = contacten.filter(c => c.taal === "nl");
-  const frContacten = contacten.filter(c => c.taal === "fr");
-  const history = data.groepverzendingHistory || {};
-  const handleImport = e => {
-    const file = e.target.files[0];
-    if (file) importGvContacten(file, setData, t, showToast);
-    e.target.value = "";
-  };
-  const applyTemplate = id => {
-    setUseTemplateId(id);
-    if (!id) return;
-    const sj = (data.sjablonen || []).find(s => s.id === id);
-    if (sj) {
-      setBerichtNl(sj.nl || "");
-      setBerichtFr(sj.fr || "");
-    }
-  };
-
-  // Bouw het groepsbericht voor een taal (generiek, voor groep/broadcast)
-  const buildGroepBericht = taal => {
-    const lang = taal === "fr" ? "fr" : "nl";
-    let txt = (lang === "fr" ? berichtFr : berichtNl) || "";
-    // Aanhef-variabele: {aanhef} → standaard aanhef (man-vorm als referentie)
-    if (useGenders) {
-      const aanhefM = lang === "fr" ? aanhefFrM : aanhefNlM;
-      const aanhefF = lang === "fr" ? aanhefFrF : aanhefNlF;
-      txt = txt.replace(/{aanhef}/g, `${aanhefM}/${aanhefF}`);
-    } else {
-      txt = txt.replace(/{aanhef}/g, lang === "fr" ? "Bonjour" : "Dag");
-    }
-    txt = txt.replace(/{eventnaam}/g, data.event.naam || "").replace(/{eventdatum}/g, formatDate(data.event.datum, lang)).replace(/{locatie}/g, buildAddressString(data.event)).replace(/{mapslink}/g, buildMapsLink(data.event, "driving"));
-    const link = lang === "fr" ? linkFr : linkNl;
-    if (link) txt += (txt.endsWith("\n") ? "" : "\n\n") + link;
-    const flyer = lang === "fr" ? flyerFr : flyerNl;
-    if (flyer) txt += "\n\n" + (lang === "fr" ? "Dépliant : " : "Flyer: ") + flyer;
-    return txt;
-  };
-  const buildGroepWaLink = taal => {
-    return `https://wa.me/?text=${encodeURIComponent(buildGroepBericht(taal))}`;
-  };
-  const handleSend = taal => {
-    const lijst = taal === "fr" ? frContacten : nlContacten;
-    if (!lijst.length) {
-      showToast(t.gv_no_contacts);
-      return;
-    }
-    const link = buildGroepWaLink(taal);
-    const sleutel = titel.trim() || "(zonder titel)";
-    setData(d => {
-      const h = {
-        ...(d.groepverzendingHistory || {})
-      };
-      h[sleutel] = [...(h[sleutel] || []), {
-        taal,
-        date: new Date().toISOString(),
-        count: lijst.length,
-        recipients: lijst.map(c => c.id)
-      }];
-      return {
-        ...d,
-        groepverzendingHistory: h
-      };
-    });
-    window.open(link, "_blank");
-    showToast(t.gv_sent(taal.toUpperCase(), lijst.length));
-  };
-
-  // ===== INDIVIDUEEL VERZENDEN (zoals Bulk Send: per persoon, wa.me/nummer?text=) =====
-  // Bouw gepersonaliseerd bericht voor één persoon
-  const buildPersoonBericht = persoon => {
-    const lang = persoon.taal === "fr" ? "fr" : "nl";
-    let txt = (lang === "fr" ? berichtFr : berichtNl) || "";
-    // Aanhef op basis van geslacht (werkt nu echt, want per persoon)
-    if (useGenders) {
-      const aanhef = persoon.geslacht === "f" ? lang === "fr" ? aanhefFrF : aanhefNlF : lang === "fr" ? aanhefFrM : aanhefNlM;
-      txt = txt.replace(/{aanhef}/g, aanhef);
-    } else {
-      txt = txt.replace(/{aanhef}/g, lang === "fr" ? "Bonjour" : "Dag");
-    }
-    txt = txt.replace(/{voornaam}/g, persoon.voornaam || "").replace(/{naam}/g, persoon.naam || "").replace(/{eventnaam}/g, data.event.naam || "").replace(/{eventdatum}/g, formatDate(data.event.datum, lang)).replace(/{locatie}/g, buildAddressString(data.event)).replace(/{mapslink}/g, buildMapsLink(data.event, "driving"));
-    const link = lang === "fr" ? linkFr : linkNl;
-    if (link) txt += (txt.endsWith("\n") ? "" : "\n\n") + link;
-    const flyer = lang === "fr" ? flyerFr : flyerNl;
-    if (flyer) txt += "\n\n" + (lang === "fr" ? "Dépliant : " : "Flyer: ") + flyer;
-    return txt;
-  };
-
-  // wa.me link MET nummer (exact zoals Bulk Send) — opent WhatsApp met nummer + bericht
-  const buildPersoonWaLink = persoon => {
-    const tel = cleanPhone(persoon.gsm1);
-    if (!tel) return "";
-    return `https://wa.me/${tel}?text=${encodeURIComponent(buildPersoonBericht(persoon))}`;
-  };
-
-  // Tracking via eigen veld gvVerzonden (raakt bulkGeschiedenis NIET aan)
-  const markPersoonVerzonden = id => setData(d => ({
-    ...d,
-    gvVerzonden: {
-      ...(d.gvVerzonden || {}),
-      [id]: new Date().toISOString()
-    }
-  }));
-  const markPersoonNietVerzonden = id => setData(d => {
-    const g = {
-      ...(d.gvVerzonden || {})
-    };
-    delete g[id];
-    return {
-      ...d,
-      gvVerzonden: g
-    };
-  });
-  const handlePersoonSend = (persoon, link) => {
-    const laatst = (data.gvVerzonden || {})[persoon.id];
-    if (laatst && isToday(laatst)) {
-      const naamVol = `${persoon.voornaam} ${persoon.naam}`.trim();
-      if (!confirm(t.confirm_resend(naamVol, formatTimeShort(laatst)))) return;
-    }
-    markPersoonVerzonden(persoon.id);
-    window.open(link, "_blank");
-  };
-  const [previewPersoonId, setPreviewPersoonId] = useState("");
-
-  // Rendert één taalgroep als lijst van verzendrijen (zoals Bulk Send)
-  const renderTaalGroep = (lijst, vlag) => /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: "1rem"
-    }
-  }, lijst.length === 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.85rem",
-      margin: "0.5rem 0"
-    }
-  }, "\u2014") : lijst.map(p => {
-    const laatst = (data.gvVerzonden || {})[p.id];
-    const sentToday = laatst && isToday(laatst);
-    const sentRecent = laatst && !sentToday && isThisWeek(laatst);
-    const cls = `send-row ${sentToday ? "sent-today" : sentRecent ? "sent-week" : ""}`;
-    const naamVol = `${p.voornaam} ${p.naam}`.trim();
-    const link = buildPersoonWaLink(p);
-    return /*#__PURE__*/React.createElement("div", {
-      key: p.id
-    }, /*#__PURE__*/React.createElement("div", {
-      className: cls,
-      style: {
-        gridTemplateColumns: "1fr auto auto"
-      }
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, naamVol), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: "0.78rem",
-        color: "var(--ink-soft)"
-      }
-    }, vlag, " \xB7 ", p.gsm1, sentToday && ` · ${t.sent_today} ${formatTimeShort(laatst)}`, sentRecent && ` · ${t.sent_week_ago} ${formatDateShort(laatst, data.taal || "nl")}`, !laatst && ` · ${t.not_sent}`)), /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-ghost btn-sm",
-      onClick: () => setPreviewPersoonId(p.id === previewPersoonId ? "" : p.id)
-    }, "\uD83D\uDC41"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: "0.3rem",
-        flexWrap: "wrap"
-      }
-    }, link ? /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-whatsapp btn-sm",
-      onClick: () => handlePersoonSend(p, link)
-    }, t.open_wa) : /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: "0.78rem",
-        color: "var(--accent)"
-      }
-    }, t.no_wa_number), sentToday && /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-ghost btn-sm",
-      onClick: () => markPersoonNietVerzonden(p.id)
-    }, t.mark_unsent))), previewPersoonId === p.id && /*#__PURE__*/React.createElement("div", {
-      style: {
-        margin: "0 0 0.5rem 0",
-        padding: "0.75rem",
-        background: "var(--bg)",
-        border: "1px solid var(--line)",
-        borderRadius: 3
-      }
-    }, /*#__PURE__*/React.createElement("pre", {
-      style: {
-        whiteSpace: "pre-wrap",
-        fontFamily: "inherit",
-        margin: 0,
-        fontSize: "0.82rem"
-      }
-    }, buildPersoonBericht(p))));
-  }));
-  const placeholders = "{voornaam} {aanhef} {eventnaam} {eventdatum} {locatie} {mapslink}";
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.4rem"
-    }
-  }, t.gv_title), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.9rem",
-      margin: 0
-    }
-  }, t.gv_intro)), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.05rem"
-    }
-  }, t.gv_section_import), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "0.75rem",
-      flexWrap: "wrap",
-      marginBottom: "0.75rem"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-ghost",
-    onClick: downloadGvTemplate
-  }, t.gv_download_template), /*#__PURE__*/React.createElement("label", {
-    className: "btn btn-primary",
-    style: {
-      cursor: "pointer"
-    }
-  }, t.gv_import_excel, /*#__PURE__*/React.createElement("input", {
-    type: "file",
-    accept: ".xlsx,.xls",
-    onChange: handleImport,
-    style: {
-      display: "none"
-    }
-  }))), contacten.length > 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--green)",
-      fontSize: "0.9rem",
-      margin: 0
-    }
-  }, t.gv_contact_count(contacten.length, nlContacten.length, frContacten.length)) : /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.85rem",
-      margin: 0
-    }
-  }, t.gv_no_contacts)), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.05rem"
-    }
-  }, t.gv_section_campaign), /*#__PURE__*/React.createElement(Field, {
-    label: t.gv_campaign_title
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    placeholder: t.gv_campaign_title_ph,
-    value: titel,
-    onChange: e => setTitel(e.target.value)
-  })), (data.sjablonen || []).length > 0 && /*#__PURE__*/React.createElement(Field, {
-    label: t.use_template
-  }, /*#__PURE__*/React.createElement("select", {
-    className: "input",
-    value: useTemplateId,
-    onChange: e => applyTemplate(e.target.value)
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, t.none), (data.sjablonen || []).map(s => /*#__PURE__*/React.createElement("option", {
-    key: s.id,
-    value: s.id
-  }, s.naam || s.nl?.slice(0, 30))))), /*#__PURE__*/React.createElement(Field, {
-    label: t.msg_nl
-  }, /*#__PURE__*/React.createElement("textarea", {
-    className: "textarea",
-    rows: 4,
-    value: berichtNl,
-    onChange: e => setBerichtNl(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: t.msg_fr
-  }, /*#__PURE__*/React.createElement("textarea", {
-    className: "textarea",
-    rows: 4,
-    value: berichtFr,
-    onChange: e => setBerichtFr(e.target.value)
-  })), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: "0.78rem",
-      color: "var(--ink-soft)",
-      margin: "0.25rem 0 0.75rem 0"
-    }
-  }, /*#__PURE__*/React.createElement("strong", null, t.placeholders_avail), " ", /*#__PURE__*/React.createElement("code", null, placeholders)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "0.75rem",
-      background: "var(--bg)",
-      borderRadius: "6px",
-      marginBottom: "0.75rem"
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: "0.5rem",
-      cursor: "pointer",
-      fontSize: "0.9rem"
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: useGenders,
-    onChange: e => setUseGenders(e.target.checked)
-  }), t.gv_use_genders), useGenders && /*#__PURE__*/React.createElement("div", {
-    className: "grid-2",
-    style: {
-      marginTop: "0.75rem"
-    }
-  }, /*#__PURE__*/React.createElement(Field, {
-    label: "NL \u2014 M"
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    value: aanhefNlM,
-    onChange: e => setAanhefNlM(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: "NL \u2014 V"
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    value: aanhefNlF,
-    onChange: e => setAanhefNlF(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: "FR \u2014 H"
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    value: aanhefFrM,
-    onChange: e => setAanhefFrM(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: "FR \u2014 F"
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    value: aanhefFrF,
-    onChange: e => setAanhefFrF(e.target.value)
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "grid-2"
-  }, /*#__PURE__*/React.createElement(Field, {
-    label: t.gv_link_nl
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    placeholder: "https://...",
-    value: linkNl,
-    onChange: e => setLinkNl(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: t.gv_link_fr
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    placeholder: "https://...",
-    value: linkFr,
-    onChange: e => setLinkFr(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: t.gv_flyer_nl
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    placeholder: "https://drive.google.com/...",
-    value: flyerNl,
-    onChange: e => setFlyerNl(e.target.value)
-  })), /*#__PURE__*/React.createElement(Field, {
-    label: t.gv_flyer_fr
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    placeholder: "https://drive.google.com/...",
-    value: flyerFr,
-    onChange: e => setFlyerFr(e.target.value)
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.05rem"
-    }
-  }, t.gv_section_send), /*#__PURE__*/React.createElement("div", {
-    className: "grid-2"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontWeight: 600,
-      fontSize: "0.9rem",
-      marginBottom: "0.5rem"
-    }
-  }, t.gv_group_nl(nlContacten.length)), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-ghost btn-sm",
-    style: {
-      width: "100%",
-      marginBottom: "0.5rem"
-    },
-    onClick: () => setPreviewNl(!previewNl)
-  }, t.gv_preview_nl), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-whatsapp",
-    style: {
-      width: "100%"
-    },
-    disabled: !nlContacten.length,
-    onClick: () => handleSend("nl")
-  }, t.gv_send_nl), previewNl && /*#__PURE__*/React.createElement("pre", {
-    style: {
-      whiteSpace: "pre-wrap",
-      fontFamily: "inherit",
-      fontSize: "0.8rem",
-      background: "var(--bg)",
-      padding: "0.75rem",
-      borderRadius: "6px",
-      marginTop: "0.5rem"
-    }
-  }, buildGroepBericht("nl") || "—")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontWeight: 600,
-      fontSize: "0.9rem",
-      marginBottom: "0.5rem"
-    }
-  }, t.gv_group_fr(frContacten.length)), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-ghost btn-sm",
-    style: {
-      width: "100%",
-      marginBottom: "0.5rem"
-    },
-    onClick: () => setPreviewFr(!previewFr)
-  }, t.gv_preview_fr), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-whatsapp",
-    style: {
-      width: "100%"
-    },
-    disabled: !frContacten.length,
-    onClick: () => handleSend("fr")
-  }, t.gv_send_fr), previewFr && /*#__PURE__*/React.createElement("pre", {
-    style: {
-      whiteSpace: "pre-wrap",
-      fontFamily: "inherit",
-      fontSize: "0.8rem",
-      background: "var(--bg)",
-      padding: "0.75rem",
-      borderRadius: "6px",
-      marginTop: "0.5rem"
-    }
-  }, buildGroepBericht("fr") || "—")))), contacten.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.05rem"
-    }
-  }, t.gv_section_individual), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.83rem",
-      marginTop: 0
-    }
-  }, t.gv_individual_help), /*#__PURE__*/React.createElement("h4", {
-    style: {
-      fontSize: "0.95rem",
-      margin: "1rem 0 0.5rem 0"
-    }
-  }, t.gv_group_nl(nlContacten.length)), renderTaalGroep(nlContacten, "🇳🇱"), /*#__PURE__*/React.createElement("h4", {
-    style: {
-      fontSize: "0.95rem",
-      margin: "1rem 0 0.5rem 0"
-    }
-  }, t.gv_group_fr(frContacten.length)), renderTaalGroep(frContacten, "🇫🇷")), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.05rem"
-    }
-  }, t.gv_history), Object.keys(history).length === 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.85rem",
-      margin: 0
-    }
-  }, t.gv_no_history) : Object.entries(history).map(([camp, sends]) => /*#__PURE__*/React.createElement("div", {
-    key: camp,
-    style: {
-      marginBottom: "0.75rem",
-      paddingBottom: "0.75rem",
-      borderBottom: "1px solid var(--line)"
-    }
-  }, /*#__PURE__*/React.createElement("strong", {
-    style: {
-      fontSize: "0.9rem"
-    }
-  }, camp), sends.map((s, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      fontSize: "0.8rem",
-      color: "var(--ink-soft)",
-      marginTop: "0.25rem"
-    }
-  }, s.taal === "fr" ? "🇫🇷" : "🇳🇱", " ", new Date(s.date).toLocaleString(), " \u2014 ", s.count, " ", s.taal.toUpperCase()))))));
-}
+function GroepverzendingenTab({data,setData,showToast,t}){const[titel,setTitel]=useState("");const[berichtNl,setBerichtNl]=useState("");const[berichtFr,setBerichtFr]=useState("");const[useTemplateId,setUseTemplateId]=useState("");const[useGenders,setUseGenders]=useState(false);const[aanhefNlM,setAanhefNlM]=useState("Beste");const[aanhefNlF,setAanhefNlF]=useState("Beste");const[aanhefFrM,setAanhefFrM]=useState("Cher");const[aanhefFrF,setAanhefFrF]=useState("Chère");const[previewPersoonId,setPreviewPersoonId]=useState("");const contacten=data.databaseContacten||[];const nlContacten=contacten.filter(c=>c.taal==="nl");const frContacten=contacten.filter(c=>c.taal==="fr");const settings=data.groepverzendingenSettings||{};const handleImport=e=>{const file=e.target.files[0];if(file)importGvContacten(file,setData,t,showToast);e.target.value=""};const applyTemplate=id=>{setUseTemplateId(id);if(!id)return;const sj=(data.sjablonen||[]).find(s=>s.id===id);if(sj){setBerichtNl(sj.nl||"");setBerichtFr(sj.fr||"")}};const buildPersoonBericht=persoon=>{const lang=persoon.taal==="fr"?"fr":"nl";let txt=(lang==="fr"?berichtFr:berichtNl)||"";if(useGenders){const aanhef=persoon.geslacht==="f"?lang==="fr"?aanhefFrF:aanhefNlF:lang==="fr"?aanhefFrM:aanhefNlM;txt=txt.replace(/{aanhef}/g,aanhef)}else{txt=txt.replace(/{aanhef}/g,lang==="fr"?"Bonjour":"Dag")}txt=txt.replace(/{voornaam}/g,persoon.voornaam||"").replace(/{naam}/g,persoon.naam||"").replace(/{eventnaam}/g,data.event.naam||"").replace(/{eventdatum}/g,formatDate(data.event.datum,lang)).replace(/{locatie}/g,buildAddressString(data.event)).replace(/{mapslink}/g,buildMapsLink(data.event,"driving")).replace(/{link}/g,lang==="fr"?settings.linkFr:settings.linkNl).replace(/{link_nl}/g,settings.linkNl).replace(/{link_fr}/g,settings.linkFr);const flyer=lang==="fr"?settings.flyerFr:settings.flyerNl;if(flyer)txt+="\n\n"+(lang==="fr"?"Dépliant : ":"Flyer: ")+flyer;return txt};const buildPersoonWaLink=persoon=>{const tel=cleanPhone(persoon.gsm1);if(!tel)return"";return`https://wa.me/${tel}?text=${encodeURIComponent(buildPersoonBericht(persoon))}`};const markPersoonVerzonden=id=>setData(d=>({...d,gvVerzonden:{...(d.gvVerzonden||{}),  [id]:new Date().toISOString()}}));const markPersoonNietVerzonden=id=>setData(d=>{const g={...(d.gvVerzonden||{})};delete g[id];return{...d,gvVerzonden:g}});const handlePersoonSend=(persoon,link)=>{const laatst=(data.gvVerzonden||{})[persoon.id];if(laatst&&isToday(laatst)){const naamVol=`${persoon.voornaam} ${persoon.naam}`.trim();if(!confirm(t.confirm_resend(naamVol,formatTimeShort(laatst))))return}markPersoonVerzonden(persoon.id);window.open(link,"_blank")};const renderTaalGroep=(lijst,vlag)=>/*#__PURE__*/React.createElement("div",{style:{marginBottom:"1rem"}},lijst.length===0?/*#__PURE__*/React.createElement("p",{style:{color:"var(--ink-soft)",fontSize:"0.85rem",margin:"0.5rem 0"}},"—"):lijst.map(p=>{const laatst=(data.gvVerzonden||{})[p.id];const sentToday=laatst&&isToday(laatst);const sentRecent=laatst&&!sentToday&&isThisWeek(laatst);const cls=`send-row ${sentToday?"sent-today":sentRecent?"sent-week":""}`;const naamVol=`${p.voornaam} ${p.naam}`.trim();const link=buildPersoonWaLink(p);return /*#__PURE__*/React.createElement("div",{key:p.id},/*#__PURE__*/React.createElement("div",{className:cls,style:{gridTemplateColumns:"1fr auto auto"}},/*#__PURE__*/React.createElement("div",null,/*#__PURE__*/React.createElement("strong",null,naamVol),/*#__PURE__*/React.createElement("div",{style:{fontSize:"0.78rem",color:"var(--ink-soft)"}},vlag," · ",p.gsm1,sentToday&&` · ${t.sent_today} ${formatTimeShort(laatst)}`,sentRecent&&` · ${t.sent_week_ago} ${formatDateShort(laatst,data.taal||"nl")}`,!laatst&&` · ${t.not_sent}`)),/*#__PURE__*/React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:()=>setPreviewPersoonId(p.id===previewPersoonId?"":p.id)},"👁"),/*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:"0.3rem",flexWrap:"wrap"}},link?/*#__PURE__*/React.createElement("button",{className:"btn btn-whatsapp btn-sm",onClick:()=>handlePersoonSend(p,link)},t.open_wa):/*#__PURE__*/React.createElement("span",{style:{fontSize:"0.78rem",color:"var(--accent)"}},t.no_wa_number),sentToday&&/*#__PURE__*/React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:()=>markPersoonNietVerzonden(p.id)},t.mark_unsent))),previewPersoonId===p.id&&/*#__PURE__*/React.createElement("div",{style:{margin:"0 0 0.5rem 0",padding:"0.75rem",background:"var(--bg)",border:"1px solid var(--line)",borderRadius:3}},/*#__PURE__*/React.createElement("pre",{style:{whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0,fontSize:"0.82rem"}},buildPersoonBericht(p))))}));const handleFlyerUpload=(lang,file)=>{if(!file)return;const reader=new FileReader();reader.onload=e=>{const base64=e.target.result;setData(d=>({...d,groepverzendingenSettings:{...(d.groepverzendingenSettings||{}),    [`flyer${lang==="fr"?"Fr":"Nl"}`]:base64}}));showToast(`✓ Flyer ${lang.toUpperCase()} geüpload`)};reader.readAsDataURL(file)};const updateLink=(lang,value)=>{setData(d=>({...d,groepverzendingenSettings:{...(d.groepverzendingenSettings||{}),    [`link${lang==="fr"?"Fr":"Nl"}`]:value}}))};const placeholders="{voornaam} {naam} {aanhef} {eventnaam} {eventdatum} {locatie} {mapslink} {link} {link_nl} {link_fr}";return /*#__PURE__*/React.createElement("div",null,/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h2",{className:"font-display",style:{marginTop:0,fontSize:"1.4rem"}},t.gv_title),/*#__PURE__*/React.createElement("p",{style:{color:"var(--ink-soft)",fontSize:"0.9rem",margin:0}},t.gv_intro)),/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h3",{className:"font-display",style:{marginTop:0,fontSize:"1.05rem"}},t.gv_section_import),/*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:"0.75rem",flexWrap:"wrap",marginBottom:"0.75rem"}},/*#__PURE__*/React.createElement("button",{className:"btn btn-ghost",onClick:downloadGvTemplate},t.gv_download_template),/*#__PURE__*/React.createElement("label",{className:"btn btn-primary",style:{cursor:"pointer"}},t.gv_import_excel,/*#__PURE__*/React.createElement("input",{type:"file",accept:".xlsx,.xls",onChange:handleImport,style:{display:"none"}}))),contacten.length>0?/*#__PURE__*/React.createElement("p",{style:{color:"var(--green)",fontSize:"0.9rem",margin:0}},t.gv_contact_count(contacten.length,nlContacten.length,frContacten.length)):/*#__PURE__*/React.createElement("p",{style:{color:"var(--ink-soft)",fontSize:"0.85rem",margin:0}},t.gv_no_contacts)),/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h3",{className:"font-display",style:{marginTop:0,fontSize:"1.05rem"}},t.gv_section_campaign),/*#__PURE__*/React.createElement(Field,{label:t.gv_campaign_title},/*#__PURE__*/React.createElement("input",{className:"input",placeholder:t.gv_campaign_title_ph,value:titel,onChange:e=>setTitel(e.target.value)})),(data.sjablonen||[]).length>0&&/*#__PURE__*/React.createElement(Field,{label:t.use_template},/*#__PURE__*/React.createElement("select",{className:"input",value:useTemplateId,onChange:e=>applyTemplate(e.target.value)},/*#__PURE__*/React.createElement("option",{value:""},t.none),(data.sjablonen||[]).map(s=>/*#__PURE__*/React.createElement("option",{key:s.id,value:s.id},s.naam||s.nl?.slice(0,30))))),/*#__PURE__*/React.createElement(Field,{label:t.msg_nl},/*#__PURE__*/React.createElement("textarea",{className:"textarea",rows:4,value:berichtNl,onChange:e=>setBerichtNl(e.target.value)})),/*#__PURE__*/React.createElement(Field,{label:t.msg_fr},/*#__PURE__*/React.createElement("textarea",{className:"textarea",rows:4,value:berichtFr,onChange:e=>setBerichtFr(e.target.value)})),/*#__PURE__*/React.createElement("p",{style:{fontSize:"0.78rem",color:"var(--ink-soft)",margin:"0.25rem 0 0.75rem 0"}},/*#__PURE__*/React.createElement("strong",null,t.placeholders_avail)," ",/*#__PURE__*/React.createElement("code",null,placeholders)),/*#__PURE__*/React.createElement("div",{style:{padding:"0.75rem",background:"var(--bg)",borderRadius:"6px",marginBottom:"0.75rem"}},/*#__PURE__*/React.createElement("label",{style:{display:"flex",alignItems:"center",gap:"0.5rem",cursor:"pointer",fontSize:"0.9rem"}},/*#__PURE__*/React.createElement("input",{type:"checkbox",checked:useGenders,onChange:e=>setUseGenders(e.target.checked)}),t.gv_use_genders),useGenders&&/*#__PURE__*/React.createElement("div",{className:"grid-2",style:{marginTop:"0.75rem"}},/*#__PURE__*/React.createElement(Field,{label:"NL — M"},/*#__PURE__*/React.createElement("input",{className:"input",value:aanhefNlM,onChange:e=>setAanhefNlM(e.target.value)})),/*#__PURE__*/React.createElement(Field,{label:"NL — V"},/*#__PURE__*/React.createElement("input",{className:"input",value:aanhefNlF,onChange:e=>setAanhefNlF(e.target.value)})),/*#__PURE__*/React.createElement(Field,{label:"FR — M"},/*#__PURE__*/React.createElement("input",{className:"input",value:aanhefFrM,onChange:e=>setAanhefFrM(e.target.value)})),/*#__PURE__*/React.createElement(Field,{label:"FR — V"},/*#__PURE__*/React.createElement("input",{className:"input",value:aanhefFrF,onChange:e=>setAanhefFrF(e.target.value)}))))),/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h3",{className:"font-display",style:{marginTop:0,fontSize:"1.05rem"}},t.gv_section_links),/*#__PURE__*/React.createElement(Field,{label:t.gv_link_nl},/*#__PURE__*/React.createElement("input",{className:"input",placeholder:"https://...",value:settings.linkNl||"",onChange:e=>updateLink("nl",e.target.value)})),/*#__PURE__*/React.createElement(Field,{label:t.gv_link_fr},/*#__PURE__*/React.createElement("input",{className:"input",placeholder:"https://...",value:settings.linkFr||"",onChange:e=>updateLink("fr",e.target.value)})),/*#__PURE__*/React.createElement("p",{style:{fontSize:"0.8rem",color:"var(--ink-soft)"}},"💡 ",t.gv_link_help)),/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h3",{className:"font-display",style:{marginTop:0,fontSize:"1.05rem"}},t.gv_section_flyer),/*#__PURE__*/React.createElement(Field,{label:t.gv_flyer_nl},/*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:"0.75rem",alignItems:"center",flexWrap:"wrap"}},/*#__PURE__*/React.createElement("label",{className:"btn btn-ghost",style:{cursor:"pointer"}},"📁 ",t.gv_flyer_upload,/*#__PURE__*/React.createElement("input",{type:"file",accept:"image/*,.pdf",onChange:e=>handleFlyerUpload("nl",e.target.files?.[0]),style:{display:"none"}})),settings.flyerNl&&/*#__PURE__*/React.createElement("button",{className:"btn btn-danger btn-sm",onClick:()=>setData(d=>({...d,groepverzendingenSettings:{...(d.groepverzendingenSettings||{}),flyerNl:""}}))},"✕ ",t.remove)),settings.flyerNl&&/*#__PURE__*/React.createElement("p",{style:{fontSize:"0.78rem",color:"var(--green)",margin:"0.5rem 0 0 0"}},"✓ ",t.gv_flyer_uploaded)),/*#__PURE__*/React.createElement(Field,{label:t.gv_flyer_fr},/*#__PURE__*/React.createElement("div",{style:{display:"flex",gap:"0.75rem",alignItems:"center",flexWrap:"wrap"}},/*#__PURE__*/React.createElement("label",{className:"btn btn-ghost",style:{cursor:"pointer"}},"📁 ",t.gv_flyer_upload,/*#__PURE__*/React.createElement("input",{type:"file",accept:"image/*,.pdf",onChange:e=>handleFlyerUpload("fr",e.target.files?.[0]),style:{display:"none"}})),settings.flyerFr&&/*#__PURE__*/React.createElement("button",{className:"btn btn-danger btn-sm",onClick:()=>setData(d=>({...d,groepverzendingenSettings:{...(d.groepverzendingenSettings||{}),flyerFr:""}}))},"✕ ",t.remove)),settings.flyerFr&&/*#__PURE__*/React.createElement("p",{style:{fontSize:"0.78rem",color:"var(--green)",margin:"0.5rem 0 0 0"}},"✓ ",t.gv_flyer_uploaded)),/*#__PURE__*/React.createElement("p",{style:{fontSize:"0.8rem",color:"var(--ink-soft)"}},"💡 ",t.gv_flyer_help)),contacten.length>0&&/*#__PURE__*/React.createElement("div",{className:"card",style:{marginBottom:"1.5rem"}},/*#__PURE__*/React.createElement("h3",{className:"font-display",style:{marginTop:0,fontSize:"1.05rem"}},t.gv_section_individual),/*#__PURE__*/React.createElement("p",{style:{color:"var(--ink-soft)",fontSize:"0.83rem",marginTop:0}},t.gv_individual_help),/*#__PURE__*/React.createElement("h4",{style:{fontSize:"0.95rem",margin:"1rem 0 0.5rem 0"}},t.gv_group_nl(nlContacten.length)),renderTaalGroep(nlContacten,"🇳🇱"),/*#__PURE__*/React.createElement("h4",{style:{fontSize:"0.95rem",margin:"1rem 0 0.5rem 0"}},t.gv_group_fr(frContacten.length)),renderTaalGroep(frContacten,"🇫🇷"))))}
 function App() {
   const [data, setData] = useState(defaultData);
   const [tab, setTab] = useState("dashboard");
