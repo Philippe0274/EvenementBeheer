@@ -273,8 +273,8 @@ const T = {
     kas_totaal_in: "Totaal ontvangen",
     kas_totaal_uit: "Totaal uitgegeven",
     kas_eindsaldo: "Verwacht eindsaldo kas",
-    kas_blad_knop: "🖨 Leeg kasblad afdrukken (PDF)",
-    kas_blad_titel: "Kasblad — in te vullen tijdens het evenement",
+    kas_blad_knop: "🖨 Kasblad PDF",
+    kas_blad_titel: "Kassablad — transacties ter plekke",
     kas_blad_tijd: "Tijd",
     kas_blad_in: "Erin (+)",
     kas_blad_uit: "Eruit (-)",
@@ -1690,14 +1690,21 @@ const normalizeData = raw => {
         naam: (k.naam || "").toString(),
         bedrag: k.bedrag || ""
       })) : [],
-      // Kas: startbedrag + bewegingen (type "in" = ontvangst, "uit" = uitgave)
+      // Kas: startbedrag + bewegingen
+      // MIGRATIE: oude "in" → "aankoop", "uit" → "uit"
       kasStart: raw.kostenbeheer.kasStart || "",
-      kasBewegingen: Array.isArray(raw.kostenbeheer.kasBewegingen) ? raw.kostenbeheer.kasBewegingen.map(k => ({
-        id: k.id || uid(),
-        naam: (k.naam || "").toString(),
-        bedrag: k.bedrag || "",
-        type: k.type === "uit" ? "uit" : "in"
-      })) : []
+      kasBewegingen: Array.isArray(raw.kostenbeheer.kasBewegingen) ? raw.kostenbeheer.kasBewegingen.map(k => {
+        let newType = k.type || "in";
+        if (newType === "in") newType = "aankoop";  // migratie
+        else if (newType === "uit") newType = "uit"; // keep as is
+        
+        return {
+          id: k.id || uid(),
+          naam: (k.naam || "").toString(),
+          bedrag: k.bedrag || "",
+          type: newType
+        };
+      }) : []
     };
   }
 
@@ -9482,58 +9489,64 @@ function KostenbeheerTab({
     }
   };
 
-  // Leeg, afdrukbaar kasblad om tijdens het evenement op papier in te vullen
+  // Kasblad: eenvoudige papieren versie voor ter plekke invullen
   const downloadKasblad = () => {
     const jsPDFns = window.jspdf;
     if (!jsPDFns || !jsPDFns.jsPDF) {
       alert(t.kb_pdf_fout);
       return;
     }
-    const doc = new jsPDFns.jsPDF({
-      unit: "mm",
-      format: "a4"
-    });
-    const pageW = 210,
-      pageH = 297,
-      marge = 16;
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    const pageW = 297, pageH = 210, marge = 12;
+    
+    // Header
     doc.setFillColor(200, 68, 42);
-    doc.rect(0, 0, pageW, 26, "F");
+    doc.rect(0, 0, pageW, 22, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(t.kas_blad_titel, marge, 13);
+    doc.setFontSize(13);
+    doc.text("KASSABLAD", marge, 12);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`${data.event.naam || ""}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 20);
-    doc.setTextColor(26, 22, 18);
-    let y = 38;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.text(`${t.kas_start}: __________________`, marge, y);
-    y += 10;
-
-    // Tabelkop
-    const kol = [marge, marge + 28, marge + 116, marge + 150];
-    doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text(t.kas_blad_tijd, kol[0], y);
-    doc.text(t.kas_omschrijving, kol[1], y);
-    doc.text(t.kas_blad_in, kol[2], y);
-    doc.text(t.kas_blad_uit, kol[3], y);
+    doc.text(`${data.event.naam || ""}${data.event.datum ? " · " + formatDate(data.event.datum, lang) : ""}`, marge, 18);
+    
+    doc.setTextColor(26, 22, 18);
+    let y = 32;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`KASSABEHEERDER: ______________________  STARTALDO: €_______`, marge, y);
+    y += 10;
+    
+    // Tabel headers
+    const kol = [marge, marge + 20, marge + 70, marge + 120, marge + 170, marge + 220];
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("Tijd", kol[0], y);
+    doc.text("TYPE", kol[1], y);
+    doc.text("BESCHRIJVING", kol[2], y);
+    doc.text("BEDRAG", kol[3], y);
+    doc.text("BETAALD", kol[4], y);
+    doc.text("✓", kol[5], y);
     y += 2;
-    doc.setDrawColor(180, 180, 180);
+    doc.setDrawColor(100, 100, 100);
     doc.line(marge, y, pageW - marge, y);
     y += 6;
-
-    // Lege rijen om met de hand in te vullen
+    
+    // Rijen voor handmatig invullen
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
     while (y < pageH - 30) {
       doc.line(marge, y + 2, pageW - marge, y + 2);
-      y += 9;
+      y += 7;
     }
+    
+    // Totaal
+    doc.line(marge, y, pageW - marge, y);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.text(`${t.kas_eindsaldo}: __________________`, marge, pageH - 18);
+    doc.setFontSize(9);
+    y += 8;
+    doc.text("EINDSALDO: €_______", marge, y);
+    
     doc.save(`kasblad_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`);
   };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
