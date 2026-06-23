@@ -179,6 +179,16 @@ const T = {
     tab_kostenbeheer: "Kostenbeheer",
     tab_history: "Event History",
     tab_voorverkoop: "Voorverkoop",
+    tab_prijslijst: "Prijslijst",
+    pl_intro: "Beheer hier de prijslijst voor de kassa. Dit wordt ter plekke ingelezen.",
+    pl_add: "+ Artikel toevoegen",
+    pl_geen: "Nog geen artikelen in de prijslijst.",
+    pl_naam: "Artikelnaam",
+    pl_prijs: "Prijs (€)",
+    pl_categorie: "Categorie",
+    pl_categorie_kies: "— Kies categorie —",
+    pl_categorie_nieuw: "+ Nieuwe categorie",
+    pl_beschrijving: "Beschrijving",
     vv_intro: "Beheer hier de voorverkoop en de zelfinbreng. Alle bedragen tellen mee in het kostenplaatje.",
     vv_streefdoel: "Streefdoel voorverkoop",
     vv_streefdoel_ph: "bv. 750",
@@ -260,6 +270,10 @@ const T = {
     kas_titel: "Kas (cash tijdens evenement)",
     kas_intro: "Het cash geld tijdens het evenement: startbedrag, ontvangsten en uitgaven. Staat los van het budget.",
     kas_start: "Startbedrag kas",
+    kas_start_oorsprong: "Oorsprong startbedrag",
+    kas_start_partij: "Partij/Organisatie",
+    kas_start_vrijwilliger: "Vrijwilliger",
+    kas_start_vrijw_kies: "Kies vrijwilliger…",
     kas_bewegingen: "Kasbewegingen",
     kas_add_in: "＋ Ontvangst",
     kas_add_uit: "－ Uitgave",
@@ -655,6 +669,16 @@ const T = {
     tab_kostenbeheer: "Gestion des coûts",
     tab_history: "Historique",
     tab_voorverkoop: "Prévente",
+    tab_prijslijst: "Liste de prix",
+    pl_intro: "Gérez ici la liste de prix pour la caisse.",
+    pl_add: "+ Ajouter un article",
+    pl_geen: "Aucun article dans la liste de prix.",
+    pl_naam: "Nom de l'article",
+    pl_prijs: "Prix (€)",
+    pl_categorie: "Catégorie",
+    pl_categorie_kies: "— Choisir catégorie —",
+    pl_categorie_nieuw: "+ Nouvelle catégorie",
+    pl_beschrijving: "Description",
     vv_intro: "Gérez ici les préventes et l'apport personnel. Tous les montants comptent dans le bilan des coûts.",
     vv_streefdoel: "Objectif de prévente",
     vv_streefdoel_ph: "p.ex. 750",
@@ -736,6 +760,10 @@ const T = {
     kas_titel: "Caisse (cash pendant l'événement)",
     kas_intro: "L'argent liquide pendant l'événement : montant de départ, recettes et dépenses. Distinct du budget.",
     kas_start: "Montant de départ caisse",
+    kas_start_oorsprong: "Origine du montant",
+    kas_start_partij: "Organisation/Parti",
+    kas_start_vrijwilliger: "Bénévole",
+    kas_start_vrijw_kies: "Choisir bénévole…",
     kas_bewegingen: "Mouvements de caisse",
     kas_add_in: "＋ Recette",
     kas_add_uit: "－ Dépense",
@@ -1283,6 +1311,8 @@ const defaultData = {
     zaalhuur: "",
     manueleKosten: [],
     kasStart: "",
+    kasStartOorsprong: "partij",
+    kasStartVrijwilligerId: "",
     kasBewegingen: []
   },
   // manueleKosten/kasBewegingen: [{id, naam, bedrag(, type)}]
@@ -1307,7 +1337,9 @@ const defaultData = {
   databaseContacten: [],
   groepverzendingen: [],
   groepverzendingHistory: {},
-  gvVerzonden: {}
+  gvVerzonden: {},
+  prijslijst: [],
+  prijslijstCategorien: ["Drank", "Eten", "Snacks", "Overig"]
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -1693,6 +1725,8 @@ const normalizeData = raw => {
       // Kas: startbedrag + bewegingen
       // MIGRATIE: oude "in" → "aankoop", "uit" → "uit"
       kasStart: raw.kostenbeheer.kasStart || "",
+      kasStartOorsprong: raw.kostenbeheer.kasStartOorsprong || "partij",
+      kasStartVrijwilligerId: raw.kostenbeheer.kasStartVrijwilligerId || "",
       kasBewegingen: Array.isArray(raw.kostenbeheer.kasBewegingen) ? raw.kostenbeheer.kasBewegingen.map(k => {
         let newType = k.type || "in";
         if (newType === "in") newType = "aankoop";  // migratie
@@ -3450,6 +3484,22 @@ function App() {
       oorsprongLijst: (d.oorsprongLijst || []).filter(x => x !== locatie)
     }));
   };
+  const addPrijslijstArtikel = () => setData(d => ({
+    ...d,
+    prijslijst: [...(d.prijslijst || []), { id: uid(), naam: "", prijs: "", categorie: (d.prijslijstCategorien || [])[0] || "", beschrijving: "" }]
+  }));
+  const updatePrijslijstArtikel = (id, patch) => setData(d => ({
+    ...d,
+    prijslijst: (d.prijslijst || []).map(a => a.id === id ? { ...a, ...patch } : a)
+  }));
+  const removePrijslijstArtikel = (id) => setData(d => ({
+    ...d,
+    prijslijst: (d.prijslijst || []).filter(a => a.id !== id)
+  }));
+  const addPrijslijstCategorie = (naam) => setData(d => ({
+    ...d,
+    prijslijstCategorien: (d.prijslijstCategorien || []).includes(naam) ? d.prijslijstCategorien : [...(d.prijslijstCategorien || []), naam]
+  }));
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -4182,7 +4232,7 @@ function App() {
       gap: "0.2rem",
       flexWrap: "wrap"
     }
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -4303,6 +4353,14 @@ function App() {
     removeKasBeweging: removeKasBeweging,
     updateKasticket: updateKasticket,
     showToast: showToast,
+    t: t
+  }), tab === "prijslijst" && /*#__PURE__*/React.createElement(PrijslijstTab, {
+    prijslijst: data.prijslijst || [],
+    categorien: data.prijslijstCategorien || [],
+    add: addPrijslijstArtikel,
+    update: updatePrijslijstArtikel,
+    remove: removePrijslijstArtikel,
+    addCategorie: addPrijslijstCategorie,
     t: t
   }), tab === "voorverkoop" && /*#__PURE__*/React.createElement(VoorverkoopTab, {
     data: data,
@@ -9741,20 +9799,42 @@ function KostenbeheerTab({
       color: "var(--ink-soft)",
       marginTop: 0
     }
-  }, t.kas_intro), /*#__PURE__*/React.createElement(Field, {
-    label: t.kas_start
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    inputMode: "decimal",
-    placeholder: "0,00",
-    style: {
-      maxWidth: 200
+  }, t.kas_intro), /*#__PURE__*/React.createElement("div", {
+    style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }
+  }, 
+    /*#__PURE__*/React.createElement(Field, {
+      label: t.kas_start
+    }, /*#__PURE__*/React.createElement("input", {
+      className: "input",
+      inputMode: "decimal",
+      placeholder: "0,00",
+      value: kb.kasStart || "",
+      onChange: e => updateKostenbeheer({ kasStart: e.target.value })
+    })),
+    /*#__PURE__*/React.createElement(Field, {
+      label: t.kas_start_oorsprong
+    }, /*#__PURE__*/React.createElement("select", {
+      className: "select",
+      value: kb.kasStartOorsprong || "partij",
+      onChange: e => updateKostenbeheer({ kasStartOorsprong: e.target.value, kasStartVrijwilligerId: "" })
     },
-    value: kb.kasStart || "",
-    onChange: e => updateKostenbeheer({
-      kasStart: e.target.value
-    })
-  })), /*#__PURE__*/React.createElement("div", {
+      /*#__PURE__*/React.createElement("option", { value: "partij" }, t.kas_start_partij),
+      /*#__PURE__*/React.createElement("option", { value: "vrijwilliger" }, t.kas_start_vrijwilliger)
+    ))
+  ),
+  (kb.kasStartOorsprong === "vrijwilliger") && /*#__PURE__*/React.createElement(Field, {
+    label: t.kas_start_vrijw_kies
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: kb.kasStartVrijwilligerId || "",
+    onChange: e => updateKostenbeheer({ kasStartVrijwilligerId: e.target.value })
+  },
+    /*#__PURE__*/React.createElement("option", { value: "" }, "— Selecteer —"),
+    (data.vrijwilligers || []).sort((a, b) => (a.naam + a.voornaam).localeCompare(b.naam + b.voornaam)).map(v =>
+      /*#__PURE__*/React.createElement("option", { key: v.id, value: v.id }, `${v.naam} ${v.voornaam}`)
+    )
+  )),
+  /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: "1rem"
     }
@@ -10083,6 +10163,84 @@ function KostenbeheerTab({
 function hexNaarRgb(hex) {
   const h = hex.replace("#", "");
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+// ============================================================
+// PRIJSLIJST
+// ============================================================
+function PrijslijstTab({ prijslijst, categorien, add, update, remove, addCategorie, t }) {
+  const [bewerk, setBewerk] = React.useState(null);
+
+  return /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement("p", { style: { color: "var(--ink-soft)" } }, t.pl_intro),
+    /*#__PURE__*/React.createElement("div", { style: { display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" } },
+      /*#__PURE__*/React.createElement("button", { className: "btn btn-primary btn-sm", onClick: add }, t.pl_add),
+      /*#__PURE__*/React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => { const naam = prompt(t.pl_categorie_nieuw); if (naam?.trim()) addCategorie(naam); } }, t.pl_categorie_nieuw)
+    ),
+    prijslijst.length === 0 ?
+      /*#__PURE__*/React.createElement("p", { style: { color: "var(--ink-soft)", textAlign: "center" } }, t.pl_geen) :
+      /*#__PURE__*/React.createElement("div", null,
+        [...new Set(prijslijst.map(p => p.categorie))].map(cat =>
+          /*#__PURE__*/React.createElement("div", { key: cat, style: { marginBottom: "1.5rem" } },
+            /*#__PURE__*/React.createElement("h3", { style: { fontSize: "1rem", marginBottom: "0.5rem" } }, cat),
+            /*#__PURE__*/React.createElement("div", { className: "card" },
+              prijslijst.filter(p => p.categorie === cat).map(art =>
+                /*#__PURE__*/React.createElement("div", {
+                  key: art.id,
+                  style: { padding: "0.8rem", borderBottom: "1px solid var(--line)", display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: "0.5rem", alignItems: "center" }
+                },
+                  /*#__PURE__*/React.createElement("div", null,
+                    /*#__PURE__*/React.createElement("div", { style: { fontWeight: 600 } }, art.naam || "(naamloos)"),
+                    /*#__PURE__*/React.createElement("div", { style: { fontSize: "0.8rem", color: "var(--ink-soft)" } }, art.beschrijving || "")
+                  ),
+                  /*#__PURE__*/React.createElement("div", { style: { fontWeight: 600 } }, "€", (parseFloat(art.prijs) || 0).toFixed(2)),
+                  /*#__PURE__*/React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => setBewerk(art.id) }, "✎"),
+                  /*#__PURE__*/React.createElement("button", { className: "btn btn-danger btn-sm", onClick: () => remove(art.id) }, "✕")
+                )
+              )
+            )
+          )
+        )
+      ),
+    bewerk && /*#__PURE__*/React.createElement("div", {
+      style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+      onClick: () => setBewerk(null)
+    },
+      /*#__PURE__*/React.createElement("div", {
+        className: "card",
+        style: { maxWidth: 400, width: "90%", maxHeight: "80vh", overflowY: "auto" },
+        onClick: e => e.stopPropagation()
+      },
+        /*#__PURE__*/React.createElement("h3", { style: { marginTop: 0 } }, "Artikel bewerken"),
+        (() => {
+          const art = prijslijst.find(a => a.id === bewerk);
+          if (!art) return null;
+          return /*#__PURE__*/React.createElement("div", { style: { display: "grid", gap: "1rem" } },
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("label", { className: "label" }, t.pl_naam),
+              /*#__PURE__*/React.createElement("input", { className: "input", value: art.naam || "", onChange: e => update(bewerk, { naam: e.target.value }) })
+            ),
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("label", { className: "label" }, t.pl_prijs),
+              /*#__PURE__*/React.createElement("input", { type: "number", className: "input", placeholder: "0.00", step: "0.10", value: art.prijs || "", onChange: e => update(bewerk, { prijs: e.target.value }) })
+            ),
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("label", { className: "label" }, t.pl_categorie),
+              /*#__PURE__*/React.createElement("select", { className: "select", value: art.categorie || "", onChange: e => update(bewerk, { categorie: e.target.value }) },
+                /*#__PURE__*/React.createElement("option", { value: "" }, t.pl_categorie_kies),
+                categorien.map(c => /*#__PURE__*/React.createElement("option", { key: c, value: c }, c))
+              )
+            ),
+            /*#__PURE__*/React.createElement("div", null,
+              /*#__PURE__*/React.createElement("label", { className: "label" }, t.pl_beschrijving),
+              /*#__PURE__*/React.createElement("input", { className: "input", placeholder: "opmerking…", value: art.beschrijving || "", onChange: e => update(bewerk, { beschrijving: e.target.value }) })
+            ),
+            /*#__PURE__*/React.createElement("button", { className: "btn btn-primary", onClick: () => setBewerk(null) }, "Sluiten")
+          );
+        })()
+      )
+    )
+  );
 }
 
 // ============================================================
