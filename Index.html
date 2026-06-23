@@ -1333,39 +1333,34 @@ function berekenKosten(data) {
   const budget = parseBedragNum(kb.budget);
   const zaalhuur = parseBedragNum(kb.zaalhuur);
 
-  // ★★★ CRITICAL FIX ★★★
-  // Eerste: Verzamel alle winkelIds die in winkelbestellingen materiaal voorkomen
-  // (Kan niet checken op winkelbestellingen.winkelId want dat veld bestaat niet!)
+  // 🔧 KRITIEKE FIX: Bepaal welke winkels in winkelbestellingen voorkomen
   const validWinkelIds = new Set();
-  Object.keys(data.winkelbestellingen || {}).forEach(matId => {
+  (data.winkelbestellingen ? Object.keys(data.winkelbestellingen) : []).forEach(matId => {
     const mat = (data.materiaal || []).find(m => m.id === matId);
-    if (mat && mat.winkelId) {
+    if (mat && mat.winkelId && mat.winkelId.trim()) {
       validWinkelIds.add(mat.winkelId);
     }
   });
 
   // Winkeltotalen: som van kasticketbedragen per winkel.
-  // Kastickets die "uit de kas" zijn betaald, gaan NIET in het budget —
-  // die verschijnen apart in het kasoverzicht.
   const winkelPerNaam = {};
   const kastickets = data.kastickets || {};
   let winkelUitKasTotaal = 0;
-  const winkelUitKas = []; // {winkel, bedrag} voor het kasoverzicht
+  const winkelUitKas = [];
   Object.keys(kastickets).forEach(key => {
     const kt = kastickets[key];
     const bedrag = parseBedragNum(kt.bedrag);
     if (bedrag === 0) return;
     const winkelId = key.split("|")[0];
-    // ★★★ FILTER: Alleen meegeteld als winkelId in winkelbestellingen voorkomt
+    
+    // 🔧 FILTER: ALLEEN winkels die in winkelbestellingen voorkomen
     if (!validWinkelIds.has(winkelId)) return;
+    
     const w = (data.winkels || []).find(x => x.id === winkelId);
     const naam = w ? w.naam : "—";
     if (kt.uitKas) {
       winkelUitKasTotaal += bedrag;
-      winkelUitKas.push({
-        winkel: naam,
-        bedrag
-      });
+      winkelUitKas.push({winkel: naam, bedrag});
     } else {
       winkelPerNaam[naam] = (winkelPerNaam[naam] || 0) + bedrag;
     }
@@ -8178,7 +8173,11 @@ function WinkelbestellingenTab({
   const [bezig, setBezig] = React.useState(false);
 
   // Alleen materiaal met oorsprong Winkel_Magasin
-  const items = (data.materiaal || []).filter(m => m.oorsprong === WINKEL_OORSPRONG && m.winkelId && m.winkelId.trim() !== "");
+  const items = (data.materiaal || []).filter(m => 
+    m.oorsprong === WINKEL_OORSPRONG && 
+    m.winkelId && 
+    m.winkelId.trim() !== ""
+  );
   const sortedVrij = [...data.vrijwilligers].sort((a, b) => {
     const an = (a.naam || "").toLowerCase(),
       bn = (b.naam || "").toLowerCase();
