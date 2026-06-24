@@ -5747,6 +5747,15 @@ function VrijwilligerKaart({
       gemeente: e.target.value
     })
   })), /*#__PURE__*/React.createElement(Field, {
+    label: "🏦 Rekeningnummer"
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.rekeningnummer || "",
+    onChange: e => update(v.id, {
+      rekeningnummer: e.target.value
+    }),
+    placeholder: "BE12 1234 5678 9012"
+  })), /*#__PURE__*/React.createElement(Field, {
     label: t.availability
   }, /*#__PURE__*/React.createElement("select", {
     className: "select",
