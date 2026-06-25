@@ -93,8 +93,11 @@
 
 <script>
 
-// AUTO-FIX CORRUPT MATERIAAL DATA
+// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
 function autoRepairData() {
+  if (window._repairDone) return;
+  window._repairDone = true;
+  
   try {
     const key = 'evenement_beheer_data_v4';
     const str = localStorage.getItem(key);
@@ -103,47 +106,32 @@ function autoRepairData() {
     const data = JSON.parse(str);
     let changed = false;
     
-    // Fix materiaal velden
     if (data.materiaal && Array.isArray(data.materiaal)) {
       data.materiaal = data.materiaal.map(m => {
         let fixed = {...m};
-        
-        // Zorg dat naam veld bestaat
-        if (!fixed.naam && (fixed.naamNl || fixed.naamFr)) {
-          fixed.naam = fixed.naamNl || fixed.naamFr;
-          changed = true;
-        }
         if (!fixed.naam) {
-          fixed.naam = `Item ${m.id?.substring(0,6) || 'x'}`;
+          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
           changed = true;
         }
-        
-        // Zorg dat winkel veld bestaat
         if (!fixed.winkel && fixed.winkelId) {
           fixed.winkel = fixed.winkelId;
           changed = true;
         }
-        if (!fixed.winkel) {
-          fixed.winkel = '';
-          changed = true;
-        }
-        
         return fixed;
       });
     }
     
     if (changed) {
       localStorage.setItem(key, JSON.stringify(data));
-      console.log('✅ Data automatisch gerepareerd');
-      window.location.reload();
+      console.log('✅ Data fixed, reloading once...');
+      location.reload();
     }
   } catch(e) {
-    console.error('Auto-repair fout:', e);
+    console.error('Repair error:', e);
   }
 }
 
-// Run op page load
-document.addEventListener('DOMContentLoaded', autoRepairData);
+autoRepairData();
 
 
 const {
@@ -11110,6 +11098,48 @@ if (loadingEl) loadingEl.style.display = "none";
 </script>
 
 <script>
+
+// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
+function autoRepairData() {
+  if (window._repairDone) return;
+  window._repairDone = true;
+  
+  try {
+    const key = 'evenement_beheer_data_v4';
+    const str = localStorage.getItem(key);
+    if (!str) return;
+    
+    const data = JSON.parse(str);
+    let changed = false;
+    
+    if (data.materiaal && Array.isArray(data.materiaal)) {
+      data.materiaal = data.materiaal.map(m => {
+        let fixed = {...m};
+        if (!fixed.naam) {
+          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
+          changed = true;
+        }
+        if (!fixed.winkel && fixed.winkelId) {
+          fixed.winkel = fixed.winkelId;
+          changed = true;
+        }
+        return fixed;
+      });
+    }
+    
+    if (changed) {
+      localStorage.setItem(key, JSON.stringify(data));
+      console.log('✅ Data fixed, reloading once...');
+      location.reload();
+    }
+  } catch(e) {
+    console.error('Repair error:', e);
+  }
+}
+
+autoRepairData();
+
+
 // PWA: registreer de service worker zodat de app installeerbaar is
 // (Werkt enkel als de app gehost is op een eigen domein, niet in preview)
 if ("serviceWorker" in navigator && !location.hostname.includes("claudeusercontent")) {
@@ -11140,6 +11170,48 @@ function exportToJson() {
 </script>
 <button id="exportJsonBtn" style="position:fixed;bottom:20px;right:20px;padding:10px 15px;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;z-index:9999;font-size:14px;" onclick="exportToJson()">📥 Export JSON</button>
 <script>
+
+// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
+function autoRepairData() {
+  if (window._repairDone) return;
+  window._repairDone = true;
+  
+  try {
+    const key = 'evenement_beheer_data_v4';
+    const str = localStorage.getItem(key);
+    if (!str) return;
+    
+    const data = JSON.parse(str);
+    let changed = false;
+    
+    if (data.materiaal && Array.isArray(data.materiaal)) {
+      data.materiaal = data.materiaal.map(m => {
+        let fixed = {...m};
+        if (!fixed.naam) {
+          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
+          changed = true;
+        }
+        if (!fixed.winkel && fixed.winkelId) {
+          fixed.winkel = fixed.winkelId;
+          changed = true;
+        }
+        return fixed;
+      });
+    }
+    
+    if (changed) {
+      localStorage.setItem(key, JSON.stringify(data));
+      console.log('✅ Data fixed, reloading once...');
+      location.reload();
+    }
+  } catch(e) {
+    console.error('Repair error:', e);
+  }
+}
+
+autoRepairData();
+
+
 </body>
 </html>
 
