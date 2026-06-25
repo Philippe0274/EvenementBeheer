@@ -92,48 +92,6 @@
 </div>
 
 <script>
-
-// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
-function autoRepairData() {
-  if (window._repairDone) return;
-  window._repairDone = true;
-  
-  try {
-    const key = 'evenement_beheer_data_v4';
-    const str = localStorage.getItem(key);
-    if (!str) return;
-    
-    const data = JSON.parse(str);
-    let changed = false;
-    
-    if (data.materiaal && Array.isArray(data.materiaal)) {
-      data.materiaal = data.materiaal.map(m => {
-        let fixed = {...m};
-        if (!fixed.naam) {
-          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
-          changed = true;
-        }
-        if (!fixed.winkel && fixed.winkelId) {
-          fixed.winkel = fixed.winkelId;
-          changed = true;
-        }
-        return fixed;
-      });
-    }
-    
-    if (changed) {
-      localStorage.setItem(key, JSON.stringify(data));
-      console.log('✅ Data fixed, reloading once...');
-      location.reload();
-    }
-  } catch(e) {
-    console.error('Repair error:', e);
-  }
-}
-
-autoRepairData();
-
-
 const {
   useState,
   useEffect
@@ -1624,7 +1582,7 @@ const normalizeData = raw => {
     safe.taken = raw.taken.map(t => ({
       id: t.id || uid(),
       naam: normalizeName(t.naamNl),
-      naamFr: normalizeName(t.naamFr),
+      naamFr_unused: normalizeName(t.naamFr),
       categorie: t.categorie || "",
       heeftSubtaken: !!t.heeftSubtaken,
       start: t.start || "",
@@ -1638,7 +1596,7 @@ const normalizeData = raw => {
       subtaken: Array.isArray(t.subtaken) ? t.subtaken.map(s => ({
         id: s.id || uid(),
         naam: normalizeName(s.naamNl),
-        naamFr: normalizeName(s.naamFr),
+        naamFr_unused: normalizeName(s.naamFr),
         start: s.start || "",
         eind: s.eind || "",
         dagdeel: s.dagdeel || "voormiddag",
@@ -1719,7 +1677,7 @@ const normalizeData = raw => {
     safe.materiaal = raw.materiaal.map(m => ({
       id: m.id || uid(),
       naam: normalizeName(m.naamNl),
-      naamFr: normalizeName(m.naamFr),
+      naamFr_unused: normalizeName(m.naamFr),
       aantal: m.aantal || "",
       oorsprong: fixOorsprong(m.oorsprong),
       verantwoordelijkeId: m.verantwoordelijkeId || "",
@@ -3063,6 +3021,7 @@ function App() {
     taken: [...d.taken, {
       id: uid(),
       naam: "",
+      naamFr_unused: "",
       categorie: "",
       heeftSubtaken: false,
       start: "",
@@ -3094,6 +3053,7 @@ function App() {
       subtaken: [...tt.subtaken, {
         id: uid(),
         naam: "",
+        naamFr_unused: "",
         start: "",
         eind: "",
         dagdeel: "voormiddag",
@@ -3307,6 +3267,7 @@ function App() {
     materiaal: [...(d.materiaal || []), {
       id: uid(),
       naam: "",
+      naamFr_unused: "",
       aantal: "",
       oorsprong: "",
       verantwoordelijkeId: "",
@@ -3875,7 +3836,7 @@ function App() {
     const newTaken = hoofd.map(h => ({
       id: h.id || uid(),
       naam: h.naam_nl || "",
-      naamFr: h.naam_fr || "",
+      naamFr_unused: h.naam_fr || "",
       categorie: h.categorie || "",
       heeftSubtaken: (h.heeft_subtaken || "").toString().toLowerCase() === "ja",
       start: h.start || "",
@@ -3889,7 +3850,7 @@ function App() {
       subtaken: sub.filter(s => s.hoofdtaak_id === h.id).map(s => ({
         id: s.id || uid(),
         naam: s.naam_nl || "",
-        naamFr: s.naam_fr || "",
+        naamFr_unused: s.naam_fr || "",
         start: s.start || "",
         eind: s.eind || "",
         dagdeel: s.dagdeel || "voormiddag",
@@ -3917,7 +3878,7 @@ function App() {
     const newMateriaal = mRows.filter(r => r.naam_nl || r.naam_fr || r.aantal).map(r => ({
       id: r.id || uid(),
       naam: normalizeName(r.naam_nl),
-      naamFr: normalizeName(r.naam_fr),
+      naamFr_unused: normalizeName(r.naam_fr),
       aantal: r.aantal !== undefined ? String(r.aantal) : "",
       oorsprong: r.oorsprong || "",
       verantwoordelijkeId: r.verantwoordelijke_id || "",
@@ -6254,13 +6215,13 @@ const useAutoTranslate = (item, updateFn, dict) => {
     if (item.naamNl && !item.naamFr) {
       const tr = translateText(item.naamNl, "nl", "fr", dict);
       if (tr) updateFn({
-        naamFr: normalizeName(tr)
+        naamFr_unused: normalizeName(tr)
       });
     }
   };
   const handleFrBlur = () => {
     if (item.naamFr) updateFn({
-      naamFr: normalizeName(item.naamFr)
+      naamFr_unused: normalizeName(item.naamFr)
     });
     if (item.naamFr && !item.naamNl) {
       const tr = translateText(item.naamFr, "fr", "nl", dict);
@@ -6351,7 +6312,7 @@ function TaakKaart({
     className: "input",
     value: capitalize(taak.naamFr),
     onChange: e => updateTaak(taak.id, {
-      naamFr: e.target.value
+      naamFr_unused: e.target.value
     }),
     onBlur: handleFrBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -6646,7 +6607,7 @@ function SubtaakRij({
     className: "input",
     value: capitalize(sub.naamFr),
     onChange: e => updateSubtaak(taakId, sub.id, {
-      naamFr: e.target.value
+      naamFr_unused: e.target.value
     }),
     onBlur: handleFrBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -7961,13 +7922,13 @@ function MateriaalRij({
     if (m.naamNl && !m.naamFr) {
       const tr = translateText(m.naamNl, "nl", "fr", dict);
       if (tr) update(m.id, {
-        naamFr: normalizeName(tr)
+        naamFr_unused: normalizeName(tr)
       });
     }
   };
   const handleFrBlur = () => {
     if (m.naamFr) update(m.id, {
-      naamFr: normalizeName(m.naamFr)
+      naamFr_unused: normalizeName(m.naamFr)
     });
     if (m.naamFr && !m.naamNl) {
       const tr = translateText(m.naamFr, "fr", "nl", dict);
@@ -8014,7 +7975,7 @@ function MateriaalRij({
     className: "input",
     value: capitalize(m.naamFr),
     onChange: e => update(m.id, {
-      naamFr: e.target.value
+      naamFr_unused: e.target.value
     }),
     onBlur: handleFrBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -11098,48 +11059,6 @@ if (loadingEl) loadingEl.style.display = "none";
 </script>
 
 <script>
-
-// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
-function autoRepairData() {
-  if (window._repairDone) return;
-  window._repairDone = true;
-  
-  try {
-    const key = 'evenement_beheer_data_v4';
-    const str = localStorage.getItem(key);
-    if (!str) return;
-    
-    const data = JSON.parse(str);
-    let changed = false;
-    
-    if (data.materiaal && Array.isArray(data.materiaal)) {
-      data.materiaal = data.materiaal.map(m => {
-        let fixed = {...m};
-        if (!fixed.naam) {
-          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
-          changed = true;
-        }
-        if (!fixed.winkel && fixed.winkelId) {
-          fixed.winkel = fixed.winkelId;
-          changed = true;
-        }
-        return fixed;
-      });
-    }
-    
-    if (changed) {
-      localStorage.setItem(key, JSON.stringify(data));
-      console.log('✅ Data fixed, reloading once...');
-      location.reload();
-    }
-  } catch(e) {
-    console.error('Repair error:', e);
-  }
-}
-
-autoRepairData();
-
-
 // PWA: registreer de service worker zodat de app installeerbaar is
 // (Werkt enkel als de app gehost is op een eigen domein, niet in preview)
 if ("serviceWorker" in navigator && !location.hostname.includes("claudeusercontent")) {
@@ -11170,48 +11089,6 @@ function exportToJson() {
 </script>
 <button id="exportJsonBtn" style="position:fixed;bottom:20px;right:20px;padding:10px 15px;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;z-index:9999;font-size:14px;" onclick="exportToJson()">📥 Export JSON</button>
 <script>
-
-// AUTO-FIX CORRUPT MATERIAAL DATA (run only once!)
-function autoRepairData() {
-  if (window._repairDone) return;
-  window._repairDone = true;
-  
-  try {
-    const key = 'evenement_beheer_data_v4';
-    const str = localStorage.getItem(key);
-    if (!str) return;
-    
-    const data = JSON.parse(str);
-    let changed = false;
-    
-    if (data.materiaal && Array.isArray(data.materiaal)) {
-      data.materiaal = data.materiaal.map(m => {
-        let fixed = {...m};
-        if (!fixed.naam) {
-          fixed.naam = fixed.naamNl || fixed.naamFr || `Item ${m.id?.substring(0,6) || 'x'}`;
-          changed = true;
-        }
-        if (!fixed.winkel && fixed.winkelId) {
-          fixed.winkel = fixed.winkelId;
-          changed = true;
-        }
-        return fixed;
-      });
-    }
-    
-    if (changed) {
-      localStorage.setItem(key, JSON.stringify(data));
-      console.log('✅ Data fixed, reloading once...');
-      location.reload();
-    }
-  } catch(e) {
-    console.error('Repair error:', e);
-  }
-}
-
-autoRepairData();
-
-
 </body>
 </html>
 
