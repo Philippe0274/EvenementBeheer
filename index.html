@@ -92,6 +92,60 @@
 </div>
 
 <script>
+
+// AUTO-FIX CORRUPT MATERIAAL DATA
+function autoRepairData() {
+  try {
+    const key = 'evenement_beheer_data_v4';
+    const str = localStorage.getItem(key);
+    if (!str) return;
+    
+    const data = JSON.parse(str);
+    let changed = false;
+    
+    // Fix materiaal velden
+    if (data.materiaal && Array.isArray(data.materiaal)) {
+      data.materiaal = data.materiaal.map(m => {
+        let fixed = {...m};
+        
+        // Zorg dat naam veld bestaat
+        if (!fixed.naam && (fixed.naamNl || fixed.naamFr)) {
+          fixed.naam = fixed.naamNl || fixed.naamFr;
+          changed = true;
+        }
+        if (!fixed.naam) {
+          fixed.naam = `Item ${m.id?.substring(0,6) || 'x'}`;
+          changed = true;
+        }
+        
+        // Zorg dat winkel veld bestaat
+        if (!fixed.winkel && fixed.winkelId) {
+          fixed.winkel = fixed.winkelId;
+          changed = true;
+        }
+        if (!fixed.winkel) {
+          fixed.winkel = '';
+          changed = true;
+        }
+        
+        return fixed;
+      });
+    }
+    
+    if (changed) {
+      localStorage.setItem(key, JSON.stringify(data));
+      console.log('✅ Data automatisch gerepareerd');
+      window.location.reload();
+    }
+  } catch(e) {
+    console.error('Auto-repair fout:', e);
+  }
+}
+
+// Run op page load
+document.addEventListener('DOMContentLoaded', autoRepairData);
+
+
 const {
   useState,
   useEffect
@@ -1581,7 +1635,7 @@ const normalizeData = raw => {
   if (Array.isArray(raw.taken)) {
     safe.taken = raw.taken.map(t => ({
       id: t.id || uid(),
-      naamNl: normalizeName(t.naamNl),
+      naam: normalizeName(t.naamNl),
       naamFr: normalizeName(t.naamFr),
       categorie: t.categorie || "",
       heeftSubtaken: !!t.heeftSubtaken,
@@ -1595,7 +1649,7 @@ const normalizeData = raw => {
       verantwoordelijkeVrij: t.verantwoordelijkeVrij || "",
       subtaken: Array.isArray(t.subtaken) ? t.subtaken.map(s => ({
         id: s.id || uid(),
-        naamNl: normalizeName(s.naamNl),
+        naam: normalizeName(s.naamNl),
         naamFr: normalizeName(s.naamFr),
         start: s.start || "",
         eind: s.eind || "",
@@ -1676,13 +1730,13 @@ const normalizeData = raw => {
   if (Array.isArray(raw.materiaal)) {
     safe.materiaal = raw.materiaal.map(m => ({
       id: m.id || uid(),
-      naamNl: normalizeName(m.naamNl),
+      naam: normalizeName(m.naamNl),
       naamFr: normalizeName(m.naamFr),
       aantal: m.aantal || "",
       oorsprong: fixOorsprong(m.oorsprong),
       verantwoordelijkeId: m.verantwoordelijkeId || "",
       verantwoordelijkeVrij: m.verantwoordelijkeVrij || "",
-      winkelId: m.winkelId || ""
+      winkel: m.winkelId || ""
     }));
   }
   if (Array.isArray(raw.oorsprongLijst) && raw.oorsprongLijst.length > 0) {
@@ -3020,8 +3074,7 @@ function App() {
     ...d,
     taken: [...d.taken, {
       id: uid(),
-      naamNl: "",
-      naamFr: "",
+      naam: "",
       categorie: "",
       heeftSubtaken: false,
       start: "",
@@ -3052,8 +3105,7 @@ function App() {
       ...tt,
       subtaken: [...tt.subtaken, {
         id: uid(),
-        naamNl: "",
-        naamFr: "",
+        naam: "",
         start: "",
         eind: "",
         dagdeel: "voormiddag",
@@ -3266,13 +3318,12 @@ function App() {
     ...d,
     materiaal: [...(d.materiaal || []), {
       id: uid(),
-      naamNl: "",
-      naamFr: "",
+      naam: "",
       aantal: "",
       oorsprong: "",
       verantwoordelijkeId: "",
       verantwoordelijkeVrij: "",
-      winkelId: ""
+      winkel: ""
     }]
   }));
   const updateMateriaal = (id, patch) => setData(d => ({
@@ -3835,7 +3886,7 @@ function App() {
     });
     const newTaken = hoofd.map(h => ({
       id: h.id || uid(),
-      naamNl: h.naam_nl || "",
+      naam: h.naam_nl || "",
       naamFr: h.naam_fr || "",
       categorie: h.categorie || "",
       heeftSubtaken: (h.heeft_subtaken || "").toString().toLowerCase() === "ja",
@@ -3849,7 +3900,7 @@ function App() {
       verantwoordelijkeVrij: h.verantwoordelijke_vrij || "",
       subtaken: sub.filter(s => s.hoofdtaak_id === h.id).map(s => ({
         id: s.id || uid(),
-        naamNl: s.naam_nl || "",
+        naam: s.naam_nl || "",
         naamFr: s.naam_fr || "",
         start: s.start || "",
         eind: s.eind || "",
@@ -3877,7 +3928,7 @@ function App() {
     }));
     const newMateriaal = mRows.filter(r => r.naam_nl || r.naam_fr || r.aantal).map(r => ({
       id: r.id || uid(),
-      naamNl: normalizeName(r.naam_nl),
+      naam: normalizeName(r.naam_nl),
       naamFr: normalizeName(r.naam_fr),
       aantal: r.aantal !== undefined ? String(r.aantal) : "",
       oorsprong: r.oorsprong || "",
@@ -5747,15 +5798,6 @@ function VrijwilligerKaart({
       gemeente: e.target.value
     })
   })), /*#__PURE__*/React.createElement(Field, {
-    label: "🏦 Rekeningnummer"
-  }, /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    value: v.rekeningnummer || "",
-    onChange: e => update(v.id, {
-      rekeningnummer: e.target.value
-    }),
-    placeholder: "BE12 1234 5678 9012"
-  })), /*#__PURE__*/React.createElement(Field, {
     label: t.availability
   }, /*#__PURE__*/React.createElement("select", {
     className: "select",
@@ -6219,7 +6261,7 @@ function TakenTab({
 const useAutoTranslate = (item, updateFn, dict) => {
   const handleNlBlur = () => {
     if (item.naamNl) updateFn({
-      naamNl: normalizeName(item.naamNl)
+      naam: normalizeName(item.naamNl)
     });
     if (item.naamNl && !item.naamFr) {
       const tr = translateText(item.naamNl, "nl", "fr", dict);
@@ -6235,7 +6277,7 @@ const useAutoTranslate = (item, updateFn, dict) => {
     if (item.naamFr && !item.naamNl) {
       const tr = translateText(item.naamFr, "fr", "nl", dict);
       if (tr) updateFn({
-        naamNl: normalizeName(tr)
+        naam: normalizeName(tr)
       });
     }
   };
@@ -6312,7 +6354,7 @@ function TaakKaart({
     className: "input",
     value: capitalize(taak.naamNl),
     onChange: e => updateTaak(taak.id, {
-      naamNl: e.target.value
+      naam: e.target.value
     }),
     onBlur: handleNlBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -6607,7 +6649,7 @@ function SubtaakRij({
     className: "input",
     value: capitalize(sub.naamNl),
     onChange: e => updateSubtaak(taakId, sub.id, {
-      naamNl: e.target.value
+      naam: e.target.value
     }),
     onBlur: handleNlBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -7926,7 +7968,7 @@ function MateriaalRij({
   const handleNlBlur = () => {
     // Normaliseer naar lowercase bij verlaten van veld
     if (m.naamNl) update(m.id, {
-      naamNl: normalizeName(m.naamNl)
+      naam: normalizeName(m.naamNl)
     });
     if (m.naamNl && !m.naamFr) {
       const tr = translateText(m.naamNl, "nl", "fr", dict);
@@ -7942,7 +7984,7 @@ function MateriaalRij({
     if (m.naamFr && !m.naamNl) {
       const tr = translateText(m.naamFr, "fr", "nl", dict);
       if (tr) update(m.id, {
-        naamNl: normalizeName(tr)
+        naam: normalizeName(tr)
       });
     }
   };
@@ -7975,7 +8017,7 @@ function MateriaalRij({
     className: "input",
     value: capitalize(m.naamNl),
     onChange: e => update(m.id, {
-      naamNl: e.target.value
+      naam: e.target.value
     }),
     onBlur: handleNlBlur
   })), /*#__PURE__*/React.createElement(Field, {
@@ -8071,7 +8113,7 @@ function MateriaalRij({
     className: "select",
     value: m.winkelId || "",
     onChange: e => update(m.id, {
-      winkelId: e.target.value
+      winkel: e.target.value
     }),
     style: {
       maxWidth: 320
