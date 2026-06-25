@@ -198,6 +198,7 @@ const T = {
     tab_kostenbeheer: "Kostenbeheer",
     tab_history: "Event History",
     tab_voorverkoop: "Voorverkoop",
+    tab_kassabewegingen: "Kassa Bewegingen",
     tab_prijslijst: "Prijslijst",
     pl_intro: "Beheer hier de prijslijst voor de kassa. Dit wordt ter plekke ingelezen.",
     pl_add: "+ Artikel toevoegen",
@@ -688,6 +689,7 @@ const T = {
     tab_kostenbeheer: "Gestion des coûts",
     tab_history: "Historique",
     tab_voorverkoop: "Prévente",
+    tab_kassabewegingen: "Mouvements de Caisse",
     tab_prijslijst: "Liste de prix",
     pl_intro: "Gérez ici la liste de prix pour la caisse.",
     pl_add: "+ Ajouter un article",
@@ -4266,7 +4268,7 @@ function App() {
       gap: "0.2rem",
       flexWrap: "wrap"
     }
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -4409,7 +4411,27 @@ function App() {
     addBetaalrekening: addBetaalrekening,
     addExternContactMetNaam: addExternContactMetNaam,
     t: t
-  }), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
+  }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "3rem 2rem",
+      background: "var(--bg-card)",
+      border: "2px dashed var(--accent)",
+      borderRadius: "8px",
+      marginTop: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: "2rem",
+      color: "var(--accent)",
+      margin: "0 0 1rem 0"
+    }
+  }, "🚧 UNDER CONSTRUCTION"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "1rem"
+    }
+  }, "Dit tabblad wordt binnenkort ingevuld...")), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
     eventHistory: data.eventHistory || [],
     t: t
   })), /*#__PURE__*/React.createElement("footer", {
