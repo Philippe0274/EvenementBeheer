@@ -119,7 +119,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.5.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -211,10 +211,12 @@ const T = {
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
-    bc_preview: "Bekijk voorbeeld",
-    bc_pdf_set: "Genereer PDF",
-    bc_print: "Afdrukken",
-    bc_pdf_sheet: "PDF blad",
+    bc_preview: "👁 Bekijk volledige sheetset",
+    bc_pdf_set: "📄 PDF volledige sheetset",
+    bc_print: "🖨 Afdrukken volledige sheetset",
+    bc_preview_sheet: "👁 Bekijk blad",
+    bc_pdf_sheet: "📄 PDF blad",
+    bc_print_sheet: "🖨 Afdrukken blad",
     bc_pdf_error: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
     bc_pdf_ok: "✓ Business Continuity PDF aangemaakt",
     bc_print_blocked: "Het printvenster kon niet geopend worden. Controleer de pop-upinstellingen.",
@@ -724,10 +726,12 @@ const T = {
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
-    bc_preview: "Voir aperçu",
-    bc_pdf_set: "Générer PDF",
-    bc_print: "Imprimer",
-    bc_pdf_sheet: "PDF feuille",
+    bc_preview: "👁 Voir le jeu complet",
+    bc_pdf_set: "📄 PDF jeu complet",
+    bc_print: "🖨 Imprimer le jeu complet",
+    bc_preview_sheet: "👁 Voir feuille",
+    bc_pdf_sheet: "📄 PDF feuille",
+    bc_print_sheet: "🖨 Imprimer feuille",
     bc_pdf_error: "Impossible de créer le PDF (bibliothèque non chargée).",
     bc_pdf_ok: "✓ PDF Business Continuity créé",
     bc_print_blocked: "La fenêtre d'impression n'a pas pu être ouverte. Vérifiez les paramètres de pop-up.",
@@ -10916,7 +10920,7 @@ function BusinessContinuityTab({
         display: "grid",
         gap: "0.55rem"
       }
-    }, sheets.map(sheet => /*#__PURE__*/React.createElement("details", {
+    }, sheets.map(sheet => /*#__PURE__*/React.createElement("div", {
       key: sheet.id,
       style: {
         border: "1px solid var(--line)",
@@ -10924,13 +10928,47 @@ function BusinessContinuityTab({
         padding: "0.6rem",
         background: "white"
       }
-    }, /*#__PURE__*/React.createElement("summary", {
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
-        cursor: "pointer",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "0.6rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
         fontSize: "0.9rem",
         fontWeight: 600
       }
     }, t.bc_page, " ", sheet.sheetNumber, "/", sheet.sheetCount, " · ", t.bc_sheet_id, ": ", sheet.id, " · ", t.bc_status, ": ", sheet.status), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap",
+        justifyContent: "flex-end"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => openPreview([sheet], false)
+    }, t.bc_preview_sheet), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => generatePdf([sheet], `business_continuity_${filePart(sheet.id)}.pdf`)
+    }, t.bc_pdf_sheet), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => openPreview([sheet], true)
+    }, t.bc_print_sheet))), /*#__PURE__*/React.createElement("details", {
+      style: {
+        marginTop: "0.6rem"
+      }
+    }, /*#__PURE__*/React.createElement("summary", {
+      style: {
+        cursor: "pointer",
+        fontSize: "0.82rem",
+        color: "var(--ink-soft)",
+        fontWeight: 600
+      }
+    }, t.bc_qr_payload), /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: "0.6rem",
         display: "grid",
@@ -10938,19 +10976,7 @@ function BusinessContinuityTab({
         fontSize: "0.82rem",
         color: "var(--ink-soft)"
       }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: "0.45rem",
-        flexWrap: "wrap"
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-secondary btn-sm",
-      onClick: () => openPreview([sheet], false)
-    }, t.bc_preview), /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-secondary btn-sm",
-      onClick: () => generatePdf([sheet], `business_continuity_${filePart(sheet.id)}.pdf`)
-    }, t.bc_pdf_sheet)), /*#__PURE__*/React.createElement("div", null, "Code: ", sheet.sheetCode || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_generated_at, ": ", fmtDateTime(sheet.generatedAt)), /*#__PURE__*/React.createElement("div", null, t.bc_price_snapshot, ": ", (sheet.priceListSnapshot || []).length, " items"), /*#__PURE__*/React.createElement("div", null, t.bc_qr_payload, ":"), /*#__PURE__*/React.createElement("pre", {
+    }, /*#__PURE__*/React.createElement("div", null, "Code: ", sheet.sheetCode || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_generated_at, ": ", fmtDateTime(sheet.generatedAt)), /*#__PURE__*/React.createElement("div", null, t.bc_price_snapshot, ": ", (sheet.priceListSnapshot || []).length, " items"), /*#__PURE__*/React.createElement("pre", {
       style: {
         margin: 0,
         whiteSpace: "pre-wrap",
@@ -10961,7 +10987,7 @@ function BusinessContinuityTab({
         padding: "0.5rem",
         fontSize: "0.75rem"
       }
-    }, sheet.qrPayload || ""))))));
+    }, sheet.qrPayload || "")))))));
   })));
 }
 

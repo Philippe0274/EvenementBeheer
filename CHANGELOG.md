@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1
+- Bugfix Business Continuity UI: sheetset-acties zijn nu expliciet zichtbaar als Bekijk volledige sheetset, PDF volledige sheetset en Afdrukken volledige sheetset.
+- Bugfix Business Continuity UI: elk individueel kassablad toont nu direct de knoppen Bekijk blad, PDF blad en Afdrukken blad.
+- Franse labels toegevoegd voor dezelfde zichtbare preview-, PDF- en printacties.
+- Bestaande preview-, PDF- en printfuncties blijven hergebruikt; er is geen administratieve invoer, validatie of ledger-posting toegevoegd.
+
 ## 1.5.0
 - Fase 2 Hoofdapp Stap 3: professionele PDF- en printgenerator voor Business Continuity kassabladen toegevoegd.
 - Business Continuity sheetsets kunnen nu als volledige set bekeken, afgedrukt en als PDF gegenereerd worden.
