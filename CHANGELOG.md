@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0
+- Architectuurcorrectie Business Continuity: sheetsets gebruiken voortaan uitsluitend de officiële beginprijslijst uit het Hoofdapp-tabblad Prijslijst.
+- Beginprijslijst wordt bij generatie vastgelegd als immutable snapshot met schemaName, schemaVersion, bron, categorieën en artikelen.
+- Artikelsnapshot bewaart articleId, artikelnummer, categorie, naam, prijs, actief/inactief en volgorde.
+- Print- en PDF-formulieren tonen de officiële beginprijslijst voortaan gegroepeerd per categorie.
+- Prijslijst-artikelen ondersteunen nu actief/inactief voor de officiële beginprijslijst.
+- Sheetset lifecycle uitgebreid met opnieuw openen en veilig verwijderen; verwijderen is alleen toegestaan voor generated en archived.
+- Geen synchronisatie, import/export, administratieve invoer, ledger-posting of rapportering toegevoegd.
+
 ## 1.5.1
 - Bugfix Business Continuity UI: sheetset-acties zijn nu expliciet zichtbaar als Bekijk volledige sheetset, PDF volledige sheetset en Afdrukken volledige sheetset.
 - Bugfix Business Continuity UI: elk individueel kassablad toont nu direct de knoppen Bekijk blad, PDF blad en Afdrukken blad.
