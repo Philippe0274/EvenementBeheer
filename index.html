@@ -119,7 +119,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.6.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -238,6 +238,40 @@ const T = {
     bc_status: "Status",
     bc_qr_payload: "QR/barcode-payload",
     bc_price_snapshot: "Prijslijst-snapshot",
+    bc_sheet_title: "Business Continuity Kassablad",
+    bc_print_title: "Business Continuity Kassabladen",
+    bc_version_label: "Versie",
+    bc_responsible_label: "Verantwoordelijke",
+    bc_no_responsible: "................................",
+    bc_no_category: "Zonder categorie",
+    bc_inactive: "inactief",
+    bc_no_official_pricelist: "Geen officiële beginprijslijst geregistreerd.",
+    bc_incident_title: "Business Continuity incident",
+    bc_incident_id: "IncidentId",
+    bc_incident_start: "Start",
+    bc_incident_end: "Einde",
+    bc_reason_tablet_defect: "Tablet defect",
+    bc_reason_tablet_forgotten: "Tablet vergeten",
+    bc_reason_browser_crash: "Browser/PWA crash",
+    bc_reason_battery_empty: "Batterij leeg",
+    bc_reason_other: "Andere",
+    bc_approved_by: "Goedgekeurd door",
+    bc_changes_title: "Wijzigingen / opmerkingen",
+    bc_basis_title: "Basiswerking",
+    bc_basis_text: "1 verkoop = 1 transactienummer. Een verkoop mag meerdere opeenvolgende regels gebruiken. Vul betaalwijze en eventuele gift normaal alleen in op de laatste regel van dezelfde transactie. Geen bedragen of totalen berekenen.",
+    bc_col_tx: "Tx",
+    bc_col_time: "Uur",
+    bc_col_article: "Art.nr",
+    bc_col_quantity: "Aantal",
+    bc_col_cash: "Cash",
+    bc_col_card: "Kaart",
+    bc_col_payconiq: "Payconiq",
+    bc_col_gift: "Gift",
+    bc_col_note: "Opmerking",
+    bc_rows_used: "Aantal gebruikte regels",
+    bc_last_transaction: "Laatste transactienummer",
+    bc_volunteer_signature: "Vrijwilliger",
+    bc_responsible_check: "Controle verantwoordelijke",
     bc_generated_ok: n => `✓ ${n} kassabladen gegenereerd`,
     pl_intro: "Beheer hier de prijslijst voor de kassa. Dit wordt ter plekke ingelezen.",
     pl_add: "+ Artikel toevoegen",
@@ -762,6 +796,40 @@ const T = {
     bc_status: "Statut",
     bc_qr_payload: "Payload QR/code-barres",
     bc_price_snapshot: "Instantané de la liste de prix",
+    bc_sheet_title: "Feuille de caisse Business Continuity",
+    bc_print_title: "Feuilles de caisse Business Continuity",
+    bc_version_label: "Version",
+    bc_responsible_label: "Responsable",
+    bc_no_responsible: "................................",
+    bc_no_category: "Sans catégorie",
+    bc_inactive: "inactif",
+    bc_no_official_pricelist: "Aucune liste de prix initiale officielle enregistrée.",
+    bc_incident_title: "Incident Business Continuity",
+    bc_incident_id: "IncidentId",
+    bc_incident_start: "Début",
+    bc_incident_end: "Fin",
+    bc_reason_tablet_defect: "Tablette défectueuse",
+    bc_reason_tablet_forgotten: "Tablette oubliée",
+    bc_reason_browser_crash: "Crash navigateur/PWA",
+    bc_reason_battery_empty: "Batterie vide",
+    bc_reason_other: "Autre",
+    bc_approved_by: "Approuvé par",
+    bc_changes_title: "Modifications / remarques",
+    bc_basis_title: "Règle de base",
+    bc_basis_text: "1 vente = 1 numéro de transaction. Une vente peut utiliser plusieurs lignes consécutives. Indiquez le mode de paiement et l'éventuel don normalement uniquement sur la dernière ligne de la même transaction. Ne calculez aucun montant ni total.",
+    bc_col_tx: "Tx",
+    bc_col_time: "Heure",
+    bc_col_article: "Art. n°",
+    bc_col_quantity: "Nombre",
+    bc_col_cash: "Cash",
+    bc_col_card: "Carte",
+    bc_col_payconiq: "Payconiq",
+    bc_col_gift: "Don",
+    bc_col_note: "Remarque",
+    bc_rows_used: "Nombre de lignes utilisées",
+    bc_last_transaction: "Dernier numéro de transaction",
+    bc_volunteer_signature: "Bénévole",
+    bc_responsible_check: "Contrôle responsable",
     bc_generated_ok: n => `✓ ${n} feuilles générées`,
     pl_intro: "Gérez ici la liste de prix pour la caisse.",
     pl_add: "+ Ajouter un article",
@@ -1817,6 +1885,26 @@ const normalizeData = raw => {
   if (raw.bulkGeschiedenis && typeof raw.bulkGeschiedenis === "object") {
     safe.bulkGeschiedenis = raw.bulkGeschiedenis;
   }
+
+  // Prijslijst is officiele event-masterdata en mag nooit verdwijnen bij normalisatie.
+  const rawPrijslijst = Array.isArray(raw.prijslijst) ? raw.prijslijst : Array.isArray(raw.priceList) ? raw.priceList : [];
+  safe.prijslijst = rawPrijslijst.filter(a => a && typeof a === "object").map((a, index) => {
+    const prijs = a.prijs !== undefined ? a.prijs : a.price;
+    const categorie = a.categorie !== undefined ? a.categorie : a.category;
+    return {
+      ...a,
+      id: a.id || a.articleId || uid(),
+      naam: (a.naam || a.name || "").toString(),
+      prijs: prijs !== undefined && prijs !== null ? prijs.toString() : "",
+      categorie: (categorie || "").toString(),
+      beschrijving: (a.beschrijving || a.description || "").toString(),
+      actief: a.actief === undefined ? true : a.actief !== false,
+      volgorde: Number.isFinite(Number(a.volgorde)) ? Number(a.volgorde) : index
+    };
+  });
+  const rawPrijslijstCategorien = Array.isArray(raw.prijslijstCategorien) ? raw.prijslijstCategorien : Array.isArray(raw.prijslijstCategorieen) ? raw.prijslijstCategorieen : [];
+  const articleCategorien = safe.prijslijst.map(a => a.categorie).filter(Boolean);
+  safe.prijslijstCategorien = [...new Set([...rawPrijslijstCategorien, ...articleCategorien, ...defaultData.prijslijstCategorien].filter(x => typeof x === "string" && x.trim()).map(x => x.trim()))];
 
   // Oude oorsprong-waarde "Winkel_Magazin" corrigeren naar "Winkel_Magasin"
   const fixOorsprong = o => o === "Winkel_Magazin" ? WINKEL_OORSPRONG : o || "";
@@ -10742,15 +10830,15 @@ function BusinessContinuityTab({
     return `<section class="bc-print-sheet">
       <header class="bc-print-header">
         <div>
-          <h1>Business Continuity Kassablad</h1>
+          <h1>${escapeHtml(t.bc_sheet_title)}</h1>
           <div class="bc-sub">${escapeHtml(meta.eventName)} · ${escapeHtml(meta.date)} · ${escapeHtml(meta.location)}</div>
           <div class="bc-meta-grid">
-            <span>EventId: <strong>${escapeHtml(sheet.eventId)}</strong></span>
-            <span>SheetId: <strong>${escapeHtml(sheet.id)}</strong></span>
-            <span>Blad: <strong>${escapeHtml(meta.page)}</strong></span>
-            <span>Versie: <strong>${escapeHtml(sheet.version || BC_SHEET_VERSION)}</strong></span>
-            <span>Verantwoordelijke: <strong>${escapeHtml(meta.responsible || "................................")}</strong></span>
-            <span>Gegenereerd: <strong>${escapeHtml(meta.generatedAt)}</strong></span>
+            <span>${escapeHtml(t.bc_event_id)}: <strong>${escapeHtml(sheet.eventId)}</strong></span>
+            <span>${escapeHtml(t.bc_sheet_id)}: <strong>${escapeHtml(sheet.id)}</strong></span>
+            <span>${escapeHtml(t.bc_page)}: <strong>${escapeHtml(meta.page)}</strong></span>
+            <span>${escapeHtml(t.bc_version_label)}: <strong>${escapeHtml(sheet.version || BC_SHEET_VERSION)}</strong></span>
+            <span>${escapeHtml(t.bc_responsible_label)}: <strong>${escapeHtml(meta.responsible || t.bc_no_responsible)}</strong></span>
+            <span>${escapeHtml(t.bc_generated_at)}: <strong>${escapeHtml(meta.generatedAt)}</strong></span>
           </div>
         </div>
         <div class="bc-codes">
@@ -10760,38 +10848,38 @@ function BusinessContinuityTab({
       </header>
       <div class="bc-top-grid">
         <div class="bc-box bc-prices">
-          <h2>Officiële beginprijslijst</h2>
-          <div class="bc-price-grid">${prices.length ? categories.map(cat => `<section><h3>${escapeHtml(cat.naam || "Zonder categorie")}</h3>${(cat.articles || []).map(p => `<div><strong>${escapeHtml(p.articleNumber)}</strong> ${escapeHtml(p.naam)}${p.actief === false ? " (inactief)" : ""} <span>€ ${escapeHtml(p.prijs || "0")}</span></div>`).join("")}</section>`).join("") : "<em>Geen officiële beginprijslijst geregistreerd.</em>"}</div>
+          <h2>${escapeHtml(t.bc_official_pricelist)}</h2>
+          <div class="bc-price-grid">${prices.length ? categories.map(cat => `<section><h3>${escapeHtml(cat.naam || t.bc_no_category)}</h3>${(cat.articles || []).map(p => `<div><strong>${escapeHtml(p.articleNumber)}</strong> ${escapeHtml(p.naam)}${p.actief === false ? ` (${escapeHtml(t.bc_inactive)})` : ""} <span>€ ${escapeHtml(p.prijs || "0")}</span></div>`).join("")}</section>`).join("") : `<em>${escapeHtml(t.bc_no_official_pricelist)}</em>`}</div>
         </div>
         <div class="bc-box">
-          <h2>Business Continuity incident</h2>
-          <div class="bc-lines">IncidentId: ____________________</div>
-          <div class="bc-lines">Start: ________  Einde: ________</div>
-          <div class="bc-checks">□ Tablet defect  □ Tablet vergeten  □ Browser/PWA crash  □ Batterij leeg  □ Andere</div>
-          <div class="bc-lines">Goedgekeurd door: ____________________</div>
+          <h2>${escapeHtml(t.bc_incident_title)}</h2>
+          <div class="bc-lines">${escapeHtml(t.bc_incident_id)}: ____________________</div>
+          <div class="bc-lines">${escapeHtml(t.bc_incident_start)}: ________  ${escapeHtml(t.bc_incident_end)}: ________</div>
+          <div class="bc-checks">□ ${escapeHtml(t.bc_reason_tablet_defect)}  □ ${escapeHtml(t.bc_reason_tablet_forgotten)}  □ ${escapeHtml(t.bc_reason_browser_crash)}  □ ${escapeHtml(t.bc_reason_battery_empty)}  □ ${escapeHtml(t.bc_reason_other)}</div>
+          <div class="bc-lines">${escapeHtml(t.bc_approved_by)}: ____________________</div>
         </div>
         <div class="bc-box">
-          <h2>Wijzigingen / opmerkingen</h2>
+          <h2>${escapeHtml(t.bc_changes_title)}</h2>
           <div class="bc-note-lines"></div>
         </div>
         <div class="bc-box">
-          <h2>Basiswerking</h2>
-          <p>1 verkoop = 1 transactienummer. Een verkoop mag meerdere opeenvolgende regels gebruiken. Vul betaalwijze en eventuele gift normaal alleen in op de laatste regel van dezelfde transactie. Geen bedragen of totalen berekenen.</p>
+          <h2>${escapeHtml(t.bc_basis_title)}</h2>
+          <p>${escapeHtml(t.bc_basis_text)}</p>
         </div>
       </div>
       <table class="bc-sales">
-        <thead><tr><th>Tx</th><th>Uur</th><th>Art.nr</th><th>Aantal</th><th>Cash</th><th>Kaart</th><th>Payconiq</th><th>Gift</th><th>Opmerking</th></tr></thead>
+        <thead><tr><th>${escapeHtml(t.bc_col_tx)}</th><th>${escapeHtml(t.bc_col_time)}</th><th>${escapeHtml(t.bc_col_article)}</th><th>${escapeHtml(t.bc_col_quantity)}</th><th>${escapeHtml(t.bc_col_cash)}</th><th>${escapeHtml(t.bc_col_card)}</th><th>${escapeHtml(t.bc_col_payconiq)}</th><th>${escapeHtml(t.bc_col_gift)}</th><th>${escapeHtml(t.bc_col_note)}</th></tr></thead>
         <tbody>${rows.map(r => `<tr><td>${escapeHtml(r.txNumber)}</td><td>${escapeHtml(r.time)}</td><td>${escapeHtml(r.articleNumber)}</td><td>${escapeHtml(r.quantity)}</td><td></td><td></td><td></td><td></td><td>${escapeHtml(r.note)}</td></tr>`).join("")}</tbody>
       </table>
       <footer class="bc-page-check">
-        <div>Aantal gebruikte regels: ______</div>
-        <div>Laatste transactienummer: ______</div>
-        <div>Vrijwilliger: ____________________</div>
-        <div>Controle verantwoordelijke: ____________________</div>
+        <div>${escapeHtml(t.bc_rows_used)}: ______</div>
+        <div>${escapeHtml(t.bc_last_transaction)}: ______</div>
+        <div>${escapeHtml(t.bc_volunteer_signature)}: ____________________</div>
+        <div>${escapeHtml(t.bc_responsible_check)}: ____________________</div>
       </footer>
     </section>`;
   };
-  const printDocumentHtml = sheets => `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Business Continuity Kassabladen</title><style>
+  const printDocumentHtml = sheets => `<!DOCTYPE html><html lang="${data.taal === "fr" ? "fr" : "nl"}"><head><meta charset="UTF-8"><title>${escapeHtml(t.bc_print_title)}</title><style>
     @page { size: A4 landscape; margin: 8mm; }
     * { box-sizing: border-box; }
     body { margin: 0; color: #000; font-family: Arial, Helvetica, sans-serif; background: #fff; }
@@ -10859,13 +10947,13 @@ function BusinessContinuityTab({
     doc.setLineWidth(0.25);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("Business Continuity Kassablad", 8, 13);
+    doc.text(t.bc_sheet_title, 8, 13);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(`${meta.eventName} - ${meta.date} - ${meta.location}`, 8, 19);
     const metaRows = [
-      [`EventId: ${sheet.eventId || ""}`, `SheetId: ${sheet.id || ""}`, `Blad: ${meta.page}`],
-      [`Versie: ${sheet.version || BC_SHEET_VERSION}`, `Verantwoordelijke: ${meta.responsible || ""}`, `Gegenereerd: ${meta.generatedAt}`]
+      [`${t.bc_event_id}: ${sheet.eventId || ""}`, `${t.bc_sheet_id}: ${sheet.id || ""}`, `${t.bc_page}: ${meta.page}`],
+      [`${t.bc_version_label}: ${sheet.version || BC_SHEET_VERSION}`, `${t.bc_responsible_label}: ${meta.responsible || ""}`, `${t.bc_generated_at}: ${meta.generatedAt}`]
     ];
     metaRows.forEach((row, i) => row.forEach((value, j) => doc.text(textClip(doc, value, 82), 8 + j * 82, 25 + i * 5)));
     doc.addImage(qr, "PNG", 260, 8, 24, 24);
@@ -10873,7 +10961,7 @@ function BusinessContinuityTab({
     doc.line(8, 48, 289, 48);
     const boxY = 52;
     const boxH = 32;
-    const boxes = [[8, 82, "Actuele prijslijst"], [94, 62, "Business Continuity incident"], [160, 62, "Wijzigingen / opmerkingen"], [226, 63, "Basiswerking"]];
+    const boxes = [[8, 82, t.bc_official_pricelist], [94, 62, t.bc_incident_title], [160, 62, t.bc_changes_title], [226, 63, t.bc_basis_title]];
     boxes.forEach(([x, w, title]) => {
       doc.rect(x, boxY, w, boxH);
       doc.setFont("helvetica", "bold");
@@ -10888,7 +10976,7 @@ function BusinessContinuityTab({
       const row = priceRow > 11 ? priceRow - 12 : priceRow;
       if (priceRow < 24) {
         doc.setFont("helvetica", "bold");
-        doc.text(safe(cat.naam || "Zonder categorie").toUpperCase().slice(0, 22), 10 + col * 40, boxY + 10 + row * 2.2);
+        doc.text(safe(cat.naam || t.bc_no_category).toUpperCase().slice(0, 22), 10 + col * 40, boxY + 10 + row * 2.2);
         doc.setFont("helvetica", "normal");
       }
       priceRow += 1;
@@ -10899,18 +10987,18 @@ function BusinessContinuityTab({
         priceRow += 1;
       });
     });
-    if (!prices.length) doc.text("Geen prijslijst geregistreerd.", 10, boxY + 10);
+    if (!prices.length) doc.text(t.bc_no_official_pricelist, 10, boxY + 10);
     doc.setFontSize(7);
-    doc.text("IncidentId: ____________________", 96, boxY + 10);
-    doc.text("Start: ________  Einde: ________", 96, boxY + 16);
-    doc.text("□ Tablet defect  □ Tablet vergeten", 96, boxY + 22);
-    doc.text("□ Browser/PWA crash  □ Batterij leeg  □ Andere", 96, boxY + 27);
-    doc.text("Goedgekeurd door: ____________________", 96, boxY + 31);
+    doc.text(`${t.bc_incident_id}: ____________________`, 96, boxY + 10);
+    doc.text(`${t.bc_incident_start}: ________  ${t.bc_incident_end}: ________`, 96, boxY + 16);
+    doc.text(`□ ${t.bc_reason_tablet_defect}  □ ${t.bc_reason_tablet_forgotten}`, 96, boxY + 22);
+    doc.text(`□ ${t.bc_reason_browser_crash}  □ ${t.bc_reason_battery_empty}  □ ${t.bc_reason_other}`, 96, boxY + 27);
+    doc.text(`${t.bc_approved_by}: ____________________`, 96, boxY + 31);
     for (let y = boxY + 10; y < boxY + 30; y += 6) doc.line(162, y, 220, y);
-    doc.text(doc.splitTextToSize("1 verkoop = 1 transactienummer. Meerdere opeenvolgende regels mogen bij dezelfde verkoop horen. Betaalwijze en gift normaal alleen op de laatste regel. Geen bedragen of totalen berekenen.", 58), 228, boxY + 10);
+    doc.text(doc.splitTextToSize(t.bc_basis_text, 58), 228, boxY + 10);
     const tableY = 89;
     const cols = [
-      ["Tx", 16], ["Uur", 16], ["Art.nr", 18], ["Aantal", 17], ["Cash", 18], ["Kaart", 18], ["Payconiq", 21], ["Gift", 18], ["Opmerking", 119]
+      [t.bc_col_tx, 16], [t.bc_col_time, 16], [t.bc_col_article, 18], [t.bc_col_quantity, 17], [t.bc_col_cash, 18], [t.bc_col_card, 18], [t.bc_col_payconiq, 21], [t.bc_col_gift, 18], [t.bc_col_note, 119]
     ];
     let x = 8;
     doc.setFont("helvetica", "bold");
@@ -10934,10 +11022,10 @@ function BusinessContinuityTab({
     const checkY = tableY + 7 + rows.length * 6.1;
     doc.rect(8, checkY, 281, 13);
     doc.setFontSize(7.5);
-    doc.text("Aantal gebruikte regels: ______", 11, checkY + 5);
-    doc.text("Laatste transactienummer: ______", 78, checkY + 5);
-    doc.text("Vrijwilliger: ____________________", 150, checkY + 5);
-    doc.text("Controle verantwoordelijke: ____________________", 218, checkY + 5);
+    doc.text(`${t.bc_rows_used}: ______`, 11, checkY + 5);
+    doc.text(`${t.bc_last_transaction}: ______`, 78, checkY + 5);
+    doc.text(`${t.bc_volunteer_signature}: ____________________`, 150, checkY + 5);
+    doc.text(`${t.bc_responsible_check}: ____________________`, 218, checkY + 5);
   };
   const generatePdf = (sheets, name) => {
     const jsPDFns = window.jspdf;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.1
+- Regressieherstel: `normalizeData()` bewaart de officiële event-prijslijst en prijslijstcategorieën opnieuw expliciet en backward compatible.
+- Regressieherstel Business Continuity: sheetsets gebruiken opnieuw de officiële beginprijslijst nadat bestaande data geladen en genormaliseerd wordt.
+- Regressieherstel Business Continuity-output: preview, PDF en printlayout gebruiken opnieuw de bestaande tweetalige taalstructuur voor vaste labels.
+- Regressiecontrole sheetset-lifecycle: verwijderen blijft zichtbaar en is alleen toegestaan voor sheetsets met status `generated` of `archived`.
+
 ## 1.6.0
 - Architectuurcorrectie Business Continuity: sheetsets gebruiken voortaan uitsluitend de officiële beginprijslijst uit het Hoofdapp-tabblad Prijslijst.
 - Beginprijslijst wordt bij generatie vastgelegd als immutable snapshot met schemaName, schemaVersion, bron, categorieën en artikelen.
