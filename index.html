@@ -94,8 +94,6 @@
 </div>
 
 <script>
-
-<script>
 // AUTO-RECOVER BACKUP IF DATA IS MISSING
 (function() {
   const STORAGE_KEY = 'evenement_beheer_data_v4';
@@ -119,7 +117,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.7.1";
+const APP_VERSION = "1.8.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -275,7 +273,7 @@ const T = {
     bc_process_sheet: "Verwerk kassablad",
     bc_entry_title: "Administratieve invoer kassablad",
     bc_entry_intro: "Registreer uitsluitend de feiten van het papieren kassablad. Geen bedragen, totalen of financiële verwerking.",
-    bc_entry_blocked: "Dit kassablad kan alleen verwerkt worden met status printed of used.",
+    bc_entry_blocked: "Dit kassablad kan alleen verwerkt worden met status printed, used, entry_in_progress of entry_completed.",
     bc_entry_saved: "✓ Kassablad administratief opgeslagen",
     bc_entry_cancel: "Sluiten zonder opslaan",
     bc_entry_save: "Administratieve invoer opslaan",
@@ -294,6 +292,24 @@ const T = {
     bc_entry_price_changes_help: "Alleen administratief registreren. Dit wijzigt geen prijslijst en heeft geen invloed op bedragen.",
     bc_entry_price_changes_placeholder: "bv. 004 Bier tijdelijk 3,50 vanaf 16u",
     bc_entry_new_article: "Nieuw artikel tijdens evenement",
+    bc_entry_search_article: "Artikel zoeken",
+    bc_entry_search_placeholder: "Zoek op nr, naam of categorie",
+    bc_entry_select_article: "Gebruik artikel",
+    bc_entry_official_info: "Officiële snapshot-info",
+    bc_entry_article_name: "Naam",
+    bc_entry_article_category: "Categorie",
+    bc_entry_article_price: "Prijs",
+    bc_entry_article_status: "Status",
+    bc_entry_active: "Actief",
+    bc_entry_inactive: "Inactief",
+    bc_entry_unknown_warning: "Artikelnummer niet gevonden in de officiële Business Continuity-snapshot.",
+    bc_entry_new_article_name: "Naam nieuw artikel",
+    bc_entry_new_article_category: "Categorie nieuw artikel",
+    bc_entry_new_article_price: "Prijs nieuw artikel",
+    bc_entry_paper_price: "Papier vermeldt",
+    bc_entry_official_price: "Officiële prijs",
+    bc_entry_register_price_change: "Administratieve prijswijziging registreren",
+    bc_entry_no_search_results: "Geen resultaten",
     bc_entry_payment_cash: "Cash",
     bc_entry_payment_card: "Kaart",
     bc_entry_payment_payconiq: "Payconiq",
@@ -860,7 +876,7 @@ const T = {
     bc_process_sheet: "Encoder la feuille",
     bc_entry_title: "Encodage administratif de la feuille",
     bc_entry_intro: "Enregistrez uniquement les faits de la feuille papier. Aucun montant, total ni traitement financier.",
-    bc_entry_blocked: "Cette feuille ne peut être encodée qu'avec le statut printed ou used.",
+    bc_entry_blocked: "Cette feuille ne peut être encodée qu'avec le statut printed, used, entry_in_progress ou entry_completed.",
     bc_entry_saved: "✓ Feuille encodée administrativement",
     bc_entry_cancel: "Fermer sans enregistrer",
     bc_entry_save: "Enregistrer l'encodage administratif",
@@ -879,6 +895,24 @@ const T = {
     bc_entry_price_changes_help: "Enregistrement administratif uniquement. Ceci ne modifie aucune liste de prix et n'influence aucun montant.",
     bc_entry_price_changes_placeholder: "p.ex. 004 Bière temporairement 3,50 à partir de 16h",
     bc_entry_new_article: "Nouvel article pendant l'événement",
+    bc_entry_search_article: "Chercher un article",
+    bc_entry_search_placeholder: "Chercher par n°, nom ou catégorie",
+    bc_entry_select_article: "Utiliser l'article",
+    bc_entry_official_info: "Info officielle de l'instantané",
+    bc_entry_article_name: "Nom",
+    bc_entry_article_category: "Catégorie",
+    bc_entry_article_price: "Prix",
+    bc_entry_article_status: "Statut",
+    bc_entry_active: "Actif",
+    bc_entry_inactive: "Inactif",
+    bc_entry_unknown_warning: "Numéro d'article introuvable dans l'instantané Business Continuity officiel.",
+    bc_entry_new_article_name: "Nom du nouvel article",
+    bc_entry_new_article_category: "Catégorie du nouvel article",
+    bc_entry_new_article_price: "Prix du nouvel article",
+    bc_entry_paper_price: "Prix sur papier",
+    bc_entry_official_price: "Prix officiel",
+    bc_entry_register_price_change: "Enregistrer un changement de prix administratif",
+    bc_entry_no_search_results: "Aucun résultat",
     bc_entry_payment_cash: "Cash",
     bc_entry_payment_card: "Carte",
     bc_entry_payment_payconiq: "Payconiq",
@@ -4114,6 +4148,11 @@ function App() {
             quantity: (line.quantity || "").toString(),
             note: (line.note || "").toString(),
             isNewArticleDuringEvent: !!line.isNewArticleDuringEvent,
+            newArticleName: (line.newArticleName || "").toString(),
+            newArticleCategory: (line.newArticleCategory || "").toString(),
+            newArticlePrice: (line.newArticlePrice || "").toString(),
+            paperPrice: (line.paperPrice || "").toString(),
+            registerPriceChange: !!line.registerPriceChange,
             createdAt: now
           });
         });
@@ -10880,7 +10919,7 @@ function BusinessContinuityTab({
     "'": "&#39;"
   })[ch]);
   const filePart = value => safe(value || "business_continuity").replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "") || "business_continuity";
-  const snapshotArticles = snapshot => Array.isArray(snapshot) ? snapshot.map((a, index) => ({
+  const normalizeSnapshotArticle = (a, index) => ({
     articleId: a.articleId || a.id || "",
     articleNumber: a.articleNumber || String(index + 1).padStart(3, "0"),
     categorie: a.categorie || a.category || "",
@@ -10889,7 +10928,11 @@ function BusinessContinuityTab({
     actief: a.actief !== false,
     volgorde: Number.isFinite(Number(a.volgorde)) ? Number(a.volgorde) : index,
     description: a.description || a.beschrijving || ""
-  })) : [...(snapshot?.articles || [])];
+  });
+  const snapshotArticles = snapshot => {
+    const rawArticles = Array.isArray(snapshot) ? snapshot : snapshot?.articles || [];
+    return rawArticles.map(normalizeSnapshotArticle);
+  };
   const snapshotCategories = snapshot => {
     if (snapshot && !Array.isArray(snapshot) && Array.isArray(snapshot.categories)) return snapshot.categories;
     const articles = snapshotArticles(snapshot);
@@ -11213,10 +11256,16 @@ function BusinessContinuityTab({
   };
   const articleMapForSheet = sheet => new Map(snapshotArticles(sheet.priceListSnapshot).map(article => [safe(article.articleNumber).trim(), article]));
   const emptyEntryLine = () => ({
+    articleSearch: "",
     articleNumber: "",
     quantity: "",
     note: "",
-    isNewArticleDuringEvent: false
+    isNewArticleDuringEvent: false,
+    newArticleName: "",
+    newArticleCategory: "",
+    newArticlePrice: "",
+    paperPrice: "",
+    registerPriceChange: false
   });
   const emptyEntryTransaction = index => ({
     txNumber: String(index + 1).padStart(3, "0"),
@@ -11243,10 +11292,16 @@ function BusinessContinuityTab({
         giftAmount: meta.giftAmount || "",
         note: meta.note || "",
         lines: lines.sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0)).map(line => ({
+          articleSearch: "",
           articleNumber: line.articleNumber || "",
           quantity: line.quantity || "",
           note: line.note || "",
-          isNewArticleDuringEvent: !!line.isNewArticleDuringEvent
+          isNewArticleDuringEvent: !!line.isNewArticleDuringEvent,
+          newArticleName: line.newArticleName || "",
+          newArticleCategory: line.newArticleCategory || "",
+          newArticlePrice: line.newArticlePrice || "",
+          paperPrice: line.paperPrice || "",
+          registerPriceChange: !!line.registerPriceChange
         }))
       };
     }) : [emptyEntryTransaction(0)];
@@ -11257,7 +11312,7 @@ function BusinessContinuityTab({
     };
   };
   const openManualEntry = sheet => {
-    if (!["printed", "used", "entry_in_progress"].includes(sheet.status || "generated")) {
+    if (!["printed", "used", "entry_in_progress", "entry_completed"].includes(sheet.status || "generated")) {
       alert(t.bc_entry_blocked);
       return;
     }
@@ -11315,9 +11370,36 @@ function BusinessContinuityTab({
     setActiveEntrySheetId("");
     setEntryDraft(null);
   };
+  const normalizedPrice = value => safe(value).replace(",", ".").replace(/[^\d.]/g, "").trim();
+  const hasDifferentPaperPrice = (line, article) => !!article && !!safe(line.paperPrice).trim() && normalizedPrice(line.paperPrice) !== normalizedPrice(article.price || article.prijs);
+  const searchSnapshotArticles = (articles, query) => {
+    const term = safe(query).trim().toLowerCase();
+    if (!term) return [];
+    return articles.filter(article => [article.articleNumber, article.name || article.naam, article.category || article.categorie].some(value => safe(value).toLowerCase().includes(term))).slice(0, 6);
+  };
+  const focusNextEntryField = event => {
+    const fields = Array.from(document.querySelectorAll("[data-entry-field]"));
+    const currentIndex = fields.indexOf(event.currentTarget);
+    if (currentIndex >= 0 && fields[currentIndex + 1]) fields[currentIndex + 1].focus();
+  };
+  const handleEntryKeyDown = (event, txIndex, lineIndex, fieldName) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    const tx = entryDraft.transactions[txIndex];
+    if (fieldName === "note" && lineIndex === tx.lines.length - 1) {
+      addEntryLine(txIndex);
+      setTimeout(() => {
+        const next = document.querySelector(`[data-entry-field="${txIndex}-${lineIndex + 1}-article"]`);
+        if (next) next.focus();
+      }, 0);
+      return;
+    }
+    focusNextEntryField(event);
+  };
   const renderManualEntryPanel = () => {
     if (!activeEntrySheet || !entryDraft) return null;
     const articleMap = articleMapForSheet(activeEntrySheet);
+    const articles = snapshotArticles(activeEntrySheet.priceListSnapshot);
     const paymentOptions = [["cash", t.bc_entry_payment_cash], ["card", t.bc_entry_payment_card], ["payconiq", t.bc_entry_payment_payconiq], ["mixed", t.bc_entry_payment_mixed]];
     return /*#__PURE__*/React.createElement("div", {
       className: "card",
@@ -11373,9 +11455,10 @@ function BusinessContinuityTab({
       key: txIndex,
       style: {
         border: "1px solid var(--line)",
+        borderLeft: "4px solid var(--accent)",
         borderRadius: 4,
         padding: "0.75rem",
-        background: "white"
+        background: "#fffdf7"
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -11415,22 +11498,34 @@ function BusinessContinuityTab({
     }))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "grid",
-        gap: "0.45rem"
+        gap: "0.6rem"
       }
     }, tx.lines.map((line, lineIndex) => {
-      const knownArticle = articleMap.has(safe(line.articleNumber).trim());
+      const selectedArticle = articleMap.get(safe(line.articleNumber).trim());
+      const knownArticle = !!selectedArticle;
       const showNewArticle = line.articleNumber && !knownArticle;
+      const searchResults = searchSnapshotArticles(articles, line.articleSearch);
+      const showPriceChange = hasDifferentPaperPrice(line, selectedArticle);
       return /*#__PURE__*/React.createElement("div", {
         key: lineIndex,
         style: {
+          border: "1px solid rgba(15, 23, 42, 0.08)",
+          borderRadius: 4,
+          padding: "0.55rem",
+          background: "rgba(255, 255, 255, 0.78)"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
           display: "grid",
-          gridTemplateColumns: "minmax(90px, 0.8fr) minmax(80px, 0.6fr) minmax(160px, 1.6fr) auto",
+          gridTemplateColumns: "minmax(105px, 0.8fr) minmax(170px, 1.1fr) minmax(85px, 0.55fr) minmax(105px, 0.7fr) minmax(150px, 1.15fr) auto",
           gap: "0.45rem",
           alignItems: "start"
         }
       }, /*#__PURE__*/React.createElement("label", null, t.bc_entry_article_number, /*#__PURE__*/React.createElement("input", {
         className: "input",
         value: line.articleNumber,
+        "data-entry-field": `${txIndex}-${lineIndex}-article`,
+        onKeyDown: e => handleEntryKeyDown(e, txIndex, lineIndex, "article"),
         onChange: e => {
           const articleNumber = e.target.value;
           updateEntryLine(txIndex, lineIndex, {
@@ -11438,22 +11533,61 @@ function BusinessContinuityTab({
             isNewArticleDuringEvent: !!articleNumber && !articleMap.has(safe(articleNumber).trim())
           });
         }
-      }), showNewArticle && /*#__PURE__*/React.createElement("div", {
+      })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_search_article, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        placeholder: t.bc_entry_search_placeholder,
+        value: line.articleSearch,
+        "data-entry-field": `${txIndex}-${lineIndex}-search`,
+        onKeyDown: e => handleEntryKeyDown(e, txIndex, lineIndex, "search"),
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          articleSearch: e.target.value
+        })
+      }), line.articleSearch && /*#__PURE__*/React.createElement("div", {
         style: {
-          color: "var(--danger)",
-          fontSize: "0.75rem",
           marginTop: "0.25rem",
-          fontWeight: 600
+          display: "grid",
+          gap: "0.25rem"
         }
-      }, t.bc_entry_new_article)), /*#__PURE__*/React.createElement("label", null, t.bc_entry_quantity, /*#__PURE__*/React.createElement("input", {
+      }, searchResults.length ? searchResults.map(article => /*#__PURE__*/React.createElement("button", {
+        key: article.articleNumber,
+        type: "button",
+        className: "btn btn-secondary btn-sm",
+        onClick: () => updateEntryLine(txIndex, lineIndex, {
+          articleNumber: article.articleNumber,
+          articleSearch: "",
+          isNewArticleDuringEvent: false
+        }),
+        title: t.bc_entry_select_article,
+        style: {
+          justifyContent: "flex-start",
+          textAlign: "left"
+        }
+      }, article.articleNumber, " · ", article.naam, " · ", article.categorie)) : /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: "var(--ink-soft)",
+          fontSize: "0.75rem"
+        }
+      }, t.bc_entry_no_search_results))), /*#__PURE__*/React.createElement("label", null, t.bc_entry_quantity, /*#__PURE__*/React.createElement("input", {
         className: "input",
         value: line.quantity,
+        "data-entry-field": `${txIndex}-${lineIndex}-quantity`,
+        onKeyDown: e => handleEntryKeyDown(e, txIndex, lineIndex, "quantity"),
         onChange: e => updateEntryLine(txIndex, lineIndex, {
           quantity: e.target.value
+        })
+      })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_paper_price, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.paperPrice,
+        "data-entry-field": `${txIndex}-${lineIndex}-paper-price`,
+        onKeyDown: e => handleEntryKeyDown(e, txIndex, lineIndex, "paperPrice"),
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          paperPrice: e.target.value
         })
       })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_note, /*#__PURE__*/React.createElement("input", {
         className: "input",
         value: line.note,
+        "data-entry-field": `${txIndex}-${lineIndex}-note`,
+        onKeyDown: e => handleEntryKeyDown(e, txIndex, lineIndex, "note"),
         onChange: e => updateEntryLine(txIndex, lineIndex, {
           note: e.target.value
         })
@@ -11462,7 +11596,95 @@ function BusinessContinuityTab({
         onClick: () => removeEntryLine(txIndex, lineIndex),
         disabled: tx.lines.length <= 1,
         title: t.bc_entry_remove_line
-      }, "×"));
+      }, "×")), selectedArticle && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: "0.45rem",
+          padding: "0.5rem",
+          border: "1px solid var(--line)",
+          borderRadius: 4,
+          background: "#f8fafc",
+          fontSize: "0.82rem"
+        }
+      }, /*#__PURE__*/React.createElement("strong", null, t.bc_entry_official_info), /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: "0.25rem",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+          gap: "0.35rem"
+        }
+      }, /*#__PURE__*/React.createElement("div", null, t.bc_entry_article_number, ": ", selectedArticle.articleNumber || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_entry_article_name, ": ", selectedArticle.naam || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_entry_article_category, ": ", selectedArticle.categorie || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_entry_article_price, ": ", fmtEuro(selectedArticle.prijs || 0)), /*#__PURE__*/React.createElement("div", null, t.bc_entry_article_status, ": ", selectedArticle.actief ? t.bc_entry_active : t.bc_entry_inactive))), showNewArticle && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: "0.45rem",
+          padding: "0.5rem",
+          border: "1px solid rgba(185, 28, 28, 0.28)",
+          borderRadius: 4,
+          background: "#fff7ed",
+          color: "var(--danger)",
+          fontSize: "0.82rem",
+          fontWeight: 600
+        }
+      }, t.bc_entry_unknown_warning, /*#__PURE__*/React.createElement("label", {
+        style: {
+          marginTop: "0.4rem",
+          display: "flex",
+          gap: "0.4rem",
+          alignItems: "center",
+          color: "var(--ink)"
+        }
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "checkbox",
+        checked: !!line.isNewArticleDuringEvent,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          isNewArticleDuringEvent: e.target.checked
+        })
+      }), t.bc_entry_new_article), line.isNewArticleDuringEvent && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: "0.45rem",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gap: "0.45rem"
+        }
+      }, /*#__PURE__*/React.createElement("label", null, t.bc_entry_new_article_name, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.newArticleName,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          newArticleName: e.target.value
+        })
+      })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_new_article_category, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.newArticleCategory,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          newArticleCategory: e.target.value
+        })
+      })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_new_article_price, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.newArticlePrice,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          newArticlePrice: e.target.value
+        })
+      })))), showPriceChange && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: "0.45rem",
+          padding: "0.5rem",
+          border: "1px solid rgba(180, 83, 9, 0.3)",
+          borderRadius: 4,
+          background: "#fffbeb",
+          fontSize: "0.82rem"
+        }
+      }, /*#__PURE__*/React.createElement("div", null, t.bc_entry_official_price, ": ", fmtEuro(selectedArticle.prijs || 0)), /*#__PURE__*/React.createElement("div", null, t.bc_entry_paper_price, ": ", safe(line.paperPrice)), /*#__PURE__*/React.createElement("label", {
+        style: {
+          marginTop: "0.35rem",
+          display: "flex",
+          gap: "0.4rem",
+          alignItems: "center"
+        }
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "checkbox",
+        checked: !!line.registerPriceChange,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          registerPriceChange: e.target.checked
+        })
+      }), t.bc_entry_register_price_change)));
     })), /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: "0.65rem",
@@ -11661,8 +11883,8 @@ function BusinessContinuityTab({
     onClick: () => openPreview([sheet], true)
   }, t.bc_print_sheet), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary btn-sm",
-    disabled: !["printed", "used", "entry_in_progress"].includes(sheet.status || "generated"),
-    title: ["printed", "used", "entry_in_progress"].includes(sheet.status || "generated") ? "" : t.bc_entry_blocked,
+    disabled: !["printed", "used", "entry_in_progress", "entry_completed"].includes(sheet.status || "generated"),
+    title: ["printed", "used", "entry_in_progress", "entry_completed"].includes(sheet.status || "generated") ? "" : t.bc_entry_blocked,
     onClick: () => openManualEntry(sheet)
   }, t.bc_process_sheet))), /*#__PURE__*/React.createElement("details", {
       style: {

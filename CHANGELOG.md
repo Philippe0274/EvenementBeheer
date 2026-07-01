@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1
+- Regressieherstel Business Continuity-invoer: bestaande artikelnummers tonen opnieuw de officiële snapshotreferentie.
+- Snapshotartikelen worden altijd genormaliseerd, ook wanneer ze onder `priceListSnapshot.articles` bewaard zijn.
+- Read-only referentiekaart toont nu artikelnummer, naam, categorie, officiële prijs en actief/inactief.
+- Geen validatie, ledger-posting, rapportering, synchronisatie, import/export, OCR of financiële berekeningen toegevoegd.
+
 ## 1.8.0
 - Fase 4B Business Continuity: slimme administratieve invoer toegevoegd zonder ledger-posting, validatie, rapportering of financiële berekeningen.
 - Artikelnummerinvoer toont onmiddellijk officiële snapshotinformatie: naam, categorie, prijs en actief/inactief.
