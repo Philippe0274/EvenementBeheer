@@ -117,9 +117,11 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
+const BC_SHEET_VERSION = "1.0";
+const BC_DEFAULT_SHEET_COUNT = 5;
 
 // ============================================================
 // I18N — Vertalingen voor de UI
@@ -203,6 +205,21 @@ const T = {
     tab_voorverkoop: "Voorverkoop",
     tab_kassabewegingen: "Kassa Bewegingen",
     tab_prijslijst: "Prijslijst",
+    tab_business_continuity: "Business Continuity",
+    bc_title: "Business Continuity kassabladen",
+    bc_intro: "Genereer hier de officiële papieren kassabladen voor dit evenement. Dit is alleen het beheer van de onderliggende sheetdata; print en PDF volgen later.",
+    bc_generate: "Genereer nieuwe kassabladen",
+    bc_empty: "Nog geen kassabladen gegenereerd.",
+    bc_set: "Sheetset",
+    bc_sheets: "Bladen",
+    bc_generated_at: "Gegenereerd",
+    bc_event_id: "EventId",
+    bc_sheet_id: "SheetId",
+    bc_page: "Blad",
+    bc_status: "Status",
+    bc_qr_payload: "QR/barcode-payload",
+    bc_price_snapshot: "Prijslijst-snapshot",
+    bc_generated_ok: n => `✓ ${n} kassabladen gegenereerd`,
     pl_intro: "Beheer hier de prijslijst voor de kassa. Dit wordt ter plekke ingelezen.",
     pl_add: "+ Artikel toevoegen",
     pl_geen: "Nog geen artikelen in de prijslijst.",
@@ -694,6 +711,21 @@ const T = {
     tab_voorverkoop: "Prévente",
     tab_kassabewegingen: "Mouvements de Caisse",
     tab_prijslijst: "Liste de prix",
+    tab_business_continuity: "Business Continuity",
+    bc_title: "Feuilles de caisse Business Continuity",
+    bc_intro: "Générez ici les feuilles de caisse papier officielles pour cet événement. Cette étape gère uniquement les données; l'impression et le PDF suivront plus tard.",
+    bc_generate: "Générer de nouvelles feuilles",
+    bc_empty: "Aucune feuille générée.",
+    bc_set: "Jeu de feuilles",
+    bc_sheets: "Feuilles",
+    bc_generated_at: "Généré",
+    bc_event_id: "EventId",
+    bc_sheet_id: "SheetId",
+    bc_page: "Feuille",
+    bc_status: "Statut",
+    bc_qr_payload: "Payload QR/code-barres",
+    bc_price_snapshot: "Instantané de la liste de prix",
+    bc_generated_ok: n => `✓ ${n} feuilles générées`,
     pl_intro: "Gérez ici la liste de prix pour la caisse.",
     pl_add: "+ Ajouter un article",
     pl_geen: "Aucun article dans la liste de prix.",
@@ -1276,6 +1308,7 @@ const defaultData = {
   },
   taal: "nl",
   event: {
+    id: "",
     naam: "",
     datum: "",
     locatieNaam: "",
@@ -3610,6 +3643,143 @@ function App() {
     ...d,
     prijslijstCategorien: (d.prijslijstCategorien || []).includes(naam) ? d.prijslijstCategorien : [...(d.prijslijstCategorien || []), naam]
   }));
+  const bcArtikelNummer = (artikel, index) => {
+    const bestaand = artikel && (artikel.artikelNummer || artikel.nummer || artikel.code);
+    return bestaand ? String(bestaand).padStart(3, "0") : String(index + 1).padStart(3, "0");
+  };
+  const buildBusinessContinuityRows = () => Array.from({
+    length: 15
+  }, (_, i) => ({
+    rowNumber: i + 1,
+    txNumber: "",
+    time: "",
+    articleNumber: "",
+    quantity: "",
+    payment: {
+      cash: false,
+      card: false,
+      payconiq: false,
+      mixed: false
+    },
+    giftAmount: "",
+    note: "",
+    adminProcessed: false
+  }));
+  const generateBusinessContinuitySheets = () => {
+    const sheetCount = BC_DEFAULT_SHEET_COUNT;
+    setData(d => {
+    const generatedAt = new Date().toISOString();
+    const eventId = d.event.id || `evt_${uid()}`;
+    const sheetSetId = `bcs_${uid()}`;
+    const priceListSnapshot = (d.prijslijst || []).map((artikel, index) => ({
+      id: artikel.id || "",
+      articleNumber: bcArtikelNummer(artikel, index),
+      name: artikel.naam || "",
+      price: artikel.prijs || "",
+      category: artikel.categorie || "",
+      description: artikel.beschrijving || ""
+    }));
+    const eventSnapshot = {
+      id: eventId,
+      naam: d.event.naam || "",
+      datum: d.event.datum || "",
+      locatieNaam: d.event.locatieNaam || "",
+      gemeente: d.event.gemeente || "",
+      verantwoordelijke: (d.event.verantwNaam || "").trim() || "",
+      verantwoordelijkeGsm: (d.event.verantwGsm || "").trim() || ""
+    };
+    const sheets = Array.from({
+      length: sheetCount
+    }, (_, i) => {
+      const sheetNumber = i + 1;
+      const sheetId = `sheet_${uid()}`;
+      const sheetCode = `BCP-${eventId}-${String(sheetNumber).padStart(2, "0")}`;
+      const qrPayload = JSON.stringify({
+        type: "business-continuity-sheet",
+        architectureVersion: ARCHITECTURE_VERSION,
+        eventId,
+        sheetSetId,
+        sheetId,
+        sheetNumber,
+        sheetCount,
+        sheetVersion: BC_SHEET_VERSION
+      });
+      return {
+        id: sheetId,
+        sheetSetId,
+        eventId,
+        sheetCode,
+        sheetNumber,
+        sheetCount,
+        version: BC_SHEET_VERSION,
+        generatedAt,
+        generatedBy: "system",
+        status: "generated",
+        qrPayload,
+        eventSnapshot,
+        responsible: eventSnapshot.verantwoordelijke,
+        priceListSnapshot,
+        incident: {
+          incidentId: "",
+          startedAt: "",
+          endedAt: "",
+          reason: "",
+          approvedBy: "",
+          notes: ""
+        },
+        changes: [],
+        salesRegistration: {
+          rows: buildBusinessContinuityRows()
+        }
+      };
+    });
+    const sheetSet = {
+      id: sheetSetId,
+      eventId,
+      version: BC_SHEET_VERSION,
+      generatedAt,
+      generatedBy: "system",
+      sheetCount,
+      sheetIds: sheets.map(s => s.id),
+      status: "generated",
+      eventSnapshot,
+      priceListSnapshot
+    };
+    const bc = d.businessContinuity || defaultData.businessContinuity;
+    return {
+      ...d,
+      event: {
+        ...d.event,
+        id: eventId
+      },
+      businessContinuity: {
+        ...defaultData.businessContinuity,
+        ...bc,
+        sheetSets: [...(bc.sheetSets || []), sheetSet],
+        sheets: [...(bc.sheets || []), ...sheets]
+      }
+    };
+  });
+    showToast(t.bc_generated_ok(sheetCount));
+  };
+  const updateBusinessContinuitySheetSetStatus = (sheetSetId, status) => setData(d => {
+    const bc = d.businessContinuity || defaultData.businessContinuity;
+    return {
+      ...d,
+      businessContinuity: {
+        ...defaultData.businessContinuity,
+        ...bc,
+        sheetSets: (bc.sheetSets || []).map(set => set.id === sheetSetId ? {
+          ...set,
+          status
+        } : set),
+        sheets: (bc.sheets || []).map(sheet => sheet.sheetSetId === sheetSetId ? {
+          ...sheet,
+          status
+        } : sheet)
+      }
+    };
+  });
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -4151,6 +4321,7 @@ function App() {
         eventHistory: [...historyEntry, ...(d.eventHistory || [])],
         // Wissen
         event: {
+          id: "",
           naam: "",
           datum: "",
           locatieNaam: "",
@@ -4164,6 +4335,7 @@ function App() {
           verantwGsm: ""
         },
         bulkGeschiedenis: {},
+        businessContinuity: defaultData.businessContinuity,
         winkelbestellingen: {},
         kastickets: {},
         // Overgeslagen aandachtspunten resetten — nieuw evenement, schone lei
@@ -4342,7 +4514,7 @@ function App() {
       gap: "0.2rem",
       flexWrap: "wrap"
     }
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -4484,6 +4656,11 @@ function App() {
     addVoorverkoopBron: addVoorverkoopBron,
     addBetaalrekening: addBetaalrekening,
     addExternContactMetNaam: addExternContactMetNaam,
+    t: t
+  }), tab === "businessContinuity" && /*#__PURE__*/React.createElement(BusinessContinuityTab, {
+    data: data,
+    generateSheets: generateBusinessContinuitySheets,
+    updateSetStatus: updateBusinessContinuitySheetSetStatus,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -10298,6 +10475,148 @@ function hexNaarRgb(hex) {
 // ============================================================
 // PRIJSLIJST
 // ============================================================
+function BusinessContinuityTab({
+  data,
+  generateSheets,
+  updateSetStatus,
+  t
+}) {
+  const bc = data.businessContinuity || defaultData.businessContinuity;
+  const sheetSets = [...(bc.sheetSets || [])].sort((a, b) => (b.generatedAt || "").localeCompare(a.generatedAt || ""));
+  const sheetsBySet = setId => (bc.sheets || []).filter(sheet => sheet.sheetSetId === setId).sort((a, b) => (a.sheetNumber || 0) - (b.sheetNumber || 0));
+  const statusOptions = ["generated", "printed", "used", "archived"];
+  const fmtDateTime = iso => {
+    if (!iso) return "—";
+    try {
+      return new Date(iso).toLocaleString(data.taal === "fr" ? "fr-BE" : "nl-BE");
+    } catch (e) {
+      return iso;
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "1rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      marginTop: 0,
+      marginBottom: "0.4rem",
+      fontSize: "1.4rem"
+    }
+  }, t.bc_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.9rem",
+      margin: 0
+    }
+  }, t.bc_intro)), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: generateSheets
+  }, t.bc_generate))), sheetSets.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, t.bc_empty) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "1rem"
+    }
+  }, sheetSets.map(set => {
+    const sheets = sheetsBySet(set.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: set.id,
+      className: "card"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "start",
+        gap: "1rem",
+        flexWrap: "wrap",
+        marginBottom: "0.8rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: 0,
+        fontSize: "1.1rem"
+      }
+    }, t.bc_set, " ", set.id), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.82rem",
+        color: "var(--ink-soft)",
+        marginTop: "0.25rem"
+      }
+    }, t.bc_event_id, ": ", set.eventId || "—", " · ", t.bc_generated_at, ": ", fmtDateTime(set.generatedAt), " · ", t.bc_sheets, ": ", sheets.length)), /*#__PURE__*/React.createElement("select", {
+      className: "select",
+      value: set.status || "generated",
+      onChange: e => updateSetStatus(set.id, e.target.value),
+      style: {
+        width: "auto"
+      }
+    }, statusOptions.map(status => /*#__PURE__*/React.createElement("option", {
+      key: status,
+      value: status
+    }, status)))), (set.priceListSnapshot || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.8rem",
+        color: "var(--ink-soft)",
+        marginBottom: "0.8rem"
+      }
+    }, t.bc_price_snapshot, ": ", (set.priceListSnapshot || []).slice(0, 8).map(a => `${a.articleNumber} ${a.name || "?"} €${a.price || "0"}`).join(" · "), (set.priceListSnapshot || []).length > 8 ? ` · +${set.priceListSnapshot.length - 8}` : ""), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.55rem"
+      }
+    }, sheets.map(sheet => /*#__PURE__*/React.createElement("details", {
+      key: sheet.id,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 3,
+        padding: "0.6rem",
+        background: "white"
+      }
+    }, /*#__PURE__*/React.createElement("summary", {
+      style: {
+        cursor: "pointer",
+        fontSize: "0.9rem",
+        fontWeight: 600
+      }
+    }, t.bc_page, " ", sheet.sheetNumber, "/", sheet.sheetCount, " · ", t.bc_sheet_id, ": ", sheet.id, " · ", t.bc_status, ": ", sheet.status), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.6rem",
+        display: "grid",
+        gap: "0.4rem",
+        fontSize: "0.82rem",
+        color: "var(--ink-soft)"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, "Code: ", sheet.sheetCode || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_generated_at, ": ", fmtDateTime(sheet.generatedAt)), /*#__PURE__*/React.createElement("div", null, t.bc_price_snapshot, ": ", (sheet.priceListSnapshot || []).length, " items"), /*#__PURE__*/React.createElement("div", null, t.bc_qr_payload, ":"), /*#__PURE__*/React.createElement("pre", {
+      style: {
+        margin: 0,
+        whiteSpace: "pre-wrap",
+        overflowWrap: "anywhere",
+        background: "var(--bg)",
+        border: "1px solid var(--line)",
+        borderRadius: 3,
+        padding: "0.5rem",
+        fontSize: "0.75rem"
+      }
+    }, sheet.qrPayload || ""))))));
+  })));
+}
+
 function PrijslijstTab({ prijslijst, categorien, add, update, remove, addCategorie, t }) {
   const [bewerk, setBewerk] = React.useState(null);
 
