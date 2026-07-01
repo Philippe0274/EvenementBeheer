@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0
+- Fase 4B Business Continuity: slimme administratieve invoer toegevoegd zonder ledger-posting, validatie, rapportering of financiële berekeningen.
+- Artikelnummerinvoer toont onmiddellijk officiële snapshotinformatie: naam, categorie, prijs en actief/inactief.
+- Zoekfunctie toegevoegd op artikelnummer, naam en categorie; selectie vult automatisch het artikelnummer.
+- Onbekende artikelen tonen direct een waarschuwing en kunnen administratief als nieuw artikel tijdens evenement worden geregistreerd met naam, categorie en prijs.
+- Papierprijs kan administratief naast de officiële snapshotprijs worden genoteerd; afwijkingen tonen een aparte markering voor prijswijziging zonder financiële impact.
+- Transacties met meerdere regels worden visueel gegroepeerd en de invoer ondersteunt snellere toetsenbordbediening met Enter en automatisch nieuwe regels.
+- Afgewerkte administratieve invoer (`entry_completed`) kan opnieuw geopend worden zodat eerder ingevoerde regels onmiddellijk zichtbaar blijven.
+
 ## 1.7.1
 - Regressieherstel Business Continuity UI: bevestigd dat `Verwerk kassablad` naast `Bekijk blad`, `PDF blad` en `Afdrukken blad` wordt gerenderd voor elk kassablad.
 - Cacheherstel: service-worker cacheversie verhoogd en oude `kassa-tool-*` app-shell caches worden opgeruimd, zodat de Hoofdapp niet langer een oude Business Continuity-interface kan tonen.
