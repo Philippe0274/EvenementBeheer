@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.0
+- Fase 4A Business Continuity: administratieve invoermodule voor gebruikte papieren kassabladen toegevoegd zonder ledger-posting, validatie, rapportering of financiële berekeningen.
+- Per kassablad kan vanuit status `printed` of `used` een invoer gestart worden; de status wordt `entry_in_progress` en na opslaan `entry_completed`.
+- Invoer ondersteunt transacties met meerdere opeenvolgende regels per TxNr, één betaalwijze per transactie, één giftbedrag per transactie en optionele opmerkingen.
+- Onbekende artikelnummers uit de Business Continuity-snapshot worden alleen administratief gemarkeerd als nieuw artikel tijdens evenement.
+- Genoteerde prijswijzigingen kunnen administratief worden geregistreerd zonder prijslijst- of bedragverwerking.
+
 ## 1.6.1
 - Regressieherstel: `normalizeData()` bewaart de officiële event-prijslijst en prijslijstcategorieën opnieuw expliciet en backward compatible.
 - Regressieherstel Business Continuity: sheetsets gebruiken opnieuw de officiële beginprijslijst nadat bestaande data geladen en genormaliseerd wordt.

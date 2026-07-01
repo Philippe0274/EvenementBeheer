@@ -119,7 +119,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.6.1";
+const APP_VERSION = "1.7.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -272,6 +272,33 @@ const T = {
     bc_last_transaction: "Laatste transactienummer",
     bc_volunteer_signature: "Vrijwilliger",
     bc_responsible_check: "Controle verantwoordelijke",
+    bc_process_sheet: "Verwerk kassablad",
+    bc_entry_title: "Administratieve invoer kassablad",
+    bc_entry_intro: "Registreer uitsluitend de feiten van het papieren kassablad. Geen bedragen, totalen of financiële verwerking.",
+    bc_entry_blocked: "Dit kassablad kan alleen verwerkt worden met status printed of used.",
+    bc_entry_saved: "✓ Kassablad administratief opgeslagen",
+    bc_entry_cancel: "Sluiten zonder opslaan",
+    bc_entry_save: "Administratieve invoer opslaan",
+    bc_entry_add_tx: "+ Transactie toevoegen",
+    bc_entry_add_line: "+ Regel toevoegen",
+    bc_entry_remove_tx: "Transactie verwijderen",
+    bc_entry_remove_line: "Regel verwijderen",
+    bc_entry_tx: "Transactie",
+    bc_entry_tx_number: "TxNr",
+    bc_entry_article_number: "Artikelnummer",
+    bc_entry_quantity: "Aantal",
+    bc_entry_payment_method: "Betaalwijze",
+    bc_entry_gift_amount: "Giftbedrag",
+    bc_entry_note: "Opmerking",
+    bc_entry_price_changes: "Genoteerde prijswijzigingen",
+    bc_entry_price_changes_help: "Alleen administratief registreren. Dit wijzigt geen prijslijst en heeft geen invloed op bedragen.",
+    bc_entry_price_changes_placeholder: "bv. 004 Bier tijdelijk 3,50 vanaf 16u",
+    bc_entry_new_article: "Nieuw artikel tijdens evenement",
+    bc_entry_payment_cash: "Cash",
+    bc_entry_payment_card: "Kaart",
+    bc_entry_payment_payconiq: "Payconiq",
+    bc_entry_payment_mixed: "Gemengd",
+    bc_entry_unknown_sheet: "Kassablad niet gevonden.",
     bc_generated_ok: n => `✓ ${n} kassabladen gegenereerd`,
     pl_intro: "Beheer hier de prijslijst voor de kassa. Dit wordt ter plekke ingelezen.",
     pl_add: "+ Artikel toevoegen",
@@ -830,6 +857,33 @@ const T = {
     bc_last_transaction: "Dernier numéro de transaction",
     bc_volunteer_signature: "Bénévole",
     bc_responsible_check: "Contrôle responsable",
+    bc_process_sheet: "Encoder la feuille",
+    bc_entry_title: "Encodage administratif de la feuille",
+    bc_entry_intro: "Enregistrez uniquement les faits de la feuille papier. Aucun montant, total ni traitement financier.",
+    bc_entry_blocked: "Cette feuille ne peut être encodée qu'avec le statut printed ou used.",
+    bc_entry_saved: "✓ Feuille encodée administrativement",
+    bc_entry_cancel: "Fermer sans enregistrer",
+    bc_entry_save: "Enregistrer l'encodage administratif",
+    bc_entry_add_tx: "+ Ajouter une transaction",
+    bc_entry_add_line: "+ Ajouter une ligne",
+    bc_entry_remove_tx: "Supprimer la transaction",
+    bc_entry_remove_line: "Supprimer la ligne",
+    bc_entry_tx: "Transaction",
+    bc_entry_tx_number: "TxNr",
+    bc_entry_article_number: "Numéro d'article",
+    bc_entry_quantity: "Nombre",
+    bc_entry_payment_method: "Mode de paiement",
+    bc_entry_gift_amount: "Montant du don",
+    bc_entry_note: "Remarque",
+    bc_entry_price_changes: "Changements de prix notés",
+    bc_entry_price_changes_help: "Enregistrement administratif uniquement. Ceci ne modifie aucune liste de prix et n'influence aucun montant.",
+    bc_entry_price_changes_placeholder: "p.ex. 004 Bière temporairement 3,50 à partir de 16h",
+    bc_entry_new_article: "Nouvel article pendant l'événement",
+    bc_entry_payment_cash: "Cash",
+    bc_entry_payment_card: "Carte",
+    bc_entry_payment_payconiq: "Payconiq",
+    bc_entry_payment_mixed: "Mixte",
+    bc_entry_unknown_sheet: "Feuille introuvable.",
     bc_generated_ok: n => `✓ ${n} feuilles générées`,
     pl_intro: "Gérez ici la liste de prix pour la caisse.",
     pl_add: "+ Ajouter un article",
@@ -3984,6 +4038,116 @@ function App() {
     });
     showToast(t.bc_deleted_ok);
   };
+  const startBusinessContinuityManualEntry = sheetId => {
+    const bc = data.businessContinuity || defaultData.businessContinuity;
+    const sheet = (bc.sheets || []).find(s => s.id === sheetId);
+    if (!sheet || !["printed", "used"].includes(sheet.status || "generated")) {
+      alert(t.bc_entry_blocked);
+      return false;
+    }
+    setData(d => {
+      const currentBc = d.businessContinuity || defaultData.businessContinuity;
+      const currentSheet = (currentBc.sheets || []).find(s => s.id === sheetId);
+      if (!currentSheet || !["printed", "used"].includes(currentSheet.status || "generated")) return d;
+      const now = new Date().toISOString();
+      const existingBatch = (currentBc.manualEntryBatches || []).find(batch => batch.sheetId === sheetId);
+      const batch = existingBatch ? {
+        ...existingBatch,
+        status: "entry_in_progress",
+        updatedAt: now
+      } : {
+        id: uid(),
+        sheetId,
+        sheetSetId: currentSheet.sheetSetId,
+        eventId: currentSheet.eventId,
+        status: "entry_in_progress",
+        createdAt: now,
+        updatedAt: now,
+        priceChanges: "",
+        transactions: []
+      };
+      return {
+        ...d,
+        businessContinuity: {
+          ...defaultData.businessContinuity,
+          ...currentBc,
+          manualEntryBatches: existingBatch ? (currentBc.manualEntryBatches || []).map(item => item.id === existingBatch.id ? batch : item) : [...(currentBc.manualEntryBatches || []), batch],
+          sheets: (currentBc.sheets || []).map(item => item.id === sheetId ? {
+            ...item,
+            status: "entry_in_progress",
+            entryStartedAt: item.entryStartedAt || now,
+            entryUpdatedAt: now
+          } : item)
+        }
+      };
+    });
+    return true;
+  };
+  const saveBusinessContinuityManualEntry = (sheetId, entry) => {
+    setData(d => {
+      const currentBc = d.businessContinuity || defaultData.businessContinuity;
+      const currentSheet = (currentBc.sheets || []).find(s => s.id === sheetId);
+      if (!currentSheet) return d;
+      const now = new Date().toISOString();
+      const existingBatch = (currentBc.manualEntryBatches || []).find(batch => batch.sheetId === sheetId);
+      const batchId = existingBatch ? existingBatch.id : uid();
+      const transactions = (entry.transactions || []).map(tx => ({
+        txNumber: (tx.txNumber || "").toString().trim(),
+        paymentMethod: tx.paymentMethod || "",
+        giftAmount: (tx.giftAmount || "").toString(),
+        note: (tx.note || "").toString()
+      }));
+      const lines = [];
+      (entry.transactions || []).forEach((tx, txIndex) => {
+        (tx.lines || []).forEach((line, lineIndex) => {
+          if (!line.articleNumber && !line.quantity && !line.note) return;
+          lines.push({
+            id: uid(),
+            batchId,
+            sheetId,
+            sheetSetId: currentSheet.sheetSetId,
+            eventId: currentSheet.eventId,
+            txNumber: (tx.txNumber || "").toString().trim(),
+            txIndex: txIndex + 1,
+            lineNumber: lineIndex + 1,
+            articleNumber: (line.articleNumber || "").toString().trim(),
+            quantity: (line.quantity || "").toString(),
+            note: (line.note || "").toString(),
+            isNewArticleDuringEvent: !!line.isNewArticleDuringEvent,
+            createdAt: now
+          });
+        });
+      });
+      const batch = {
+        ...(existingBatch || {}),
+        id: batchId,
+        sheetId,
+        sheetSetId: currentSheet.sheetSetId,
+        eventId: currentSheet.eventId,
+        status: "entry_completed",
+        createdAt: existingBatch?.createdAt || now,
+        updatedAt: now,
+        priceChanges: (entry.priceChanges || "").toString(),
+        transactions
+      };
+      return {
+        ...d,
+        businessContinuity: {
+          ...defaultData.businessContinuity,
+          ...currentBc,
+          manualEntryBatches: existingBatch ? (currentBc.manualEntryBatches || []).map(item => item.id === batchId ? batch : item) : [...(currentBc.manualEntryBatches || []), batch],
+          manualEntryLines: [...(currentBc.manualEntryLines || []).filter(line => line.sheetId !== sheetId), ...lines],
+          sheets: (currentBc.sheets || []).map(item => item.id === sheetId ? {
+            ...item,
+            status: "entry_completed",
+            entryCompletedAt: now,
+            entryUpdatedAt: now
+          } : item)
+        }
+      };
+    });
+    showToast(t.bc_entry_saved);
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -4867,6 +5031,8 @@ function App() {
     updateSetStatus: updateBusinessContinuitySheetSetStatus,
     reopenSet: reopenBusinessContinuitySheetSet,
     deleteSet: deleteBusinessContinuitySheetSet,
+    startManualEntry: startBusinessContinuityManualEntry,
+    saveManualEntry: saveBusinessContinuityManualEntry,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -10687,12 +10853,16 @@ function BusinessContinuityTab({
   updateSetStatus,
   reopenSet,
   deleteSet,
+  startManualEntry,
+  saveManualEntry,
   t
 }) {
   const bc = data.businessContinuity || defaultData.businessContinuity;
+  const [activeEntrySheetId, setActiveEntrySheetId] = React.useState("");
+  const [entryDraft, setEntryDraft] = React.useState(null);
   const sheetSets = [...(bc.sheetSets || [])].sort((a, b) => (b.generatedAt || "").localeCompare(a.generatedAt || ""));
   const sheetsBySet = setId => (bc.sheets || []).filter(sheet => sheet.sheetSetId === setId).sort((a, b) => (a.sheetNumber || 0) - (b.sheetNumber || 0));
-  const statusOptions = ["generated", "printed", "used", "archived"];
+  const statusOptions = ["generated", "printed", "used", "entry_in_progress", "entry_completed", "archived"];
   const fmtDateTime = iso => {
     if (!iso) return "—";
     try {
@@ -11041,6 +11211,297 @@ function BusinessContinuityTab({
     doc.save(name);
     showToast(t.bc_pdf_ok);
   };
+  const articleMapForSheet = sheet => new Map(snapshotArticles(sheet.priceListSnapshot).map(article => [safe(article.articleNumber).trim(), article]));
+  const emptyEntryLine = () => ({
+    articleNumber: "",
+    quantity: "",
+    note: "",
+    isNewArticleDuringEvent: false
+  });
+  const emptyEntryTransaction = index => ({
+    txNumber: String(index + 1).padStart(3, "0"),
+    paymentMethod: "cash",
+    giftAmount: "",
+    note: "",
+    lines: [emptyEntryLine()]
+  });
+  const entryDraftForSheet = sheet => {
+    const batch = (bc.manualEntryBatches || []).find(item => item.sheetId === sheet.id);
+    const batchLines = (bc.manualEntryLines || []).filter(line => line.sheetId === sheet.id);
+    const txMeta = new Map((batch?.transactions || []).map(tx => [tx.txNumber, tx]));
+    const grouped = {};
+    batchLines.forEach(line => {
+      const key = line.txNumber || "";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(line);
+    });
+    const transactions = Object.keys(grouped).length ? Object.entries(grouped).map(([txNumber, lines], index) => {
+      const meta = txMeta.get(txNumber) || {};
+      return {
+        txNumber: txNumber || String(index + 1).padStart(3, "0"),
+        paymentMethod: meta.paymentMethod || "cash",
+        giftAmount: meta.giftAmount || "",
+        note: meta.note || "",
+        lines: lines.sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0)).map(line => ({
+          articleNumber: line.articleNumber || "",
+          quantity: line.quantity || "",
+          note: line.note || "",
+          isNewArticleDuringEvent: !!line.isNewArticleDuringEvent
+        }))
+      };
+    }) : [emptyEntryTransaction(0)];
+    return {
+      sheetId: sheet.id,
+      priceChanges: batch?.priceChanges || "",
+      transactions
+    };
+  };
+  const openManualEntry = sheet => {
+    if (!["printed", "used", "entry_in_progress"].includes(sheet.status || "generated")) {
+      alert(t.bc_entry_blocked);
+      return;
+    }
+    if (["printed", "used"].includes(sheet.status || "generated") && !startManualEntry(sheet.id)) return;
+    setActiveEntrySheetId(sheet.id);
+    setEntryDraft(entryDraftForSheet(sheet));
+  };
+  const activeEntrySheet = (bc.sheets || []).find(sheet => sheet.id === activeEntrySheetId);
+  const updateEntryTx = (txIndex, patch) => setEntryDraft(draft => ({
+    ...draft,
+    transactions: draft.transactions.map((tx, index) => index === txIndex ? {
+      ...tx,
+      ...patch
+    } : tx)
+  }));
+  const updateEntryLine = (txIndex, lineIndex, patch) => setEntryDraft(draft => ({
+    ...draft,
+    transactions: draft.transactions.map((tx, index) => index === txIndex ? {
+      ...tx,
+      lines: tx.lines.map((line, li) => li === lineIndex ? {
+        ...line,
+        ...patch
+      } : line)
+    } : tx)
+  }));
+  const addEntryTx = () => setEntryDraft(draft => ({
+    ...draft,
+    transactions: [...draft.transactions, emptyEntryTransaction(draft.transactions.length)]
+  }));
+  const removeEntryTx = txIndex => setEntryDraft(draft => ({
+    ...draft,
+    transactions: draft.transactions.filter((tx, index) => index !== txIndex)
+  }));
+  const addEntryLine = txIndex => setEntryDraft(draft => ({
+    ...draft,
+    transactions: draft.transactions.map((tx, index) => index === txIndex ? {
+      ...tx,
+      lines: [...tx.lines, emptyEntryLine()]
+    } : tx)
+  }));
+  const removeEntryLine = (txIndex, lineIndex) => setEntryDraft(draft => ({
+    ...draft,
+    transactions: draft.transactions.map((tx, index) => index === txIndex ? {
+      ...tx,
+      lines: tx.lines.filter((line, li) => li !== lineIndex)
+    } : tx)
+  }));
+  const saveEntryDraft = () => {
+    if (!activeEntrySheet || !entryDraft) return;
+    saveManualEntry(activeEntrySheet.id, entryDraft);
+    setActiveEntrySheetId("");
+    setEntryDraft(null);
+  };
+  const closeEntryDraft = () => {
+    setActiveEntrySheetId("");
+    setEntryDraft(null);
+  };
+  const renderManualEntryPanel = () => {
+    if (!activeEntrySheet || !entryDraft) return null;
+    const articleMap = articleMapForSheet(activeEntrySheet);
+    const paymentOptions = [["cash", t.bc_entry_payment_cash], ["card", t.bc_entry_payment_card], ["payconiq", t.bc_entry_payment_payconiq], ["mixed", t.bc_entry_payment_mixed]];
+    return /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        marginBottom: "1rem",
+        borderColor: "var(--accent)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "start",
+        gap: "1rem",
+        flexWrap: "wrap",
+        marginBottom: "0.8rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: 0,
+        fontSize: "1.2rem"
+      }
+    }, t.bc_entry_title), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: "0.3rem 0 0",
+        color: "var(--ink-soft)",
+        fontSize: "0.9rem"
+      }
+    }, t.bc_entry_intro), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.35rem",
+        color: "var(--ink-soft)",
+        fontSize: "0.82rem"
+      }
+    }, t.bc_sheet_id, ": ", activeEntrySheet.id, " · ", t.bc_page, " ", activeEntrySheet.sheetNumber, "/", activeEntrySheet.sheetCount)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: closeEntryDraft
+    }, t.bc_entry_cancel), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
+      onClick: saveEntryDraft
+    }, t.bc_entry_save))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.75rem"
+      }
+    }, entryDraft.transactions.map((tx, txIndex) => /*#__PURE__*/React.createElement("div", {
+      key: txIndex,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 4,
+        padding: "0.75rem",
+        background: "white"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+        gap: "0.55rem",
+        alignItems: "end",
+        marginBottom: "0.7rem"
+      }
+    }, /*#__PURE__*/React.createElement("label", null, t.bc_entry_tx_number, /*#__PURE__*/React.createElement("input", {
+      className: "input",
+      value: tx.txNumber,
+      onChange: e => updateEntryTx(txIndex, {
+        txNumber: e.target.value
+      })
+    })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_payment_method, /*#__PURE__*/React.createElement("select", {
+      className: "select",
+      value: tx.paymentMethod,
+      onChange: e => updateEntryTx(txIndex, {
+        paymentMethod: e.target.value
+      })
+    }, paymentOptions.map(([value, label]) => /*#__PURE__*/React.createElement("option", {
+      key: value,
+      value: value
+    }, label)))), /*#__PURE__*/React.createElement("label", null, t.bc_entry_gift_amount, /*#__PURE__*/React.createElement("input", {
+      className: "input",
+      value: tx.giftAmount,
+      onChange: e => updateEntryTx(txIndex, {
+        giftAmount: e.target.value
+      })
+    })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_note, /*#__PURE__*/React.createElement("input", {
+      className: "input",
+      value: tx.note,
+      onChange: e => updateEntryTx(txIndex, {
+        note: e.target.value
+      })
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, tx.lines.map((line, lineIndex) => {
+      const knownArticle = articleMap.has(safe(line.articleNumber).trim());
+      const showNewArticle = line.articleNumber && !knownArticle;
+      return /*#__PURE__*/React.createElement("div", {
+        key: lineIndex,
+        style: {
+          display: "grid",
+          gridTemplateColumns: "minmax(90px, 0.8fr) minmax(80px, 0.6fr) minmax(160px, 1.6fr) auto",
+          gap: "0.45rem",
+          alignItems: "start"
+        }
+      }, /*#__PURE__*/React.createElement("label", null, t.bc_entry_article_number, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.articleNumber,
+        onChange: e => {
+          const articleNumber = e.target.value;
+          updateEntryLine(txIndex, lineIndex, {
+            articleNumber,
+            isNewArticleDuringEvent: !!articleNumber && !articleMap.has(safe(articleNumber).trim())
+          });
+        }
+      }), showNewArticle && /*#__PURE__*/React.createElement("div", {
+        style: {
+          color: "var(--danger)",
+          fontSize: "0.75rem",
+          marginTop: "0.25rem",
+          fontWeight: 600
+        }
+      }, t.bc_entry_new_article)), /*#__PURE__*/React.createElement("label", null, t.bc_entry_quantity, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.quantity,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          quantity: e.target.value
+        })
+      })), /*#__PURE__*/React.createElement("label", null, t.bc_entry_note, /*#__PURE__*/React.createElement("input", {
+        className: "input",
+        value: line.note,
+        onChange: e => updateEntryLine(txIndex, lineIndex, {
+          note: e.target.value
+        })
+      })), /*#__PURE__*/React.createElement("button", {
+        className: "btn btn-danger btn-sm",
+        onClick: () => removeEntryLine(txIndex, lineIndex),
+        disabled: tx.lines.length <= 1,
+        title: t.bc_entry_remove_line
+      }, "×"));
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.65rem",
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => addEntryLine(txIndex)
+    }, t.bc_entry_add_line), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-danger btn-sm",
+      onClick: () => removeEntryTx(txIndex),
+      disabled: entryDraft.transactions.length <= 1
+    }, t.bc_entry_remove_tx)))), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: addEntryTx
+    }, t.bc_entry_add_tx), /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderTop: "1px solid var(--line)",
+        paddingTop: "0.75rem"
+      }
+    }, /*#__PURE__*/React.createElement("label", null, t.bc_entry_price_changes, /*#__PURE__*/React.createElement("textarea", {
+      className: "input",
+      rows: 3,
+      placeholder: t.bc_entry_price_changes_placeholder,
+      value: entryDraft.priceChanges,
+      onChange: e => setEntryDraft(draft => ({
+        ...draft,
+        priceChanges: e.target.value
+      }))
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.8rem",
+        marginTop: "0.3rem"
+      }
+    }, t.bc_entry_price_changes_help))));
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -11070,7 +11531,7 @@ function BusinessContinuityTab({
   }, t.bc_intro)), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary btn-sm",
     onClick: generateSheets
-  }, t.bc_generate))), sheetSets.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, t.bc_generate))), renderManualEntryPanel(), sheetSets.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
@@ -11195,10 +11656,15 @@ function BusinessContinuityTab({
     }, t.bc_preview_sheet), /*#__PURE__*/React.createElement("button", {
       className: "btn btn-secondary btn-sm",
       onClick: () => generatePdf([sheet], `business_continuity_${filePart(sheet.id)}.pdf`)
-    }, t.bc_pdf_sheet), /*#__PURE__*/React.createElement("button", {
-      className: "btn btn-secondary btn-sm",
-      onClick: () => openPreview([sheet], true)
-    }, t.bc_print_sheet))), /*#__PURE__*/React.createElement("details", {
+  }, t.bc_pdf_sheet), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-secondary btn-sm",
+    onClick: () => openPreview([sheet], true)
+  }, t.bc_print_sheet), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    disabled: !["printed", "used", "entry_in_progress"].includes(sheet.status || "generated"),
+    title: ["printed", "used", "entry_in_progress"].includes(sheet.status || "generated") ? "" : t.bc_entry_blocked,
+    onClick: () => openManualEntry(sheet)
+  }, t.bc_process_sheet))), /*#__PURE__*/React.createElement("details", {
       style: {
         marginTop: "0.6rem"
       }
