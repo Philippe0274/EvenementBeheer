@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+- Regressieherstel Business Continuity UI: bevestigd dat `Verwerk kassablad` naast `Bekijk blad`, `PDF blad` en `Afdrukken blad` wordt gerenderd voor elk kassablad.
+- Cacheherstel: service-worker cacheversie verhoogd en oude `kassa-tool-*` app-shell caches worden opgeruimd, zodat de Hoofdapp niet langer een oude Business Continuity-interface kan tonen.
+- Statusgedrag gecontroleerd: `generated` en `entry_completed` tonen de knop bewust uitgeschakeld; `printed`, `used` en `entry_in_progress` tonen de knop actief.
+
 ## 1.7.0
 - Fase 4A Business Continuity: administratieve invoermodule voor gebruikte papieren kassabladen toegevoegd zonder ledger-posting, validatie, rapportering of financiële berekeningen.
 - Per kassablad kan vanuit status `printed` of `used` een invoer gestart worden; de status wordt `entry_in_progress` en na opslaan `entry_completed`.
