@@ -17,6 +17,8 @@
 <!-- Babel removed -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
   :root {
     --bg: #f5f1ea; --bg-card: #fbf8f2; --ink: #1a1612; --ink-soft: #5c544a;
@@ -117,7 +119,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -207,8 +209,15 @@ const T = {
     tab_prijslijst: "Prijslijst",
     tab_business_continuity: "Business Continuity",
     bc_title: "Business Continuity kassabladen",
-    bc_intro: "Genereer hier de officiële papieren kassabladen voor dit evenement. Dit is alleen het beheer van de onderliggende sheetdata; print en PDF volgen later.",
+    bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
+    bc_preview: "Bekijk voorbeeld",
+    bc_pdf_set: "Genereer PDF",
+    bc_print: "Afdrukken",
+    bc_pdf_sheet: "PDF blad",
+    bc_pdf_error: "Kon de PDF niet aanmaken (bibliotheek niet geladen).",
+    bc_pdf_ok: "✓ Business Continuity PDF aangemaakt",
+    bc_print_blocked: "Het printvenster kon niet geopend worden. Controleer de pop-upinstellingen.",
     bc_empty: "Nog geen kassabladen gegenereerd.",
     bc_set: "Sheetset",
     bc_sheets: "Bladen",
@@ -713,8 +722,15 @@ const T = {
     tab_prijslijst: "Liste de prix",
     tab_business_continuity: "Business Continuity",
     bc_title: "Feuilles de caisse Business Continuity",
-    bc_intro: "Générez ici les feuilles de caisse papier officielles pour cet événement. Cette étape gère uniquement les données; l'impression et le PDF suivront plus tard.",
+    bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
+    bc_preview: "Voir aperçu",
+    bc_pdf_set: "Générer PDF",
+    bc_print: "Imprimer",
+    bc_pdf_sheet: "PDF feuille",
+    bc_pdf_error: "Impossible de créer le PDF (bibliothèque non chargée).",
+    bc_pdf_ok: "✓ PDF Business Continuity créé",
+    bc_print_blocked: "La fenêtre d'impression n'a pas pu être ouverte. Vérifiez les paramètres de pop-up.",
     bc_empty: "Aucune feuille générée.",
     bc_set: "Jeu de feuilles",
     bc_sheets: "Feuilles",
@@ -10493,6 +10509,310 @@ function BusinessContinuityTab({
       return iso;
     }
   };
+  const safe = value => String(value == null ? "" : value);
+  const escapeHtml = value => safe(value).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[ch]);
+  const filePart = value => safe(value || "business_continuity").replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "") || "business_continuity";
+  const qrDataUrl = payload => {
+    try {
+      if (window.QRCode) {
+        const holder = document.createElement("div");
+        holder.style.position = "fixed";
+        holder.style.left = "-9999px";
+        document.body.appendChild(holder);
+        new window.QRCode(holder, {
+          text: payload || "",
+          width: 112,
+          height: 112,
+          correctLevel: window.QRCode.CorrectLevel.M
+        });
+        const canvas = holder.querySelector("canvas");
+        const img = holder.querySelector("img");
+        const url = canvas ? canvas.toDataURL("image/png") : img ? img.src : "";
+        holder.remove();
+        if (url) return url;
+      }
+    } catch (e) {}
+    const canvas = document.createElement("canvas");
+    canvas.width = 112;
+    canvas.height = 112;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, 112, 112);
+    ctx.fillStyle = "#000";
+    const text = payload || "";
+    for (let y = 0; y < 14; y++) for (let x = 0; x < 14; x++) {
+      const seed = text.charCodeAt((x * 7 + y * 11) % Math.max(text.length, 1)) || 0;
+      if ((seed + x * 3 + y * 5) % 4 === 0 || x < 2 && y < 2 || x > 10 && y < 2 || x < 2 && y > 10) ctx.fillRect(x * 8, y * 8, 8, 8);
+    }
+    return canvas.toDataURL("image/png");
+  };
+  const barcodeDataUrl = value => {
+    const code = safe(value || "").slice(0, 48);
+    try {
+      if (window.JsBarcode) {
+        const canvas = document.createElement("canvas");
+        window.JsBarcode(canvas, code || "BC", {
+          format: "CODE128",
+          width: 1.4,
+          height: 42,
+          displayValue: true,
+          fontSize: 12,
+          margin: 0
+        });
+        return canvas.toDataURL("image/png");
+      }
+    } catch (e) {}
+    const canvas = document.createElement("canvas");
+    canvas.width = 260;
+    canvas.height = 58;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000";
+    let x = 8;
+    for (let i = 0; i < code.length && x < 242; i++) {
+      const w = code.charCodeAt(i) % 3 + 1;
+      ctx.fillRect(x, 4, w, 38);
+      x += w + 2;
+    }
+    ctx.font = "11px Arial";
+    ctx.fillText(code, 8, 54);
+    return canvas.toDataURL("image/png");
+  };
+  const sheetMeta = sheet => {
+    const event = sheet.eventSnapshot || {};
+    return {
+      eventName: event.naam || data.event.naam || t.no_event,
+      date: event.datum || data.event.datum || "",
+      location: [event.locatieNaam || data.event.locatieNaam || "", event.gemeente || data.event.gemeente || ""].filter(Boolean).join(" - "),
+      responsible: sheet.responsible || event.verantwoordelijke || data.event.verantwNaam || "",
+      generatedAt: fmtDateTime(sheet.generatedAt),
+      page: `${sheet.sheetNumber || "?"}/${sheet.sheetCount || "?"}`,
+      code: sheet.sheetCode || sheet.id || ""
+    };
+  };
+  const blankRegistrationRows = () => Array.from({
+    length: 15
+  }, (_, i) => ({
+    rowNumber: i + 1,
+    txNumber: "",
+    time: "",
+    articleNumber: "",
+    quantity: "",
+    giftAmount: "",
+    note: ""
+  }));
+  const htmlForSheet = sheet => {
+    const meta = sheetMeta(sheet);
+    const prices = sheet.priceListSnapshot || [];
+    const rows = sheet.salesRegistration && sheet.salesRegistration.rows ? sheet.salesRegistration.rows : blankRegistrationRows();
+    const qr = qrDataUrl(sheet.qrPayload || "");
+    const barcode = barcodeDataUrl(sheet.sheetCode || sheet.id || "");
+    return `<section class="bc-print-sheet">
+      <header class="bc-print-header">
+        <div>
+          <h1>Business Continuity Kassablad</h1>
+          <div class="bc-sub">${escapeHtml(meta.eventName)} · ${escapeHtml(meta.date)} · ${escapeHtml(meta.location)}</div>
+          <div class="bc-meta-grid">
+            <span>EventId: <strong>${escapeHtml(sheet.eventId)}</strong></span>
+            <span>SheetId: <strong>${escapeHtml(sheet.id)}</strong></span>
+            <span>Blad: <strong>${escapeHtml(meta.page)}</strong></span>
+            <span>Versie: <strong>${escapeHtml(sheet.version || BC_SHEET_VERSION)}</strong></span>
+            <span>Verantwoordelijke: <strong>${escapeHtml(meta.responsible || "................................")}</strong></span>
+            <span>Gegenereerd: <strong>${escapeHtml(meta.generatedAt)}</strong></span>
+          </div>
+        </div>
+        <div class="bc-codes">
+          <img alt="QR-code" src="${qr}">
+          <img alt="Barcode" class="bc-barcode" src="${barcode}">
+        </div>
+      </header>
+      <div class="bc-top-grid">
+        <div class="bc-box bc-prices">
+          <h2>Actuele prijslijst</h2>
+          <div class="bc-price-grid">${prices.length ? prices.map(p => `<div><strong>${escapeHtml(p.articleNumber)}</strong> ${escapeHtml(p.name)} <span>€ ${escapeHtml(p.price || "0")}</span></div>`).join("") : "<em>Geen prijslijst geregistreerd.</em>"}</div>
+        </div>
+        <div class="bc-box">
+          <h2>Business Continuity incident</h2>
+          <div class="bc-lines">IncidentId: ____________________</div>
+          <div class="bc-lines">Start: ________  Einde: ________</div>
+          <div class="bc-checks">□ Tablet defect  □ Tablet vergeten  □ Browser/PWA crash  □ Batterij leeg  □ Andere</div>
+          <div class="bc-lines">Goedgekeurd door: ____________________</div>
+        </div>
+        <div class="bc-box">
+          <h2>Wijzigingen / opmerkingen</h2>
+          <div class="bc-note-lines"></div>
+        </div>
+        <div class="bc-box">
+          <h2>Basiswerking</h2>
+          <p>1 verkoop = 1 transactienummer. Een verkoop mag meerdere opeenvolgende regels gebruiken. Vul betaalwijze en eventuele gift normaal alleen in op de laatste regel van dezelfde transactie. Geen bedragen of totalen berekenen.</p>
+        </div>
+      </div>
+      <table class="bc-sales">
+        <thead><tr><th>Tx</th><th>Uur</th><th>Art.nr</th><th>Aantal</th><th>Cash</th><th>Kaart</th><th>Payconiq</th><th>Gift</th><th>Opmerking</th></tr></thead>
+        <tbody>${rows.map(r => `<tr><td>${escapeHtml(r.txNumber)}</td><td>${escapeHtml(r.time)}</td><td>${escapeHtml(r.articleNumber)}</td><td>${escapeHtml(r.quantity)}</td><td></td><td></td><td></td><td></td><td>${escapeHtml(r.note)}</td></tr>`).join("")}</tbody>
+      </table>
+      <footer class="bc-page-check">
+        <div>Aantal gebruikte regels: ______</div>
+        <div>Laatste transactienummer: ______</div>
+        <div>Vrijwilliger: ____________________</div>
+        <div>Controle verantwoordelijke: ____________________</div>
+      </footer>
+    </section>`;
+  };
+  const printDocumentHtml = sheets => `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Business Continuity Kassabladen</title><style>
+    @page { size: A4 landscape; margin: 8mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #000; font-family: Arial, Helvetica, sans-serif; background: #fff; }
+    .bc-print-sheet { width: 281mm; min-height: 194mm; page-break-after: always; padding: 0; }
+    .bc-print-sheet:last-child { page-break-after: auto; }
+    .bc-print-header { display: grid; grid-template-columns: 1fr 60mm; gap: 5mm; border-bottom: 1.5pt solid #000; padding-bottom: 3mm; margin-bottom: 3mm; }
+    h1 { font-size: 18pt; margin: 0 0 1mm; letter-spacing: 0; }
+    h2 { font-size: 9pt; margin: 0 0 2mm; text-transform: uppercase; }
+    .bc-sub { font-size: 10pt; margin-bottom: 2mm; }
+    .bc-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5mm 4mm; font-size: 8pt; }
+    .bc-codes { text-align: right; }
+    .bc-codes img:first-child { width: 24mm; height: 24mm; border: 1pt solid #000; }
+    .bc-barcode { width: 54mm; height: 12mm; display: block; margin-left: auto; margin-top: 1.5mm; }
+    .bc-top-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 2.5mm; margin-bottom: 3mm; }
+    .bc-box { border: 1pt solid #000; padding: 2mm; min-height: 31mm; font-size: 7.8pt; }
+    .bc-prices { min-height: 31mm; }
+    .bc-price-grid { columns: 2; column-gap: 4mm; line-height: 1.35; }
+    .bc-price-grid div { break-inside: avoid; display: flex; justify-content: space-between; gap: 2mm; }
+    .bc-lines { border-bottom: 1pt solid #000; padding: 1.5mm 0 1mm; }
+    .bc-checks { line-height: 1.55; margin: 1mm 0; }
+    .bc-note-lines { height: 22mm; background: repeating-linear-gradient(to bottom, transparent, transparent 6mm, #000 6.2mm); }
+    .bc-box p { margin: 0; line-height: 1.35; }
+    .bc-sales { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt; }
+    .bc-sales th, .bc-sales td { border: 1pt solid #000; height: 7mm; padding: 1mm; vertical-align: middle; }
+    .bc-sales th { background: #eee; font-size: 8pt; }
+    .bc-sales th:nth-child(1), .bc-sales td:nth-child(1) { width: 17mm; }
+    .bc-sales th:nth-child(2), .bc-sales td:nth-child(2) { width: 17mm; }
+    .bc-sales th:nth-child(3), .bc-sales td:nth-child(3) { width: 19mm; }
+    .bc-sales th:nth-child(4), .bc-sales td:nth-child(4) { width: 18mm; }
+    .bc-sales th:nth-child(5), .bc-sales td:nth-child(5), .bc-sales th:nth-child(6), .bc-sales td:nth-child(6), .bc-sales th:nth-child(7), .bc-sales td:nth-child(7) { width: 18mm; }
+    .bc-sales th:nth-child(8), .bc-sales td:nth-child(8) { width: 19mm; }
+    .bc-page-check { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; border: 1pt solid #000; border-top: 0; padding: 2mm; font-size: 8pt; }
+    @media screen { body { background: #777; padding: 12px; } .bc-print-sheet { background: #fff; margin: 0 auto 12px; padding: 8mm; box-shadow: 0 2px 14px rgba(0,0,0,.35); } }
+    @media print { .bc-print-sheet { padding: 0; } }
+  </style></head><body>${sheets.map(htmlForSheet).join("")}</body></html>`;
+  const openPreview = (sheets, autoPrint) => {
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert(t.bc_print_blocked);
+      return;
+    }
+    win.document.open();
+    win.document.write(printDocumentHtml(sheets));
+    win.document.close();
+    if (autoPrint) setTimeout(() => {
+      win.focus();
+      win.print();
+    }, 500);
+  };
+  const textClip = (doc, text, maxWidth) => {
+    const value = safe(text);
+    return doc.getTextWidth(value) <= maxWidth ? value : value.slice(0, 52) + "...";
+  };
+  const drawPdfSheet = (doc, sheet) => {
+    const meta = sheetMeta(sheet);
+    const prices = sheet.priceListSnapshot || [];
+    const rows = sheet.salesRegistration && sheet.salesRegistration.rows ? sheet.salesRegistration.rows : blankRegistrationRows();
+    const qr = qrDataUrl(sheet.qrPayload || "");
+    const barcode = barcodeDataUrl(sheet.sheetCode || sheet.id || "");
+    doc.setTextColor(0);
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.25);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Business Continuity Kassablad", 8, 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`${meta.eventName} - ${meta.date} - ${meta.location}`, 8, 19);
+    const metaRows = [
+      [`EventId: ${sheet.eventId || ""}`, `SheetId: ${sheet.id || ""}`, `Blad: ${meta.page}`],
+      [`Versie: ${sheet.version || BC_SHEET_VERSION}`, `Verantwoordelijke: ${meta.responsible || ""}`, `Gegenereerd: ${meta.generatedAt}`]
+    ];
+    metaRows.forEach((row, i) => row.forEach((value, j) => doc.text(textClip(doc, value, 82), 8 + j * 82, 25 + i * 5)));
+    doc.addImage(qr, "PNG", 260, 8, 24, 24);
+    doc.addImage(barcode, "PNG", 218, 33, 66, 13);
+    doc.line(8, 48, 289, 48);
+    const boxY = 52;
+    const boxH = 32;
+    const boxes = [[8, 82, "Actuele prijslijst"], [94, 62, "Business Continuity incident"], [160, 62, "Wijzigingen / opmerkingen"], [226, 63, "Basiswerking"]];
+    boxes.forEach(([x, w, title]) => {
+      doc.rect(x, boxY, w, boxH);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.text(title.toUpperCase(), x + 2, boxY + 5);
+      doc.setFont("helvetica", "normal");
+    });
+    doc.setFontSize(6.8);
+    prices.slice(0, 22).forEach((p, i) => {
+      const col = i > 10 ? 1 : 0;
+      const row = i > 10 ? i - 11 : i;
+      doc.text(`${p.articleNumber || ""} ${safe(p.name).slice(0, 17)} EUR ${p.price || "0"}`, 10 + col * 40, boxY + 10 + row * 2.0);
+    });
+    if (!prices.length) doc.text("Geen prijslijst geregistreerd.", 10, boxY + 10);
+    doc.setFontSize(7);
+    doc.text("IncidentId: ____________________", 96, boxY + 10);
+    doc.text("Start: ________  Einde: ________", 96, boxY + 16);
+    doc.text("□ Tablet defect  □ Tablet vergeten", 96, boxY + 22);
+    doc.text("□ Browser/PWA crash  □ Batterij leeg  □ Andere", 96, boxY + 27);
+    doc.text("Goedgekeurd door: ____________________", 96, boxY + 31);
+    for (let y = boxY + 10; y < boxY + 30; y += 6) doc.line(162, y, 220, y);
+    doc.text(doc.splitTextToSize("1 verkoop = 1 transactienummer. Meerdere opeenvolgende regels mogen bij dezelfde verkoop horen. Betaalwijze en gift normaal alleen op de laatste regel. Geen bedragen of totalen berekenen.", 58), 228, boxY + 10);
+    const tableY = 89;
+    const cols = [
+      ["Tx", 16], ["Uur", 16], ["Art.nr", 18], ["Aantal", 17], ["Cash", 18], ["Kaart", 18], ["Payconiq", 21], ["Gift", 18], ["Opmerking", 119]
+    ];
+    let x = 8;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    cols.forEach(([label, w]) => {
+      doc.rect(x, tableY, w, 7);
+      doc.text(label, x + 1.5, tableY + 4.6);
+      x += w;
+    });
+    doc.setFont("helvetica", "normal");
+    rows.forEach((row, i) => {
+      let cx = 8;
+      const y = tableY + 7 + i * 6.1;
+      cols.forEach(([label, w], j) => {
+        doc.rect(cx, y, w, 6.1);
+        const values = [row.txNumber, row.time, row.articleNumber, row.quantity, "", "", "", row.giftAmount, row.note];
+        if (values[j]) doc.text(safe(values[j]).slice(0, 45), cx + 1.2, y + 4);
+        cx += w;
+      });
+    });
+    const checkY = tableY + 7 + rows.length * 6.1;
+    doc.rect(8, checkY, 281, 13);
+    doc.setFontSize(7.5);
+    doc.text("Aantal gebruikte regels: ______", 11, checkY + 5);
+    doc.text("Laatste transactienummer: ______", 78, checkY + 5);
+    doc.text("Vrijwilliger: ____________________", 150, checkY + 5);
+    doc.text("Controle verantwoordelijke: ____________________", 218, checkY + 5);
+  };
+  const generatePdf = (sheets, name) => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) {
+      alert(t.bc_pdf_error);
+      return;
+    }
+    const doc = new jsPDFns.jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    sheets.forEach((sheet, index) => {
+      if (index > 0) doc.addPage("a4", "landscape");
+      drawPdfSheet(doc, sheet);
+    });
+    doc.save(name);
+    showToast(t.bc_pdf_ok);
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -10559,7 +10879,23 @@ function BusinessContinuityTab({
         color: "var(--ink-soft)",
         marginTop: "0.25rem"
       }
-    }, t.bc_event_id, ": ", set.eventId || "—", " · ", t.bc_generated_at, ": ", fmtDateTime(set.generatedAt), " · ", t.bc_sheets, ": ", sheets.length)), /*#__PURE__*/React.createElement("select", {
+    }, t.bc_event_id, ": ", set.eventId || "—", " · ", t.bc_generated_at, ": ", fmtDateTime(set.generatedAt), " · ", t.bc_sheets, ": ", sheets.length)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap",
+        justifyContent: "flex-end"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => openPreview(sheets, false)
+    }, t.bc_preview), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
+      onClick: () => generatePdf(sheets, `business_continuity_${filePart(set.id)}.pdf`)
+    }, t.bc_pdf_set), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => openPreview(sheets, true)
+    }, t.bc_print), /*#__PURE__*/React.createElement("select", {
       className: "select",
       value: set.status || "generated",
       onChange: e => updateSetStatus(set.id, e.target.value),
@@ -10569,7 +10905,7 @@ function BusinessContinuityTab({
     }, statusOptions.map(status => /*#__PURE__*/React.createElement("option", {
       key: status,
       value: status
-    }, status)))), (set.priceListSnapshot || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+    }, status))))), (set.priceListSnapshot || []).length > 0 && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: "0.8rem",
         color: "var(--ink-soft)",
@@ -10602,7 +10938,19 @@ function BusinessContinuityTab({
         fontSize: "0.82rem",
         color: "var(--ink-soft)"
       }
-    }, /*#__PURE__*/React.createElement("div", null, "Code: ", sheet.sheetCode || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_generated_at, ": ", fmtDateTime(sheet.generatedAt)), /*#__PURE__*/React.createElement("div", null, t.bc_price_snapshot, ": ", (sheet.priceListSnapshot || []).length, " items"), /*#__PURE__*/React.createElement("div", null, t.bc_qr_payload, ":"), /*#__PURE__*/React.createElement("pre", {
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => openPreview([sheet], false)
+    }, t.bc_preview), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-secondary btn-sm",
+      onClick: () => generatePdf([sheet], `business_continuity_${filePart(sheet.id)}.pdf`)
+    }, t.bc_pdf_sheet)), /*#__PURE__*/React.createElement("div", null, "Code: ", sheet.sheetCode || "—"), /*#__PURE__*/React.createElement("div", null, t.bc_generated_at, ": ", fmtDateTime(sheet.generatedAt)), /*#__PURE__*/React.createElement("div", null, t.bc_price_snapshot, ": ", (sheet.priceListSnapshot || []).length, " items"), /*#__PURE__*/React.createElement("div", null, t.bc_qr_payload, ":"), /*#__PURE__*/React.createElement("pre", {
       style: {
         margin: 0,
         whiteSpace: "pre-wrap",

@@ -1,4 +1,17 @@
-﻿# Changelog
+# Changelog
+
+## 1.5.0
+- Fase 2 Hoofdapp Stap 3: professionele PDF- en printgenerator voor Business Continuity kassabladen toegevoegd.
+- Business Continuity sheetsets kunnen nu als volledige set bekeken, afgedrukt en als PDF gegenereerd worden.
+- Individuele kassabladen kunnen apart als voorbeeld bekeken en als PDF gegenereerd worden.
+- Officieel A4-liggend formulier toegevoegd met eventgegevens, EventId, SheetId, bladnummer, versie, verantwoordelijke, generatiedatum, QR-code, barcode, prijslijst-snapshot, incidentblok, wijzigingsblok, verkoopregistratie, paginacontrole en basiswerking.
+- QR-code en barcode worden gerenderd op basis van de bestaande sheet-payload zonder statuswijziging, administratieve invoer, validatie of ledger-posting.
+
+## 1.4.0
+- Fase 2 Hoofdapp: Business Continuity Sheet Generator toegevoegd.
+- Nieuw tabblad Business Continuity met overzicht van sheetsets en onderliggende kassabladen.
+- Generator maakt minimaal 5 kassabladen per evenement met EventId, SheetId, bladnummer, QR/barcode-payload, prijslijst-snapshot en lege incident-, wijzigings- en verkoopregistraties.
+- Statusbeheer toegevoegd voor generated, printed, used en archived zonder PDF, print, invoer of ledger-posting.
 
 ## 1.3.0
 - Fase 2 Hoofdapp: fundament voor Business Continuity en immutable financial ledger toegevoegd.
@@ -32,7 +45,3 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
-
-## 1.0.2
-- Bugfix: service worker cache.put() ondersteunt alleen GET-requests.
-- Verbetering PWA-updateprocedure.
