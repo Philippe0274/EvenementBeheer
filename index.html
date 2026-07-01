@@ -117,6 +117,9 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
+const APP_VERSION = "1.3.0";
+const DATA_SCHEMA_VERSION = "2.0.0";
+const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 
 // ============================================================
 // I18N — Vertalingen voor de UI
@@ -1263,6 +1266,14 @@ const defaultSjablonen = [{
   fr: "Salut {voornaam} ! C'est demain. Tes tâches :\n{takenlijst}\n\n📍 {mapslink}\n\nÀ demain !"
 }];
 const defaultData = {
+  appMeta: {
+    appName: "EvenementBeheer Hoofdapp",
+    appVersion: APP_VERSION,
+    dataSchemaVersion: DATA_SCHEMA_VERSION,
+    architectureVersion: ARCHITECTURE_VERSION,
+    role: "central-administration",
+    ledgerMode: "immutable"
+  },
   taal: "nl",
   event: {
     naam: "",
@@ -1360,7 +1371,28 @@ const defaultData = {
   groepverzendingHistory: {},
   gvVerzonden: {},
   prijslijst: [],
-  prijslijstCategorien: ["Drank", "Eten", "Snacks", "Overig"]
+  prijslijstCategorien: ["Drank", "Eten", "Snacks", "Overig"],
+  businessContinuity: {
+    sheetSets: [],
+    sheets: [],
+    incidents: [],
+    manualEntryBatches: [],
+    manualEntryLines: [],
+    sheetAttachments: [],
+    priceListChanges: []
+  },
+  finance: {
+    ledgerTransactions: [],
+    corrections: [],
+    purchaseCosts: [],
+    budgets: [],
+    projections: []
+  },
+  auditTrail: [],
+  legacy: {
+    migratedFromStorageKey: STORAGE_KEY,
+    migrationNotes: []
+  }
 };
 
 // Vaste oorsprong-waarde die de winkel-flow activeert
@@ -1587,6 +1619,14 @@ const normalizeData = raw => {
   if (!raw || typeof raw !== "object") return defaultData;
   const safe = {
     ...defaultData
+  };
+  safe.appMeta = {
+    ...defaultData.appMeta,
+    ...(raw.appMeta && typeof raw.appMeta === "object" && !Array.isArray(raw.appMeta) ? raw.appMeta : {}),
+    appVersion: APP_VERSION,
+    dataSchemaVersion: DATA_SCHEMA_VERSION,
+    architectureVersion: ARCHITECTURE_VERSION,
+    ledgerMode: "immutable"
   };
   safe.taal = raw.taal === "fr" ? "fr" : "nl";
   if (raw.event && typeof raw.event === "object") safe.event = {
@@ -1849,6 +1889,40 @@ const normalizeData = raw => {
   // Overgeslagen aandachtspunt-categorieën
   if (Array.isArray(raw.overgeslagenAandachtspunten)) {
     safe.overgeslagenAandachtspunten = raw.overgeslagenAandachtspunten.filter(x => typeof x === "string");
+  }
+
+  // Business Continuity + immutable ledger fundament (Fase 2, stap 1).
+  if (raw.businessContinuity && typeof raw.businessContinuity === "object" && !Array.isArray(raw.businessContinuity)) {
+    safe.businessContinuity = {
+      ...defaultData.businessContinuity,
+      sheetSets: Array.isArray(raw.businessContinuity.sheetSets) ? raw.businessContinuity.sheetSets : [],
+      sheets: Array.isArray(raw.businessContinuity.sheets) ? raw.businessContinuity.sheets : [],
+      incidents: Array.isArray(raw.businessContinuity.incidents) ? raw.businessContinuity.incidents : [],
+      manualEntryBatches: Array.isArray(raw.businessContinuity.manualEntryBatches) ? raw.businessContinuity.manualEntryBatches : [],
+      manualEntryLines: Array.isArray(raw.businessContinuity.manualEntryLines) ? raw.businessContinuity.manualEntryLines : [],
+      sheetAttachments: Array.isArray(raw.businessContinuity.sheetAttachments) ? raw.businessContinuity.sheetAttachments : [],
+      priceListChanges: Array.isArray(raw.businessContinuity.priceListChanges) ? raw.businessContinuity.priceListChanges : []
+    };
+  }
+  if (raw.finance && typeof raw.finance === "object" && !Array.isArray(raw.finance)) {
+    safe.finance = {
+      ...defaultData.finance,
+      ledgerTransactions: Array.isArray(raw.finance.ledgerTransactions) ? raw.finance.ledgerTransactions : [],
+      corrections: Array.isArray(raw.finance.corrections) ? raw.finance.corrections : [],
+      purchaseCosts: Array.isArray(raw.finance.purchaseCosts) ? raw.finance.purchaseCosts : [],
+      budgets: Array.isArray(raw.finance.budgets) ? raw.finance.budgets : [],
+      projections: Array.isArray(raw.finance.projections) ? raw.finance.projections : []
+    };
+  }
+  if (Array.isArray(raw.auditTrail)) {
+    safe.auditTrail = raw.auditTrail;
+  }
+  if (raw.legacy && typeof raw.legacy === "object" && !Array.isArray(raw.legacy)) {
+    safe.legacy = {
+      ...defaultData.legacy,
+      ...raw.legacy,
+      migrationNotes: Array.isArray(raw.legacy.migrationNotes) ? raw.legacy.migrationNotes : []
+    };
   }
   return safe;
 };
