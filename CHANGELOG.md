@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.11.0
+- UI/UX Sprint 4: Winkelgegevens vernieuwd naar compacte CRM-kaarten in dezelfde stijl als Vrijwilligers en Materiaal.
+- Winkelkaarten tonen uitsluitend winkellogo, winkelnaam en BTW-nummer.
+- Logo uploaden, vervangen, verwijderen en live preview toegevoegd via dezelfde vierkante compressietechniek als profielfoto's.
+- Winkelgegevens is de enige bron van waarheid voor winkellogo's; Materiaal leest hetzelfde logo uit de bestaande winkeldata.
+- Nieuwe winkels worden pas na opslaan toegevoegd; er wordt geen lege kaart vooraf aangemaakt.
+- Dubbele winkelnamen worden geblokkeerd met de bestaande meldingsflow.
+- Zoeken op winkelnaam en BTW-nummer markeert en scrollt naar de juiste kaart.
+- Geen aparte logo-assets, geen extra logo-opslag en geen wijzigingen aan Winkelbestellingen-logica.
+
+## 1.10.2
+- UI/UX patch materiaalmodule: materiaalkaarten compacter gemaakt met automatische hoogte, minder lege ruimte en betere rij-uitlijning.
+- Gegevenslayout in materiaalkaarten verfijnd naar een vaste tweekolomslayout zodat labels en waarden niet overlappen.
+- Typografie aangescherpt: titel prominenter, labels subtieler en waarden beter leesbaar.
+- Actiebalk van materiaalkaarten gelijkgetrokken met de compacte verticale stijl van de vrijwilligersmodule.
+- Winkelgroepen binnen `Winkel_Magasin` tonen voortaan links in de groepstitel een bestaand winkellogo wanneer dat in de winkeldata aanwezig is.
+- Wanneer geen bestaand winkellogo beschikbaar is, toont de winkelgroep een neutraal winkelicoon; individuele materiaalkaarten krijgen geen logo.
+- Geen nieuwe logo-assets aangemaakt en geen wijzigingen aan datamodel, opslag, save-flow, import/export, backup/restore of Winkelbestellingen.
+
+## 1.10.1
+- UI/UX patch materiaalmodule: oorsprongsblokken krijgen voortaan een deterministische subtiele kleur uit een vast professioneel palet.
+- Bekende oorsprongen houden expliciet dezelfde kleur: Vilvoorde lichtblauw, Grimbergen lichtgroen, Ben Addi lichtoranje, Winkel/Magasin lichtgeel en Zonder oorsprong lichtgrijs.
+- Nieuwe oorsprongen krijgen automatisch de volgende beschikbare kleur uit hetzelfde vaste palet; na refresh, backup, restore, import en export blijft de kleurkeuze deterministisch.
+- De kleur wordt alleen toegepast op oorsprongsblokken, titelbalken, blokbadges en subtiele accenten; materiaalkaarten blijven wit.
+- Geen wijzigingen aan datamodel, opslag, save-flow, import/export, backup/restore of Winkelbestellingen.
+
+## 1.10.0
+- UI/UX Sprint 3: materiaalmodule vernieuwd naar een professionele kaartweergave zonder datamodel-, opslag-, sync-, backup-, restore-, import- of exportwijzigingen.
+- Materiaal wordt automatisch gegroepeerd per oorsprong, met inklapbare blokken, subtiele blokkleuren en statistieken voor aantal materialen en totaal stuks.
+- Winkelmateriaal wordt binnen het blok `Winkel / Magasin` aanvullend gegroepeerd per winkel.
+- Materiaalkaarten zijn compact, hebben gelijke hoogte, tonen alleen ingevulde velden en hebben een verticale iconenbalk voor bekijken, bewerken en verwijderen.
+- Klik op een kaart markeert/bekijkt het materiaal; dubbelklik opent het bestaande bewerkingsformulier in overlayvorm.
+- Nieuwe materialen verschijnen pas na opslaan als kaart in de juiste groep; bestaande materialen verplaatsen na wijziging van oorsprong of winkel automatisch naar het juiste blok.
+- Dubbele materialen worden geblokkeerd wanneer `Materiaal NL` identiek is binnen dezelfde oorsprong en, voor winkelmateriaal, dezelfde winkel.
+- Zoeken opent automatisch de juiste groep, markeert het eerste resultaat en scrollt naar de kaart.
+- Winkelbestellingen blijven gebaseerd op dezelfde bestaande materiaalvelden `oorsprong` en `winkelId`.
+
 ## 1.9.2
 - Regressieherstel vrijwilligersmodule: expliciete knop `Opslaan` toegevoegd aan de CRM-bewerkoverlay.
 - Nieuwe en bestaande vrijwilligers gebruiken opnieuw de bestaande `updateVrijwilliger`-stateflow; er is geen nieuwe opslaglogica of datamodelwijziging toegevoegd.

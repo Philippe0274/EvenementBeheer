@@ -109,6 +109,59 @@
   .volunteer-photo-preview { width: 96px; height: 96px; border-radius: 6px; object-fit: cover; background: white; border: 1px solid var(--line); }
   @media (max-width: 1200px) { .volunteer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 920px) { .volunteer-grid { grid-template-columns: 1fr; } }
+  .material-source-block { border: 1px solid var(--line); border-radius: 5px; overflow: visible; margin-bottom: 1rem; background: white; }
+  .material-source-head { width: 100%; border: none; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.85rem 1rem; cursor: pointer; text-align: left; }
+  .material-source-title { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fraunces', serif; font-size: 1.08rem; font-weight: 650; color: inherit; }
+  .material-source-stats { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
+  .material-source-body { padding: 1rem; background: #fff; }
+  .material-shop-group { border: 1px solid var(--line); border-radius: 4px; margin-bottom: 0.8rem; overflow: hidden; }
+  .material-shop-head { width: 100%; border: none; background: #fbf8f2; padding: 0.55rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; cursor: pointer; text-align: left; color: var(--ink); font-weight: 650; }
+  .material-shop-title { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; }
+  .material-shop-logo { width: 28px; height: 28px; flex: 0 0 28px; border: 1px solid var(--line); border-radius: 4px; background: white; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 0.9rem; line-height: 1; overflow: hidden; }
+  .material-shop-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .material-shop-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .material-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; align-items: stretch; }
+  .material-card { position: relative; height: 100%; min-height: 168px; padding: 0; overflow: hidden; cursor: pointer; background: #fff; display: flex; transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease; }
+  .material-card:hover { box-shadow: 0 8px 22px rgba(44, 38, 31, 0.12); transform: translateY(-1px); border-color: #cdbfaa; }
+  .material-card.marked { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), 0 8px 22px rgba(44, 38, 31, 0.12); }
+  .material-card-main { padding: 0.78rem 3.25rem 0.78rem 0.9rem; display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; width: 100%; }
+  .material-card-title { font-family: 'Fraunces', serif; font-size: 1.08rem; line-height: 1.12; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+  .material-card-subtitle { color: var(--ink-soft); font-size: 0.78rem; line-height: 1.22; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .material-info { display: grid; gap: 0.22rem; margin-top: 0.05rem; font-size: 0.8rem; }
+  .material-info-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 0.55rem; align-items: start; min-width: 0; }
+  .material-info-label { color: #a49a8e; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 650; line-height: 1.35; }
+  .material-info-value { min-width: 0; overflow-wrap: anywhere; color: var(--ink); font-weight: 520; line-height: 1.35; }
+  .material-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.85rem 0.35rem; border-left: 1px solid var(--line); background: #fbf8f2; }
+  .material-actions .btn { width: 32px; height: 32px; min-width: 32px; padding: 0; justify-content: center; border-radius: 4px; font-size: 0.92rem; line-height: 1; white-space: nowrap; }
+  .material-actions .btn-danger { margin-top: auto; }
+  .material-edit-panel { position: fixed; z-index: 10002; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(920px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow: auto; background: white; border: 1px solid var(--line); border-radius: 5px; box-shadow: 0 18px 42px rgba(44, 38, 31, 0.22); padding: 1rem; }
+  .material-edit-backdrop { position: fixed; inset: 0; z-index: 10001; background: rgba(44, 38, 31, 0.24); }
+  .material-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  @media (max-width: 1200px) { .material-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 920px) { .material-grid { grid-template-columns: 1fr; } .material-form-grid { grid-template-columns: 1fr; } }
+  .shop-toolbar { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .shop-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; align-items: stretch; }
+  .shop-card { position: relative; height: 190px; min-height: 190px; padding: 0; overflow: hidden; cursor: pointer; background: #fff; display: flex; transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease; }
+  .shop-card:hover { box-shadow: 0 8px 22px rgba(44, 38, 31, 0.12); transform: translateY(-1px); border-color: #cdbfaa; }
+  .shop-card.marked { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), 0 8px 22px rgba(44, 38, 31, 0.12); }
+  .shop-card-main { padding: 0.9rem 3.25rem 0.9rem 0.95rem; display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 0.8rem; align-items: start; width: 100%; min-width: 0; }
+  .shop-logo { width: 72px; height: 72px; border-radius: 6px; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 1.45rem; overflow: hidden; }
+  .shop-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .shop-card-title { font-family: 'Fraunces', serif; font-size: 1.16rem; line-height: 1.12; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+  .shop-card-btw { margin-top: 0.45rem; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 0.55rem; align-items: baseline; }
+  .shop-card-label { color: #a49a8e; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 650; line-height: 1.35; }
+  .shop-card-value { min-width: 0; overflow-wrap: anywhere; color: var(--ink); font-weight: 520; line-height: 1.35; }
+  .shop-card-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.85rem 0.35rem; border-left: 1px solid var(--line); background: #fbf8f2; }
+  .shop-card-actions .btn { width: 32px; height: 32px; min-width: 32px; padding: 0; justify-content: center; border-radius: 4px; font-size: 0.92rem; line-height: 1; white-space: nowrap; }
+  .shop-card-actions .btn-danger { margin-top: auto; }
+  .shop-edit-backdrop { position: fixed; inset: 0; z-index: 10001; background: rgba(44, 38, 31, 0.24); }
+  .shop-edit-panel { position: fixed; z-index: 10002; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(720px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow: auto; background: white; border: 1px solid var(--line); border-radius: 5px; box-shadow: 0 18px 42px rgba(44, 38, 31, 0.22); padding: 1rem; }
+  .shop-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .shop-logo-panel { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 0.8rem; align-items: center; padding: 0.8rem; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; margin-top: 1rem; }
+  .shop-logo-preview { width: 96px; height: 96px; border-radius: 6px; object-fit: contain; background: white; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 1.8rem; overflow: hidden; }
+  .shop-logo-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @media (max-width: 1200px) { .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 920px) { .shop-grid { grid-template-columns: 1fr; } .shop-form-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -143,7 +196,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.9.2";
+const APP_VERSION = "1.11.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -465,8 +518,21 @@ const T = {
     winkel_btw: "BTW-nummer",
     winkel_btw_ph: "BE0123.456.789",
     winkel_gebruik: "Gebruikt",
+    winkel_zoek_ph: "🔍 Zoek winkel of BTW-nummer…",
+    winkel_zoek_geen: "Geen winkels gevonden voor deze zoekterm.",
+    winkel_zoek_resultaat: (n, totaal) => `${n} van ${totaal} getoond`,
+    winkel_logo: "Winkellogo",
+    winkel_logo_choose: "Logo kiezen",
+    winkel_logo_replace: "Logo vervangen",
+    winkel_logo_remove: "Logo verwijderen",
+    winkel_logo_help: "PNG, JPG of WEBP. Wordt automatisch vierkant verkleind.",
+    winkel_logo_error: "Het logo kon niet verwerkt worden. Kies een PNG, JPG of WEBP.",
+    winkel_save: "Opslaan",
+    winkel_cancel: "Annuleren",
+    winkel_view: "👁 Bekijken",
+    winkel_edit: "✏ Bewerken",
     winkel_new_prompt: "Naam van de nieuwe winkel?",
-    winkel_bestaat: "Die winkel bestaat al.",
+    winkel_bestaat: "Deze winkel bestaat reeds.",
     winkel_inuse: n => `Deze winkel is nog gekoppeld aan ${n} materiaal-${n === 1 ? "rij" : "rijen"}. Pas die eerst aan.`,
     winkel_kies: "Winkel",
     winkel_kies_hint: "Kies de winkel — beheer de lijst in het tabblad WinkelGegevens.",
@@ -513,6 +579,16 @@ const T = {
     mat_zoek_geen: "Geen materiaal gevonden voor deze zoekterm.",
     mat_zoek_resultaat: (n, totaal) => `${n} van ${totaal} getoond`,
     mat_dubbel: "Let op: er bestaat al materiaal met deze naam. Mogelijk een dubbel.",
+    mat_duplicate_blocked: "Dit materiaal bestaat reeds.",
+    mat_open_existing: "Bestaand materiaal openen",
+    mat_save: "Opslaan",
+    mat_cancel: "Annuleren",
+    mat_view: "👁 Bekijken",
+    mat_edit: "✏ Bewerken",
+    mat_without_origin: "Zonder oorsprong",
+    mat_without_shop: "Zonder winkel",
+    mat_materials_count: n => n === 1 ? "1 materiaal" : `${n} materialen`,
+    mat_pieces_count: n => `${n} stuks`,
     mat_choose: "— Kies —",
     mat_other: "Andere…",
     mat_other_ph: "Vrije tekst",
@@ -1082,6 +1158,19 @@ const T = {
     winkel_btw: "Numéro de TVA",
     winkel_btw_ph: "BE0123.456.789",
     winkel_gebruik: "Utilisé",
+    winkel_zoek_ph: "🔍 Rechercher un magasin ou un numéro TVA…",
+    winkel_zoek_geen: "Aucun magasin trouvé pour ce terme.",
+    winkel_zoek_resultaat: (n, totaal) => `${n} sur ${totaal} affichés`,
+    winkel_logo: "Logo du magasin",
+    winkel_logo_choose: "Choisir un logo",
+    winkel_logo_replace: "Remplacer le logo",
+    winkel_logo_remove: "Supprimer le logo",
+    winkel_logo_help: "PNG, JPG ou WEBP. L'image est recadrée en carré automatiquement.",
+    winkel_logo_error: "Le logo n'a pas pu être traité. Choisissez un PNG, JPG ou WEBP.",
+    winkel_save: "Enregistrer",
+    winkel_cancel: "Annuler",
+    winkel_view: "👁 Voir",
+    winkel_edit: "✏ Modifier",
     winkel_new_prompt: "Nom du nouveau magasin ?",
     winkel_bestaat: "Ce magasin existe déjà.",
     winkel_inuse: n => `Ce magasin est encore lié à ${n} ligne${n === 1 ? "" : "s"} de matériel. Modifiez-les d'abord.`,
@@ -1130,6 +1219,16 @@ const T = {
     mat_zoek_geen: "Aucun matériel trouvé pour ce terme.",
     mat_zoek_resultaat: (n, totaal) => `${n} sur ${totaal} affichés`,
     mat_dubbel: "Attention : du matériel portant ce nom existe déjà. Doublon possible.",
+    mat_duplicate_blocked: "Ce matériel existe déjà.",
+    mat_open_existing: "Ouvrir le matériel existant",
+    mat_save: "Enregistrer",
+    mat_cancel: "Annuler",
+    mat_view: "👁 Voir",
+    mat_edit: "✏ Modifier",
+    mat_without_origin: "Sans origine",
+    mat_without_shop: "Sans magasin",
+    mat_materials_count: n => `${n} matériel${n === 1 ? "" : "s"}`,
+    mat_pieces_count: n => `${n} pièce${n === 1 ? "" : "s"}`,
     mat_choose: "— Choisir —",
     mat_other: "Autre…",
     mat_other_ph: "Texte libre",
@@ -1580,7 +1679,7 @@ const defaultData = {
   // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij, winkelId}]
   oorsprongLijst: ["Leuven", "Vilvoorde", "Winkel_Magasin"],
   aankopen: [],
-  // Winkels: stamlijst, behouden over evenementen heen. [{id, naam, btw}]
+  // Winkels: stamlijst, behouden over evenementen heen. [{id, naam, btw, logo}]
   winkels: [{
     id: "w_action",
     naam: "Action",
@@ -2076,7 +2175,8 @@ const normalizeData = raw => {
     safe.winkels = raw.winkels.filter(w => w && typeof w === "object").map(w => ({
       id: w.id || uid(),
       naam: (w.naam || "").toString().trim(),
-      btw: (w.btw || "").toString().trim()
+      btw: (w.btw || "").toString().trim(),
+      logo: w.logo || w.logoUrl || w.logoDataUrl || w.afbeelding || w.image || w.imageUrl || ""
     })).filter(w => w.naam);
   }
 
@@ -3679,19 +3779,23 @@ function App() {
   };
 
   // Materiaal
-  const addMateriaal = () => setData(d => ({
-    ...d,
-    materiaal: [...(d.materiaal || []), {
-      id: uid(),
-      naamNl: "",
-      naamFr: "",
-      aantal: "",
-      oorsprong: "",
-      verantwoordelijkeId: "",
-      verantwoordelijkeVrij: "",
-      winkelId: ""
-    }]
-  }));
+  const addMateriaal = (item = {}) => {
+    const id = uid();
+    setData(d => ({
+      ...d,
+      materiaal: [...(d.materiaal || []), {
+        id,
+        naamNl: item.naamNl || "",
+        naamFr: item.naamFr || "",
+        aantal: item.aantal || "",
+        oorsprong: item.oorsprong || "",
+        verantwoordelijkeId: item.verantwoordelijkeId || "",
+        verantwoordelijkeVrij: item.verantwoordelijkeVrij || "",
+        winkelId: item.winkelId || ""
+      }]
+    }));
+    return id;
+  };
   const updateMateriaal = (id, patch) => setData(d => ({
     ...d,
     materiaal: (d.materiaal || []).map(m => m.id === id ? {
@@ -3716,7 +3820,22 @@ function App() {
   });
 
   // Winkels (stamlijst)
-  const addWinkel = () => {
+  const addWinkel = (item = null) => {
+    if (item) {
+      const id = uid();
+      const naam = (item.naam || "").trim();
+      if (!naam) return "";
+      setData(d => ({
+        ...d,
+        winkels: [...(d.winkels || []), {
+          id,
+          naam,
+          btw: item.btw || "",
+          logo: item.logo || ""
+        }]
+      }));
+      return id;
+    }
     const naam = prompt(t.winkel_new_prompt);
     if (!naam || !naam.trim()) return;
     const trimmed = naam.trim();
@@ -3731,7 +3850,8 @@ function App() {
         winkels: [...(d.winkels || []), {
           id: uid(),
           naam: trimmed,
-          btw: ""
+          btw: "",
+          logo: ""
         }]
       };
     });
@@ -5087,6 +5207,7 @@ function App() {
     add: addWinkel,
     update: updateWinkel,
     remove: removeWinkel,
+    showToast: showToast,
     t: t
   }), tab === "winkelbestellingen" && (data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) && /*#__PURE__*/React.createElement(WinkelbestellingenTab, {
     data: data,
@@ -9019,6 +9140,140 @@ function SjablonenTab({
 // ============================================================
 // MATERIAAL
 // ============================================================
+const MATERIAL_COLORS = [
+  { name: "blue", bg: "#eaf3fb", border: "#b8d7ee", ink: "#28506b" },
+  { name: "green", bg: "#edf6ec", border: "#bdddb8", ink: "#315b2f" },
+  { name: "orange", bg: "#fff0df", border: "#e7c39b", ink: "#7a4b18" },
+  { name: "yellow", bg: "#fff7d8", border: "#e8d58d", ink: "#6c5a1a" },
+  { name: "purple", bg: "#f1eef8", border: "#cec2e9", ink: "#4d3d70" },
+  { name: "turquoise", bg: "#edf7f5", border: "#b9dcd4", ink: "#2b5c54" },
+  { name: "pink", bg: "#fff0f4", border: "#efbdcb", ink: "#74384b" },
+  { name: "beige", bg: "#f7f0e7", border: "#dcc7ad", ink: "#66503a" },
+  { name: "gray", bg: "#f2f3f4", border: "#cfd4d9", ink: "#4f5962" },
+  { name: "mint", bg: "#ebf7ef", border: "#b8dec4", ink: "#2f6042" },
+  { name: "lavender", bg: "#f3effb", border: "#d5c7ee", ink: "#574675" },
+  { name: "salmon", bg: "#fff0ec", border: "#efc0b4", ink: "#7a4438" }
+];
+const MATERIAL_FIXED_COLOR_INDEXES = {
+  vilvoorde: 0,
+  grimbergen: 1,
+  "ben addi": 2,
+  winkel_magasin: 3,
+  "winkel / magasin": 3,
+  "winkel magasin": 3,
+  "zonder oorsprong": 8,
+  "sans origine": 8
+};
+const materialAmountNumber = value => {
+  const n = Number(String(value || "0").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+};
+const materialOriginKey = (m, t) => (m.oorsprong || "").trim() || t.mat_without_origin;
+const materialColorKey = key => normalizeName(String(key || ""))
+  .toLowerCase()
+  .replace(/\s*\/\s*/g, " / ")
+  .replace(/\s+/g, " ")
+  .trim();
+const materialFixedColorIndex = key => {
+  const normalized = materialColorKey(key);
+  if (Object.prototype.hasOwnProperty.call(MATERIAL_FIXED_COLOR_INDEXES, normalized)) return MATERIAL_FIXED_COLOR_INDEXES[normalized];
+  if (normalized.includes("ben addi")) return MATERIAL_FIXED_COLOR_INDEXES["ben addi"];
+  return null;
+};
+const materialBuildColorMap = keys => {
+  const map = {};
+  const used = new Set();
+  (keys || []).forEach(key => {
+    const fixed = materialFixedColorIndex(key);
+    if (fixed !== null) {
+      map[key] = MATERIAL_COLORS[fixed % MATERIAL_COLORS.length];
+      used.add(fixed % MATERIAL_COLORS.length);
+    }
+  });
+  let cursor = 0;
+  (keys || []).forEach(key => {
+    if (map[key]) return;
+    let guard = 0;
+    while (used.has(cursor % MATERIAL_COLORS.length) && guard < MATERIAL_COLORS.length) {
+      cursor += 1;
+      guard += 1;
+    }
+    const index = cursor % MATERIAL_COLORS.length;
+    map[key] = MATERIAL_COLORS[index];
+    used.add(index);
+    cursor += 1;
+  });
+  return map;
+};
+const materialPersonName = (id, free, sortedVrij, sortedExtern) => {
+  if (id === "__ander__") return free || "";
+  const v = (sortedVrij || []).find(x => x.id === id);
+  if (v) return `${v.voornaam || ""} ${v.naam || ""}`.trim();
+  const e = (sortedExtern || []).find(x => x.id === id);
+  return e ? e.naam || "" : "";
+};
+const materialShopName = (winkelId, winkels, t) => {
+  const w = (winkels || []).find(x => x.id === winkelId);
+  return w ? w.naam : t.mat_without_shop;
+};
+const materialShopRecord = (winkelId, winkels) => (winkels || []).find(x => x.id === winkelId) || null;
+const materialShopLogoSrc = winkel => winkel ? winkel.logo || winkel.logoUrl || winkel.logoDataUrl || winkel.afbeelding || winkel.image || winkel.imageUrl || "" : "";
+const normalizeMaterialDraft = draft => {
+  const oorsprong = draft.oorsprong || "";
+  return {
+    ...draft,
+    naamNl: normalizeName(draft.naamNl || ""),
+    naamFr: normalizeName(draft.naamFr || ""),
+    aantal: draft.aantal || "",
+    oorsprong,
+    winkelId: oorsprong === WINKEL_OORSPRONG ? draft.winkelId || "" : "",
+    verantwoordelijkeId: draft.verantwoordelijkeId || "",
+    verantwoordelijkeVrij: draft.verantwoordelijkeId === "__ander__" ? draft.verantwoordelijkeVrij || "" : ""
+  };
+};
+const findMaterialDuplicate = (materiaal, draft, currentId) => {
+  const normalized = normalizeMaterialDraft(draft);
+  const nl = normalizeName(normalized.naamNl || "");
+  if (!nl) return null;
+  return (materiaal || []).find(m => {
+    if (m.id === currentId) return false;
+    if (normalizeName(m.naamNl || "") !== nl) return false;
+    if ((m.oorsprong || "") !== (normalized.oorsprong || "")) return false;
+    if ((normalized.oorsprong || "") === WINKEL_OORSPRONG) {
+      return (m.winkelId || "") === (normalized.winkelId || "");
+    }
+    return true;
+  }) || null;
+};
+
+function MaterialInfoRow({
+  label,
+  value
+}) {
+  if (!value) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "material-info-row"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "material-info-label"
+  }, label), /*#__PURE__*/React.createElement("div", {
+    className: "material-info-value",
+    title: value
+  }, value));
+}
+
+function MaterialShopLogo({
+  winkel
+}) {
+  const src = materialShopLogoSrc(winkel);
+  return /*#__PURE__*/React.createElement("span", {
+    className: "material-shop-logo",
+    "aria-hidden": "true"
+  }, src ? /*#__PURE__*/React.createElement("img", {
+    src,
+    alt: ""
+  }) : "\u25A3");
+}
+
 function MateriaalTab({
   materiaal,
   oorsprongLijst,
@@ -9036,6 +9291,16 @@ function MateriaalTab({
   t
 }) {
   const [zoek, setZoek] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [duplicate, setDuplicate] = useState(null);
+  const [highlightedId, setHighlightedId] = useState("");
+  const [openGroups, setOpenGroups] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("materiaal_open_groups_v2") || "{}");
+    } catch {
+      return {};
+    }
+  });
   const sortedVrij = [...vrijwilligers].sort((a, b) => {
     const an = (a.naam || "").toLowerCase();
     const bn = (b.naam || "").toLowerCase();
@@ -9044,12 +9309,138 @@ function MateriaalTab({
   });
   const sortedExtern = [...(externeContacten || [])].sort((a, b) => (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase()));
 
-  // Dynamisch alfabetisch sorteren op de schermtaal
   const naamVoorTaal = m => (taal === "fr" ? m.naamFr || m.naamNl : m.naamNl || m.naamFr) || "";
-  const gesorteerd = [...materiaal].sort((a, b) => naamVoorTaal(a).toLowerCase().localeCompare(naamVoorTaal(b).toLowerCase()));
-  // Zoekfilter (taalgebonden, maar zoekt voor de zekerheid in beide namen)
+  const byNl = (a, b) => (a.naamNl || a.naamFr || "").toLowerCase().localeCompare((b.naamNl || b.naamFr || "").toLowerCase());
+  const gesorteerd = [...materiaal].sort(byNl);
   const zoekTerm = zoek.trim().toLowerCase();
-  const zichtbaar = zoekTerm ? gesorteerd.filter(m => (m.naamNl || "").toLowerCase().includes(zoekTerm) || (m.naamFr || "").toLowerCase().includes(zoekTerm)) : gesorteerd;
+  const zichtbaar = zoekTerm ? gesorteerd.filter(m => (m.naamNl || "").toLowerCase().includes(zoekTerm) || (m.naamFr || "").toLowerCase().includes(zoekTerm) || (m.oorsprong || "").toLowerCase().includes(zoekTerm) || materialShopName(m.winkelId, winkels, t).toLowerCase().includes(zoekTerm)) : gesorteerd;
+  const groupKey = key => `origin:${key}`;
+  const shopKey = (origin, shop) => `shop:${origin}:${shop}`;
+  const isOpen = key => openGroups[key] !== false;
+  const setOpenPersisted = next => {
+    setOpenGroups(next);
+    try {
+      localStorage.setItem("materiaal_open_groups_v2", JSON.stringify(next));
+    } catch {}
+  };
+  const toggleOpen = key => setOpenPersisted({
+    ...openGroups,
+    [key]: !isOpen(key)
+  });
+  const grouped = (() => {
+    const map = new Map();
+    zichtbaar.forEach(m => {
+      const key = materialOriginKey(m, t);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(m);
+    });
+    const orderedKeys = [...new Set([...(oorsprongLijst || []), t.mat_without_origin, ...map.keys()])].filter(k => map.has(k));
+    const colorMap = materialBuildColorMap(orderedKeys);
+    return orderedKeys.map(key => ({
+      key,
+      items: (map.get(key) || []).sort(byNl),
+      color: colorMap[key]
+    }));
+  })();
+  React.useEffect(() => {
+    if (!zoekTerm) {
+      setHighlightedId("");
+      return;
+    }
+    const first = zichtbaar[0];
+    if (!first) return;
+    const origin = materialOriginKey(first, t);
+    const next = {
+      ...openGroups,
+      [groupKey(origin)]: true
+    };
+    if ((first.oorsprong || "") === WINKEL_OORSPRONG) {
+      next[shopKey(origin, first.winkelId || t.mat_without_shop)] = true;
+    }
+    setOpenPersisted(next);
+    setHighlightedId(first.id);
+    setTimeout(() => {
+      const el = document.getElementById(`material-card-${first.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  }, [zoekTerm]);
+  const openNew = () => {
+    setDuplicate(null);
+    setEditing({
+      mode: "new",
+      draft: {
+        naamNl: "",
+        naamFr: "",
+        aantal: "",
+        oorsprong: "",
+        verantwoordelijkeId: "",
+        verantwoordelijkeVrij: "",
+        winkelId: ""
+      }
+    });
+  };
+  const openEdit = m => {
+    setDuplicate(null);
+    setEditing({
+      mode: "edit",
+      id: m.id,
+      draft: { ...m }
+    });
+  };
+  const updateDraft = patch => setEditing(e => e ? {
+    ...e,
+    draft: {
+      ...e.draft,
+      ...patch
+    }
+  } : e);
+  const saveDraft = () => {
+    if (!editing) return;
+    const normalized = normalizeMaterialDraft(editing.draft);
+    const dupe = findMaterialDuplicate(materiaal, normalized, editing.mode === "edit" ? editing.id : null);
+    if (dupe) {
+      setDuplicate(dupe);
+      return;
+    }
+    if (normalized.naamNl && !normalized.naamFr) {
+      const tr = translateText(normalized.naamNl, "nl", "fr", dict);
+      if (tr) normalized.naamFr = normalizeName(tr);
+    }
+    if (normalized.naamFr && !normalized.naamNl) {
+      const tr = translateText(normalized.naamFr, "fr", "nl", dict);
+      if (tr) normalized.naamNl = normalizeName(tr);
+    }
+    let savedId = editing.id;
+    if (editing.mode === "new") {
+      savedId = add(normalized);
+    } else {
+      update(editing.id, normalized);
+    }
+    const origin = materialOriginKey(normalized, t);
+    const next = {
+      ...openGroups,
+      [groupKey(origin)]: true
+    };
+    if (normalized.oorsprong === WINKEL_OORSPRONG) next[shopKey(origin, normalized.winkelId || t.mat_without_shop)] = true;
+    setOpenPersisted(next);
+    setEditing(null);
+    setHighlightedId(savedId || "");
+  };
+  const openDuplicate = () => {
+    if (!duplicate) return;
+    const origin = materialOriginKey(duplicate, t);
+    setOpenPersisted({
+      ...openGroups,
+      [groupKey(origin)]: true,
+      [shopKey(origin, duplicate.winkelId || t.mat_without_shop)]: true
+    });
+    setHighlightedId(duplicate.id);
+    setEditing(null);
+    setTimeout(() => {
+      const el = document.getElementById(`material-card-${duplicate.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -9091,7 +9482,7 @@ function MateriaalTab({
     onClick: exportMateriaal
   }, t.mat_export), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
-    onClick: add
+    onClick: openNew
   }, t.mat_add))), /*#__PURE__*/React.createElement("details", {
     style: {
       marginTop: "1rem",
@@ -9173,26 +9564,102 @@ function MateriaalTab({
       textAlign: "center",
       color: "var(--ink-soft)"
     }
-  }, t.mat_zoek_geen) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gap: "0.7rem"
-    }
-  }, zichtbaar.map(m => /*#__PURE__*/React.createElement(MateriaalRij, {
-    key: m.id,
-    m: m,
-    alleMateriaal: materiaal,
-    sortedVrij: sortedVrij,
-    sortedExtern: sortedExtern,
-    oorsprongLijst: oorsprongLijst,
-    winkels: winkels,
-    dict: dict,
-    update: update,
-    remove: remove,
-    addLocatie: addLocatie,
-    removeLocatie: removeLocatie,
-    t: t
-  }))), materiaal.length > 3 && /*#__PURE__*/React.createElement("div", {
+  }, t.mat_zoek_geen) : /*#__PURE__*/React.createElement("div", null, grouped.map(group => {
+    const key = groupKey(group.key);
+    const totalPieces = group.items.reduce((sum, m) => sum + materialAmountNumber(m.aantal), 0);
+    const isShopOrigin = group.key === WINKEL_OORSPRONG;
+    const body = isShopOrigin ? (() => {
+      const shops = new Map();
+      group.items.forEach(m => {
+        const sk = m.winkelId || t.mat_without_shop;
+        if (!shops.has(sk)) shops.set(sk, []);
+        shops.get(sk).push(m);
+      });
+      return [...shops.entries()].sort((a, b) => materialShopName(a[0], winkels, t).toLowerCase().localeCompare(materialShopName(b[0], winkels, t).toLowerCase())).map(([sk, items]) => {
+        const sKey = shopKey(group.key, sk);
+        const winkel = materialShopRecord(sk, winkels);
+        const winkelNaam = materialShopName(sk, winkels, t);
+        return /*#__PURE__*/React.createElement("div", {
+          className: "material-shop-group",
+          key: sKey
+        }, /*#__PURE__*/React.createElement("button", {
+          className: "material-shop-head",
+          onClick: () => toggleOpen(sKey)
+        }, /*#__PURE__*/React.createElement("span", {
+          className: "material-shop-title"
+        }, /*#__PURE__*/React.createElement("span", null, isOpen(sKey) ? "\u25BE" : "\u25B8"), /*#__PURE__*/React.createElement(MaterialShopLogo, {
+          winkel
+        }), /*#__PURE__*/React.createElement("span", {
+          className: "material-shop-name",
+          title: winkelNaam
+        }, winkelNaam)), /*#__PURE__*/React.createElement("span", {
+          className: "badge badge-open"
+        }, t.mat_materials_count(items.length))), isOpen(sKey) && /*#__PURE__*/React.createElement("div", {
+          style: {
+            padding: "0.8rem"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "material-grid"
+        }, items.sort(byNl).map(m => /*#__PURE__*/React.createElement(MateriaalKaart, {
+          key: m.id,
+          m,
+          t,
+          winkels,
+          sortedVrij,
+          sortedExtern,
+          highlighted: highlightedId === m.id,
+          onView: () => setHighlightedId(m.id),
+          onEdit: () => openEdit(m),
+          onRemove: () => remove(m.id)
+        })))));
+      });
+    })() : /*#__PURE__*/React.createElement("div", {
+      className: "material-grid"
+    }, group.items.map(m => /*#__PURE__*/React.createElement(MateriaalKaart, {
+      key: m.id,
+      m,
+      t,
+      winkels,
+      sortedVrij,
+      sortedExtern,
+      highlighted: highlightedId === m.id,
+      onView: () => setHighlightedId(m.id),
+      onEdit: () => openEdit(m),
+      onRemove: () => remove(m.id)
+    })));
+    return /*#__PURE__*/React.createElement("section", {
+      className: "material-source-block",
+      key: group.key,
+      style: {
+        borderColor: group.color.border
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "material-source-head",
+      style: {
+        background: group.color.bg,
+        color: group.color.ink
+      },
+      onClick: () => toggleOpen(key)
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "material-source-title"
+    }, /*#__PURE__*/React.createElement("span", null, isOpen(key) ? "\u25BE" : "\u25B8"), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCE6 ", group.key)), /*#__PURE__*/React.createElement("div", {
+      className: "material-source-stats"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "badge badge-open",
+      style: {
+        borderColor: group.color.border,
+        color: group.color.ink
+      }
+    }, t.mat_materials_count(group.items.length)), /*#__PURE__*/React.createElement("span", {
+      className: "badge badge-open",
+      style: {
+        borderColor: group.color.border,
+        color: group.color.ink
+      }
+    }, t.mat_pieces_count(totalPieces)))), isOpen(key) && /*#__PURE__*/React.createElement("div", {
+      className: "material-source-body"
+    }, body));
+  })), materiaal.length > 3 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: "1rem",
       display: "flex",
@@ -9200,106 +9667,155 @@ function MateriaalTab({
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
-    onClick: add
-  }, t.mat_add))));
+    onClick: openNew
+  }, t.mat_add))), editing && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "material-edit-backdrop",
+    onClick: () => setEditing(null)
+  }), /*#__PURE__*/React.createElement(MateriaalEditor, {
+    draft: editing.draft,
+    mode: editing.mode,
+    duplicate,
+    sortedVrij,
+    sortedExtern,
+    oorsprongLijst,
+    winkels,
+    t,
+    updateDraft,
+    saveDraft,
+    close: () => setEditing(null),
+    addLocatie,
+    openDuplicate
+  })));
 }
-function MateriaalRij({
+function MateriaalKaart({
   m,
-  alleMateriaal,
+  t,
+  winkels,
+  sortedVrij,
+  sortedExtern,
+  highlighted,
+  onView,
+  onEdit,
+  onRemove
+}) {
+  const responsible = materialPersonName(m.verantwoordelijkeId, m.verantwoordelijkeVrij, sortedVrij, sortedExtern);
+  const shop = m.oorsprong === WINKEL_OORSPRONG ? materialShopName(m.winkelId, winkels, t) : "";
+  const origin = m.oorsprong || t.mat_without_origin;
+  return /*#__PURE__*/React.createElement("div", {
+    id: `material-card-${m.id}`,
+    className: `card material-card${highlighted ? " marked" : ""}`,
+    onClick: onView,
+    onDoubleClick: onEdit
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "material-card-main"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "material-card-title",
+    title: m.naamNl || m.naamFr || ""
+  }, capitalize(m.naamNl || m.naamFr || "?")), m.naamFr && /*#__PURE__*/React.createElement("div", {
+    className: "material-card-subtitle",
+    title: m.naamFr
+  }, capitalize(m.naamFr)), /*#__PURE__*/React.createElement("div", {
+    className: "material-info"
+  }, /*#__PURE__*/React.createElement(MaterialInfoRow, {
+    label: t.mat_aantal,
+    value: m.aantal
+  }), /*#__PURE__*/React.createElement(MaterialInfoRow, {
+    label: t.mat_oorsprong,
+    value: origin
+  }), /*#__PURE__*/React.createElement(MaterialInfoRow, {
+    label: t.winkel_kies,
+    value: shop
+  }), /*#__PURE__*/React.createElement(MaterialInfoRow, {
+    label: t.mat_verant,
+    value: responsible
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "material-actions",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.mat_view,
+    "aria-label": t.mat_view,
+    onClick: onView
+  }, "\uD83D\uDC41"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.mat_edit,
+    "aria-label": t.mat_edit,
+    onClick: onEdit
+  }, "\u270F"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-danger btn-sm",
+    title: t.remove,
+    "aria-label": t.remove,
+    onClick: onRemove
+  }, "\uD83D\uDDD1")));
+}
+
+function MateriaalEditor({
+  draft,
+  mode,
+  duplicate,
   sortedVrij,
   sortedExtern,
   oorsprongLijst,
   winkels,
-  dict,
-  update,
-  remove,
+  t,
+  updateDraft,
+  saveDraft,
+  close,
   addLocatie,
-  removeLocatie,
-  t
+  openDuplicate
 }) {
-  // Dubbeldetectie: zelfde naam (NL of FR) bij een ander materiaal-item
-  const isDubbel = (() => {
-    const nl = normalizeName(m.naamNl),
-      fr = normalizeName(m.naamFr);
-    if (!nl && !fr) return false;
-    return (alleMateriaal || []).some(x => {
-      if (x.id === m.id) return false;
-      const xnl = normalizeName(x.naamNl),
-        xfr = normalizeName(x.naamFr);
-      return nl && (nl === xnl || nl === xfr) || fr && (fr === xnl || fr === xfr);
-    });
-  })();
-  const handleNlBlur = () => {
-    // Normaliseer naar lowercase bij verlaten van veld
-    if (m.naamNl) update(m.id, {
-      naamNl: normalizeName(m.naamNl)
-    });
-    if (m.naamNl && !m.naamFr) {
-      const tr = translateText(m.naamNl, "nl", "fr", dict);
-      if (tr) update(m.id, {
-        naamFr: normalizeName(tr)
-      });
-    }
-  };
-  const handleFrBlur = () => {
-    if (m.naamFr) update(m.id, {
-      naamFr: normalizeName(m.naamFr)
-    });
-    if (m.naamFr && !m.naamNl) {
-      const tr = translateText(m.naamFr, "fr", "nl", dict);
-      if (tr) update(m.id, {
-        naamNl: normalizeName(tr)
-      });
-    }
-  };
-  const verantwIsAnder = m.verantwoordelijkeId === "__ander__";
+  const verantwIsAnder = draft.verantwoordelijkeId === "__ander__";
   return /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "material-edit-panel"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
-      borderLeft: `3px solid ${isDubbel ? "var(--gold)" : "var(--accent)"}`
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "1rem",
+      gap: "1rem"
     }
-  }, isDubbel && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
     style: {
-      background: "#fdf6e3",
-      border: "1px solid var(--gold)",
-      borderRadius: 3,
-      padding: "0.5rem 0.7rem",
-      marginBottom: "0.6rem",
-      fontSize: "0.82rem",
-      color: "var(--ink)"
+      margin: 0
     }
-  }, "\u26A0 ", t.mat_dubbel), /*#__PURE__*/React.createElement("div", {
+  }, mode === "new" ? t.mat_add : t.mat_edit), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: close
+  }, t.mat_cancel)), duplicate && /*#__PURE__*/React.createElement("div", {
+    className: "alert-bar alert-amber",
     style: {
-      display: "grid",
-      gridTemplateColumns: "1.4fr 1.4fr 0.6fr 1fr 1.2fr auto",
-      gap: "0.5rem",
-      alignItems: "end"
+      marginBottom: "1rem"
     }
+  }, /*#__PURE__*/React.createElement("span", null, t.mat_duplicate_blocked), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: openDuplicate
+  }, t.mat_open_existing)), /*#__PURE__*/React.createElement("div", {
+    className: "material-form-grid"
   }, /*#__PURE__*/React.createElement(Field, {
     label: `${t.mat_naam} (NL)`
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
-    value: capitalize(m.naamNl),
-    onChange: e => update(m.id, {
+    value: capitalize(draft.naamNl || ""),
+    onChange: e => updateDraft({
       naamNl: e.target.value
-    }),
-    onBlur: handleNlBlur
+    })
   })), /*#__PURE__*/React.createElement(Field, {
     label: `${t.mat_naam} (FR)`
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
-    value: capitalize(m.naamFr),
-    onChange: e => update(m.id, {
+    value: capitalize(draft.naamFr || ""),
+    onChange: e => updateDraft({
       naamFr: e.target.value
-    }),
-    onBlur: handleFrBlur
+    })
   })), /*#__PURE__*/React.createElement(Field, {
     label: t.mat_aantal
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     className: "input",
-    value: m.aantal,
-    onChange: e => update(m.id, {
+    value: draft.aantal || "",
+    onChange: e => updateDraft({
       aantal: e.target.value
     }),
     min: "0"
@@ -9307,34 +9823,46 @@ function MateriaalRij({
     label: t.mat_oorsprong
   }, /*#__PURE__*/React.createElement("select", {
     className: "select",
-    value: m.oorsprong,
+    value: draft.oorsprong || "",
     onChange: e => {
       if (e.target.value === "__add__") {
         addLocatie();
         return;
       }
       const nieuwe = e.target.value;
-      const patch = {
-        oorsprong: nieuwe
-      };
-      if (nieuwe !== WINKEL_OORSPRONG) patch.winkelId = "";
-      update(m.id, patch);
+      updateDraft({
+        oorsprong: nieuwe,
+        winkelId: nieuwe === WINKEL_OORSPRONG ? draft.winkelId || "" : ""
+      });
     }
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, t.mat_choose), oorsprongLijst.map(loc => /*#__PURE__*/React.createElement("option", {
+  }, t.mat_without_origin), (oorsprongLijst || []).map(loc => /*#__PURE__*/React.createElement("option", {
     key: loc,
     value: loc
   }, loc)), /*#__PURE__*/React.createElement("option", {
     value: "__add__"
-  }, t.mat_new_loc))), /*#__PURE__*/React.createElement(Field, {
+  }, t.mat_new_loc))), draft.oorsprong === WINKEL_OORSPRONG && /*#__PURE__*/React.createElement(Field, {
+    label: t.winkel_kies
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: draft.winkelId || "",
+    onChange: e => updateDraft({
+      winkelId: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, t.mat_without_shop), [...(winkels || [])].sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase())).map(w => /*#__PURE__*/React.createElement("option", {
+    key: w.id,
+    value: w.id
+  }, w.naam)))), /*#__PURE__*/React.createElement(Field, {
     label: t.mat_verant
   }, /*#__PURE__*/React.createElement("select", {
     className: "select",
-    value: m.verantwoordelijkeId,
-    onChange: e => update(m.id, {
+    value: draft.verantwoordelijkeId || "",
+    onChange: e => updateDraft({
       verantwoordelijkeId: e.target.value,
-      verantwoordelijkeVrij: e.target.value === "__ander__" ? m.verantwoordelijkeVrij : ""
+      verantwoordelijkeVrij: e.target.value === "__ander__" ? draft.verantwoordelijkeVrij || "" : ""
     })
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
@@ -9350,50 +9878,29 @@ function MateriaalRij({
     value: c.id
   }, c.naam))), /*#__PURE__*/React.createElement("option", {
     value: "__ander__"
-  }, t.mat_other))), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-danger btn-sm",
-    onClick: () => remove(m.id),
-    title: t.remove
-  }, "\uD83D\uDDD1")), verantwIsAnder && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: "0.5rem"
-    }
+  }, t.mat_other))), verantwIsAnder && /*#__PURE__*/React.createElement(Field, {
+    label: t.mat_other
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
     placeholder: t.mat_other_ph,
-    value: m.verantwoordelijkeVrij || "",
-    onChange: e => update(m.id, {
+    value: draft.verantwoordelijkeVrij || "",
+    onChange: e => updateDraft({
       verantwoordelijkeVrij: e.target.value
     })
-  })), m.oorsprong === WINKEL_OORSPRONG && /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: "0.6rem",
-      paddingTop: "0.6rem",
-      borderTop: "1px dashed var(--line)"
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "0.5rem",
+      marginTop: "1rem"
     }
-  }, /*#__PURE__*/React.createElement(Field, {
-    label: t.winkel_kies
-  }, /*#__PURE__*/React.createElement("select", {
-    className: "select",
-    value: m.winkelId || "",
-    onChange: e => update(m.id, {
-      winkelId: e.target.value
-    }),
-    style: {
-      maxWidth: 320
-    }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, t.mat_choose), [...(winkels || [])].sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase())).map(w => /*#__PURE__*/React.createElement("option", {
-    key: w.id,
-    value: w.id
-  }, w.naam)))), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: "0.75rem",
-      color: "var(--ink-soft)",
-      margin: "0.3rem 0 0"
-    }
-  }, t.winkel_kies_hint)));
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: close
+  }, t.mat_cancel), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: saveDraft
+  }, t.mat_save)));
 }
 
 // ============================================================
@@ -9405,10 +9912,92 @@ function WinkelGegevensTab({
   add,
   update,
   remove,
+  showToast,
   t
 }) {
-  const sorted = [...(winkels || [])].sort((a, b) => a.naam.toLowerCase().localeCompare(b.naam.toLowerCase()));
-  const gebruikCount = winkelId => (materiaal || []).filter(m => m.winkelId === winkelId).length;
+  const [zoek, setZoek] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [highlightedId, setHighlightedId] = useState("");
+  const sorted = [...(winkels || [])].sort((a, b) => (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase()));
+  const zoekTerm = zoek.trim().toLowerCase();
+  const zichtbaar = zoekTerm ? sorted.filter(w => (w.naam || "").toLowerCase().includes(zoekTerm) || (w.btw || "").toLowerCase().includes(zoekTerm)) : sorted;
+  const openNew = () => setEditing({
+    mode: "new",
+    error: "",
+    draft: {
+      naam: "",
+      btw: "",
+      logo: ""
+    }
+  });
+  const openEdit = winkel => setEditing({
+    mode: "edit",
+    id: winkel.id,
+    error: "",
+    draft: {
+      ...winkel,
+      logo: materialShopLogoSrc(winkel)
+    }
+  });
+  const updateDraft = patch => setEditing(e => e ? {
+    ...e,
+    error: "",
+    draft: {
+      ...e.draft,
+      ...patch
+    }
+  } : e);
+  const closeEditor = () => setEditing(null);
+  const duplicateFor = (draft, currentId) => {
+    const name = (draft.naam || "").trim().toLowerCase();
+    if (!name) return null;
+    return (winkels || []).find(w => w.id !== currentId && (w.naam || "").trim().toLowerCase() === name) || null;
+  };
+  const saveDraft = () => {
+    if (!editing) return;
+    const normalized = {
+      naam: (editing.draft.naam || "").trim(),
+      btw: (editing.draft.btw || "").trim(),
+      logo: editing.draft.logo || ""
+    };
+    if (!normalized.naam) return;
+    const duplicate = duplicateFor(normalized, editing.mode === "edit" ? editing.id : null);
+    if (duplicate) {
+      showToast ? showToast(t.winkel_bestaat) : alert(t.winkel_bestaat);
+      setEditing(e => e ? {
+        ...e,
+        error: t.winkel_bestaat
+      } : e);
+      setHighlightedId(duplicate.id);
+      setTimeout(() => {
+        const el = document.getElementById(`shop-card-${duplicate.id}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
+      return;
+    }
+    let savedId = editing.id;
+    if (editing.mode === "new") {
+      savedId = add(normalized);
+    } else {
+      update(editing.id, normalized);
+    }
+    setEditing(null);
+    setHighlightedId(savedId || "");
+    setTimeout(() => {
+      const el = document.getElementById(`shop-card-${savedId}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
+  React.useEffect(() => {
+    if (!zoekTerm) return;
+    const first = zichtbaar[0];
+    if (!first) return;
+    setHighlightedId(first.id);
+    setTimeout(() => {
+      const el = document.getElementById(`shop-card-${first.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  }, [zoekTerm]);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -9441,63 +10030,236 @@ function WinkelGegevensTab({
     }
   }, t.winkel_intro)), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
-    onClick: add
+    onClick: openNew
   }, t.winkel_add))), sorted.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
       color: "var(--ink-soft)"
     }
-  }, t.winkel_geen) : /*#__PURE__*/React.createElement("div", {
-    className: "card"
+  }, t.winkel_geen) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "shop-toolbar"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    type: "search",
+    value: zoek,
+    onChange: e => setZoek(e.target.value),
+    placeholder: t.winkel_zoek_ph,
+    style: {
+      width: "min(360px, 100%)"
+    }
+  }), zoekTerm && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: "0.7rem",
+      fontSize: "0.83rem",
+      color: "var(--ink-soft)"
+    }
+  }, t.winkel_zoek_resultaat(zichtbaar.length, sorted.length)))), zichtbaar.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, t.winkel_zoek_geen) : /*#__PURE__*/React.createElement("div", {
+    className: "shop-grid"
+  }, zichtbaar.map(w => /*#__PURE__*/React.createElement(WinkelKaart, {
+    key: w.id,
+    winkel: w,
+    t,
+    highlighted: highlightedId === w.id,
+    onView: () => setHighlightedId(w.id),
+    onEdit: () => openEdit(w),
+    onRemove: () => remove(w.id)
+  })))), editing && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "shop-edit-backdrop",
+    onClick: closeEditor
+  }), /*#__PURE__*/React.createElement(WinkelEditor, {
+    draft: editing.draft,
+    mode: editing.mode,
+    t,
+    updateDraft,
+    saveDraft,
+    close: closeEditor,
+    formError: editing.error || ""
+  })));
+}
+
+function WinkelKaart({
+  winkel,
+  t,
+  highlighted,
+  onView,
+  onEdit,
+  onRemove
+}) {
+  const logo = materialShopLogoSrc(winkel);
+  return /*#__PURE__*/React.createElement("div", {
+    id: `shop-card-${winkel.id}`,
+    className: `card shop-card${highlighted ? " marked" : ""}`,
+    onClick: onView,
+    onDoubleClick: onEdit
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-main"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo"
+  }, logo ? /*#__PURE__*/React.createElement("img", {
+    src: logo,
+    alt: t.winkel_logo
+  }) : "\u25A3"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-title",
+    title: winkel.naam || ""
+  }, winkel.naam || "?"), /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-btw"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "shop-card-label"
+  }, t.winkel_btw), /*#__PURE__*/React.createElement("span", {
+    className: "shop-card-value",
+    title: winkel.btw || ""
+  }, winkel.btw || "\u2014")))), /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-actions",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.winkel_view,
+    "aria-label": t.winkel_view,
+    onClick: onView
+  }, "\uD83D\uDC41"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.winkel_edit,
+    "aria-label": t.winkel_edit,
+    onClick: onEdit
+  }, "\u270F"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-danger btn-sm",
+    title: t.remove,
+    "aria-label": t.remove,
+    onClick: onRemove
+  }, "\uD83D\uDDD1")));
+}
+
+function WinkelEditor({
+  draft,
+  mode,
+  t,
+  updateDraft,
+  saveDraft,
+  close,
+  formError
+}) {
+  const [error, setError] = useState("");
+  const logo = draft.logo || "";
+  const handleLogo = async file => {
+    if (!file) return;
+    try {
+      const resized = await resizeVolunteerPhoto(file);
+      setError("");
+      updateDraft({
+        logo: resized
+      });
+    } catch {
+      setError(t.winkel_logo_error);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "shop-edit-panel"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "grid",
-      gridTemplateColumns: "1.2fr 1.4fr auto auto",
-      gap: "0.6rem 1rem",
-      alignItems: "center"
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "1rem",
+      gap: "1rem"
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "label",
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
     style: {
-      marginBottom: 0
+      margin: 0
     }
-  }, t.winkel_naam), /*#__PURE__*/React.createElement("div", {
-    className: "label",
+  }, mode === "new" ? t.winkel_add : t.winkel_edit), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: close
+  }, t.winkel_cancel)), formError && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 0
+      marginBottom: "0.85rem",
+      color: "var(--accent)",
+      fontSize: "0.86rem",
+      fontWeight: 700
     }
-  }, t.winkel_btw), /*#__PURE__*/React.createElement("div", {
-    className: "label",
-    style: {
-      marginBottom: 0
-    }
-  }, t.winkel_gebruik), /*#__PURE__*/React.createElement("div", null), sorted.map(w => /*#__PURE__*/React.createElement(React.Fragment, {
-    key: w.id
+  }, formError), /*#__PURE__*/React.createElement("div", {
+    className: "shop-form-grid"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: t.winkel_naam
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
-    value: w.naam,
-    onChange: e => update(w.id, {
+    value: draft.naam || "",
+    onChange: e => updateDraft({
       naam: e.target.value
     })
-  }), /*#__PURE__*/React.createElement("input", {
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.winkel_btw
+  }, /*#__PURE__*/React.createElement("input", {
     className: "input",
-    value: w.btw || "",
+    value: draft.btw || "",
     placeholder: t.winkel_btw_ph,
-    onChange: e => update(w.id, {
+    onChange: e => updateDraft({
       btw: e.target.value
     })
-  }), /*#__PURE__*/React.createElement("span", {
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo-preview"
+  }, logo ? /*#__PURE__*/React.createElement("img", {
+    src: logo,
+    alt: t.winkel_logo
+  }) : "\u25A3"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "label",
     style: {
-      fontSize: "0.82rem",
-      color: "var(--ink-soft)",
-      textAlign: "center"
+      marginBottom: "0.35rem"
     }
-  }, gebruikCount(w.id), "\xD7"), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-danger btn-sm",
-    onClick: () => remove(w.id),
-    title: t.remove
-  }, "\uD83D\uDDD1"))))));
+  }, t.winkel_logo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "btn btn-ghost btn-sm"
+  }, logo ? t.winkel_logo_replace : t.winkel_logo_choose, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/jpeg,image/png,image/webp",
+    style: {
+      display: "none"
+    },
+    onChange: e => handleLogo(e.target.files && e.target.files[0])
+  })), logo && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => updateDraft({
+      logo: ""
+    })
+  }, t.winkel_logo_remove)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.45rem",
+      color: error ? "var(--accent)" : "var(--ink-soft)",
+      fontSize: "0.78rem"
+    }
+  }, error || t.winkel_logo_help))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "0.5rem",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: close
+  }, t.winkel_cancel), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: saveDraft
+  }, t.winkel_save)));
 }
 
 // ============================================================
