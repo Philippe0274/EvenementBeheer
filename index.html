@@ -83,6 +83,32 @@
   .send-row.sent-today { background: #dde7d3; border-color: var(--green); }
   .send-row.sent-week { background: #f4e4c5; border-color: var(--amber); }
   .info-box { background: #fdf6e3; border-left: 3px solid var(--gold); padding: 0.8rem 1rem; border-radius: 3px; font-size: 0.85rem; margin: 1rem 0; color: var(--ink); }
+  .volunteer-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; margin-bottom: 1rem; }
+  .volunteer-toolbar { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .volunteer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch; }
+  .volunteer-card { position: relative; height: 350px; min-height: 350px; display: flex; flex-direction: column; padding: 0; overflow: hidden; cursor: pointer; transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease; }
+  .volunteer-card:has(.volunteer-edit-panel) { overflow: visible; z-index: 10000; }
+  .volunteer-card:hover { box-shadow: 0 8px 22px rgba(44, 38, 31, 0.12); transform: translateY(-1px); border-color: #cdbfaa; }
+  .volunteer-card-main { padding: 1rem 3.45rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.85rem; flex: 1; min-height: 0; }
+  .volunteer-card-head { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 0.85rem; align-items: start; }
+  .volunteer-photo { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: var(--bg); border: 1px solid var(--line); flex: 0 0 auto; }
+  .volunteer-avatar { width: 60px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); border: 1px solid #e6c8bd; font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; }
+  .volunteer-name { font-family: 'Fraunces', serif; font-size: 1.12rem; font-weight: 600; color: var(--ink); line-height: 1.15; overflow-wrap: anywhere; }
+  .volunteer-alias { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.18rem; }
+  .volunteer-info { display: grid; gap: 0.34rem; font-size: 0.82rem; color: var(--ink); }
+  .volunteer-info-row { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 0.45rem; min-width: 0; align-items: baseline; }
+  .volunteer-info-label { color: #9b9184; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+  .volunteer-info-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .volunteer-note { margin-top: auto; color: var(--ink-soft); font-size: 0.78rem; line-height: 1.38; min-height: 2.15em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .volunteer-card-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.85rem 0.35rem; border-left: 1px solid var(--line); background: #fbf8f2; }
+  .volunteer-card-actions .btn { width: 32px; height: 32px; min-width: 32px; padding: 0; justify-content: center; border-radius: 4px; font-size: 0.92rem; line-height: 1; white-space: nowrap; }
+  .volunteer-card-actions .btn-danger { margin-top: auto; }
+  .volunteer-edit-panel { position: absolute; z-index: 10001; top: calc(100% + 0.55rem); left: 0; width: min(720px, calc(100vw - 2rem)); background: white; border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 12px 30px rgba(44, 38, 31, 0.16); }
+  .volunteer-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .volunteer-photo-panel { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 0.8rem; align-items: center; padding: 0.8rem; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; }
+  .volunteer-photo-preview { width: 96px; height: 96px; border-radius: 6px; object-fit: cover; background: white; border: 1px solid var(--line); }
+  @media (max-width: 1200px) { .volunteer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 920px) { .volunteer-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -117,7 +143,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.8.1";
+const APP_VERSION = "1.9.2";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -540,6 +566,20 @@ const T = {
     search_volunteer: "Zoek op naam, email, gemeente…",
     add_volunteer: "+ Vrijwilliger toevoegen",
     remove_dups: "🧹 Verwijder dubbels",
+    volunteer_total: "Totaal vrijwilligers",
+    volunteer_available: "Beschikbaar",
+    volunteer_unavailable: "Niet beschikbaar",
+    volunteer_view: "👁 Bekijken",
+    volunteer_edit: "✏ Bewerken",
+    volunteer_planning: "📅 Planning",
+    volunteer_profile_photo: "Profielfoto",
+    volunteer_photo_choose: "Foto kiezen",
+    volunteer_photo_replace: "Foto vervangen",
+    volunteer_photo_remove: "Foto verwijderen",
+    volunteer_photo_help: "JPG, PNG of WEBP. Wordt automatisch vierkant verkleind.",
+    volunteer_photo_error: "De foto kon niet verwerkt worden. Kies een JPG, PNG of WEBP.",
+    volunteer_initials: "Initialen",
+    volunteer_save: "Opslaan",
     no_volunteers: "Nog geen vrijwilligers. Voeg er één toe of importeer een Excel.",
     no_results: "Geen resultaten.",
     firstname: "Voornaam",
@@ -1143,6 +1183,20 @@ const T = {
     search_volunteer: "Rechercher par nom, email, commune…",
     add_volunteer: "+ Ajouter un bénévole",
     remove_dups: "🧹 Supprimer doublons",
+    volunteer_total: "Total bénévoles",
+    volunteer_available: "Disponibles",
+    volunteer_unavailable: "Non disponibles",
+    volunteer_view: "👁 Voir",
+    volunteer_edit: "✏ Modifier",
+    volunteer_planning: "📅 Planning",
+    volunteer_profile_photo: "Photo de profil",
+    volunteer_photo_choose: "Choisir une photo",
+    volunteer_photo_replace: "Remplacer la photo",
+    volunteer_photo_remove: "Supprimer la photo",
+    volunteer_photo_help: "JPG, PNG ou WEBP. L'image est recadrée en carré automatiquement.",
+    volunteer_photo_error: "La photo n'a pas pu être traitée. Choisissez un JPG, PNG ou WEBP.",
+    volunteer_initials: "Initiales",
+    volunteer_save: "Enregistrer",
     no_volunteers: "Pas encore de bénévoles. Ajoutez-en un ou importez un fichier Excel.",
     no_results: "Aucun résultat.",
     firstname: "Prénom",
@@ -1878,7 +1932,8 @@ const normalizeData = raw => {
       beschikbaarheid: v.beschikbaarheid || "hele_dag",
       beschikbaarVan: v.beschikbaarVan || "",
       beschikbaarTot: v.beschikbaarTot || "",
-      opmerking: v.opmerking || ""
+      opmerking: v.opmerking || "",
+      profilePhoto: v.profilePhoto || v.profielfoto || ""
     }));
   }
   if (Array.isArray(raw.taken)) {
@@ -3302,27 +3357,32 @@ function App() {
       ...patch
     }
   }));
-  const addVrijwilliger = () => setData(d => ({
-    ...d,
-    vrijwilligers: [...d.vrijwilligers, {
-      id: uid(),
-      voornaam: "",
-      naam: "",
-      roepnaam: "",
-      geslacht: "",
-      taal: "nl",
-      gsm1: "",
-      gsm2: "",
-      email: "",
-      straat: "",
-      postcode: "",
-      gemeente: "",
-      beschikbaarheid: "hele_dag",
-      beschikbaarVan: "",
-      beschikbaarTot: "",
-      opmerking: ""
-    }]
-  }));
+  const addVrijwilliger = () => {
+    const id = uid();
+    setData(d => ({
+      ...d,
+      vrijwilligers: [...d.vrijwilligers, {
+        id: id,
+        voornaam: "",
+        naam: "",
+        roepnaam: "",
+        geslacht: "",
+        taal: "nl",
+        gsm1: "",
+        gsm2: "",
+        email: "",
+        straat: "",
+        postcode: "",
+        gemeente: "",
+        beschikbaarheid: "hele_dag",
+        beschikbaarVan: "",
+        beschikbaarTot: "",
+        opmerking: "",
+        profilePhoto: ""
+      }]
+    }));
+    return id;
+  };
   const updateVrijwilliger = (id, patch) => setData(d => ({
     ...d,
     vrijwilligers: d.vrijwilligers.map(v => v.id === id ? {
@@ -4491,7 +4551,9 @@ function App() {
         beschikbaarheid: r.beschikbaarheid || "hele_dag",
         beschikbaarVan: r.beschikbaarVan || "",
         beschikbaarTot: r.beschikbaarTot || "",
-        opmerking: r.opmerking || ""
+        opmerking: r.opmerking || "",
+        roepnaam: r.roepnaam || "",
+        profilePhoto: r.profilePhoto || r.profielfoto || ""
       });
     });
     const tSeen = new Set();
@@ -4950,12 +5012,13 @@ function App() {
     update: updateEvent,
     vrijwilligers: data.vrijwilligers,
     t: t
-  }), tab === "vrijwilligers" && /*#__PURE__*/React.createElement(VrijwilligersTab, {
+  }), tab === "vrijwilligers" && /*#__PURE__*/React.createElement(VrijwilligersTabV2, {
     vrijwilligers: data.vrijwilligers,
     add: addVrijwilliger,
     update: updateVrijwilliger,
     remove: removeVrijwilliger,
     dedup: dedupVrijwilligers,
+    setTab: setTab,
     t: t
   }), tab === "taken" && /*#__PURE__*/React.createElement(TakenTab, {
     taken: data.taken,
@@ -6252,6 +6315,540 @@ function Field({
 // ============================================================
 // VRIJWILLIGERS
 // ============================================================
+const resizeVolunteerPhoto = file => new Promise((resolve, reject) => {
+  if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type || "")) {
+    reject(new Error("unsupported"));
+    return;
+  }
+  const reader = new FileReader();
+  reader.onerror = () => reject(new Error("read"));
+  reader.onload = () => {
+    const img = new Image();
+    img.onerror = () => reject(new Error("image"));
+    img.onload = () => {
+      const size = Math.min(img.width, img.height);
+      const sx = Math.max(0, (img.width - size) / 2);
+      const sy = Math.max(0, (img.height - size) / 2);
+      const canvas = document.createElement("canvas");
+      canvas.width = 300;
+      canvas.height = 300;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 300, 300);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+const volunteerInitials = v => {
+  const parts = [v.voornaam, v.naam].filter(Boolean);
+  const initials = parts.map(p => (p || "").trim()[0]).filter(Boolean).join("").slice(0, 2).toUpperCase();
+  return initials || "?";
+};
+
+const volunteerAvailabilityLabel = (v, t) => {
+  if (v.beschikbaarheid === "hele_dag") return t.avail_full;
+  if (v.beschikbaarheid === "voormiddag") return t.daypart_morning;
+  if (v.beschikbaarheid === "namiddag") return t.daypart_afternoon;
+  if (v.beschikbaarheid === "avond") return t.daypart_evening;
+  if (v.beschikbaarheid === "niet_beschikbaar") return t.volunteer_unavailable;
+  if (v.beschikbaarheid === "aangepast") return `${v.beschikbaarVan || "?"}-${v.beschikbaarTot || "?"}`;
+  return v.beschikbaarheid || t.avail_full;
+};
+
+const isVolunteerUnavailable = v => v.beschikbaarheid === "niet_beschikbaar" || v.beschikbaarheid === "niet beschikbaar";
+
+function VolunteerStatCard({
+  value,
+  label
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: "0.9rem 1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "stat-num",
+    style: {
+      fontSize: "1.7rem"
+    }
+  }, value), /*#__PURE__*/React.createElement("div", {
+    className: "stat-label"
+  }, label));
+}
+
+function VrijwilligersTabV2({
+  vrijwilligers,
+  add,
+  update,
+  remove,
+  dedup,
+  setTab,
+  t
+}) {
+  const [zoek, setZoek] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const normalized = vrijwilligers || [];
+  const filtered = normalized.filter(v => {
+    const s = zoek.toLowerCase();
+    return (v.voornaam || "").toLowerCase().includes(s) || (v.naam || "").toLowerCase().includes(s) || (v.email || "").toLowerCase().includes(s) || (v.gemeente || "").toLowerCase().includes(s);
+  }).sort((a, b) => {
+    const an = (a.naam || "").toLowerCase();
+    const bn = (b.naam || "").toLowerCase();
+    if (an !== bn) return an.localeCompare(bn);
+    return (a.voornaam || "").toLowerCase().localeCompare((b.voornaam || "").toLowerCase());
+  });
+  const unavailable = normalized.filter(isVolunteerUnavailable).length;
+  const available = normalized.length - unavailable;
+  const handleAdd = () => {
+    const id = add();
+    if (id) setEditingId(id);
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-stats"
+  }, /*#__PURE__*/React.createElement(VolunteerStatCard, {
+    value: normalized.length,
+    label: t.volunteer_total
+  }), /*#__PURE__*/React.createElement(VolunteerStatCard, {
+    value: available,
+    label: t.volunteer_available
+  }), /*#__PURE__*/React.createElement(VolunteerStatCard, {
+    value: unavailable,
+    label: t.volunteer_unavailable
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-toolbar"
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: t.search_volunteer,
+    value: zoek,
+    onChange: e => setZoek(e.target.value),
+    style: {
+      maxWidth: 340
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: dedup
+  }, t.remove_dups), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: handleAdd
+  }, t.add_volunteer))), filtered.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, normalized.length === 0 ? t.no_volunteers : t.no_results) : /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-grid"
+  }, filtered.map(v => /*#__PURE__*/React.createElement(VrijwilligerKaartV2, {
+    key: v.id,
+    v: v,
+    update: update,
+    remove: remove,
+    t: t,
+    isEditing: editingId === v.id || editingId === "__new__" && !(v.voornaam || v.naam || v.gsm1 || v.email),
+    onEdit: () => setEditingId(v.id),
+    onView: () => setEditingId(null),
+    onSave: () => setEditingId(null),
+    onPlanning: () => setTab && setTab("taken")
+  }))));
+}
+
+function VolunteerPhoto({
+  v,
+  t
+}) {
+  return v.profilePhoto ? /*#__PURE__*/React.createElement("img", {
+    className: "volunteer-photo",
+    src: v.profilePhoto,
+    alt: t.volunteer_profile_photo
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-avatar",
+    title: t.volunteer_initials
+  }, volunteerInitials(v));
+}
+
+function VolunteerInfoRow({
+  label,
+  value,
+  link,
+  title
+}) {
+  if (!value) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-info-row"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-info-label"
+  }, label), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-info-value",
+    title: title || value
+  }, link ? /*#__PURE__*/React.createElement("a", {
+    className: "link",
+    href: link,
+    target: "_blank",
+    rel: "noopener",
+    onClick: e => e.stopPropagation()
+  }, value) : value));
+}
+
+function VolunteerPhotoEditor({
+  v,
+  update,
+  t
+}) {
+  const inputRef = React.useRef(null);
+  const [error, setError] = React.useState("");
+  const handleFile = async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const profilePhoto = await resizeVolunteerPhoto(file);
+      update(v.id, {
+        profilePhoto
+      });
+      setError("");
+    } catch (err) {
+      setError(t.volunteer_photo_error);
+    } finally {
+      e.target.value = "";
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-photo-panel"
+  }, v.profilePhoto ? /*#__PURE__*/React.createElement("img", {
+    className: "volunteer-photo-preview",
+    src: v.profilePhoto,
+    alt: t.volunteer_profile_photo
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-avatar",
+    style: {
+      width: 96,
+      height: 96,
+      fontSize: "1.7rem"
+    }
+  }, volunteerInitials(v)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "label"
+  }, t.volunteer_profile_photo), /*#__PURE__*/React.createElement("input", {
+    ref: inputRef,
+    type: "file",
+    accept: "image/jpeg,image/png,image/webp",
+    onChange: handleFile,
+    style: {
+      display: "none"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-ghost btn-sm",
+    onClick: () => inputRef.current && inputRef.current.click()
+  }, v.profilePhoto ? t.volunteer_photo_replace : t.volunteer_photo_choose), v.profilePhoto && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-danger btn-sm",
+    onClick: () => update(v.id, {
+      profilePhoto: ""
+    })
+  }, t.volunteer_photo_remove)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.45rem",
+      color: error ? "var(--accent)" : "var(--ink-soft)",
+      fontSize: "0.78rem"
+    }
+  }, error || t.volunteer_photo_help)));
+}
+
+function VrijwilligerKaartV2({
+  v,
+  update,
+  remove,
+  t,
+  isEditing,
+  onEdit,
+  onView,
+  onSave,
+  onPlanning
+}) {
+  const adres = buildVrijwilligerAdres(v);
+  const adresLink = adres ? buildMapsSearchLink(adres) : "";
+  const fullName = `${v.voornaam || ""} ${v.naam || ""}`.trim() || "?";
+  const badgeClass = isVolunteerUnavailable(v) ? "badge badge-pasok" : "badge badge-ok";
+  const stop = e => e.stopPropagation();
+  const openEdit = e => {
+    e.stopPropagation();
+    onEdit();
+  };
+  const saveEdit = e => {
+    e.stopPropagation();
+    onSave();
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card volunteer-card",
+    onClick: onView,
+    onDoubleClick: onEdit
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-card-main"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-card-head"
+  }, /*#__PURE__*/React.createElement(VolunteerPhoto, {
+    v: v,
+    t: t
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-name"
+  }, fullName), v.roepnaam && /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-alias"
+  }, v.roepnaam), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.45rem"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: badgeClass
+  }, volunteerAvailabilityLabel(v, t))))), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-info"
+  }, /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.gender,
+    value: v.geslacht
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.lang,
+    value: v.taal === "fr" ? "FR" : "NL"
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.gsm1,
+    value: v.gsm1
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.gsm2,
+    value: v.gsm2
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.email,
+    value: v.email,
+    link: v.email ? `mailto:${v.email}` : ""
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.street_nr,
+    value: v.straat,
+    link: adresLink
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.postcode,
+    value: v.postcode
+  }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.city,
+    value: v.gemeente
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-note"
+  }, v.opmerking || "")), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-card-actions",
+    onClick: stop
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.volunteer_view,
+    "aria-label": t.volunteer_view,
+    onClick: onView
+  }, "\uD83D\uDC41"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.volunteer_edit,
+    "aria-label": t.volunteer_edit,
+    onClick: openEdit
+  }, "\u270F"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.volunteer_planning,
+    "aria-label": t.volunteer_planning,
+    onClick: onPlanning
+  }, "\uD83D\uDCC5"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-danger btn-sm",
+    title: t.remove_volunteer,
+    "aria-label": t.remove_volunteer,
+    onClick: () => remove(v.id)
+  }, "\uD83D\uDDD1")), isEditing && /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-edit-panel",
+    onClick: stop,
+    style: {
+      padding: "0 0.95rem 0.95rem"
+    }
+  }, /*#__PURE__*/React.createElement(VolunteerPhotoEditor, {
+    v: v,
+    update: update,
+    t: t
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-form-grid"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: t.firstname
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.voornaam || "",
+    onChange: e => update(v.id, {
+      voornaam: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.lastname
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.naam || "",
+    onChange: e => update(v.id, {
+      naam: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.roepnaam
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.roepnaam || "",
+    onChange: e => update(v.id, {
+      roepnaam: e.target.value
+    }),
+    placeholder: t.roepnaam_ph
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.gender
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: v.geslacht || "",
+    onChange: e => update(v.id, {
+      geslacht: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "-"), /*#__PURE__*/React.createElement("option", {
+    value: "M"
+  }, "M"), /*#__PURE__*/React.createElement("option", {
+    value: "V"
+  }, "V"), /*#__PURE__*/React.createElement("option", {
+    value: "X"
+  }, "X"))), /*#__PURE__*/React.createElement(Field, {
+    label: t.lang
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: v.taal || "nl",
+    onChange: e => update(v.id, {
+      taal: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "nl"
+  }, "Nederlands"), /*#__PURE__*/React.createElement("option", {
+    value: "fr"
+  }, "Francais"))), /*#__PURE__*/React.createElement(Field, {
+    label: t.gsm1
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.gsm1 || "",
+    onChange: e => update(v.id, {
+      gsm1: e.target.value
+    }),
+    placeholder: "+32475123456"
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.gsm2
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.gsm2 || "",
+    onChange: e => update(v.id, {
+      gsm2: e.target.value
+    }),
+    placeholder: "+3221234567"
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.email
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.email || "",
+    onChange: e => update(v.id, {
+      email: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.street_nr
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.straat || "",
+    onChange: e => update(v.id, {
+      straat: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.postcode
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.postcode || "",
+    onChange: e => update(v.id, {
+      postcode: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.city
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.gemeente || "",
+    onChange: e => update(v.id, {
+      gemeente: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.availability
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: v.beschikbaarheid || "hele_dag",
+    onChange: e => update(v.id, {
+      beschikbaarheid: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "hele_dag"
+  }, t.avail_full), /*#__PURE__*/React.createElement("option", {
+    value: "voormiddag"
+  }, t.avail_morning), /*#__PURE__*/React.createElement("option", {
+    value: "namiddag"
+  }, t.avail_afternoon), /*#__PURE__*/React.createElement("option", {
+    value: "avond"
+  }, t.avail_evening), /*#__PURE__*/React.createElement("option", {
+    value: "aangepast"
+  }, t.avail_custom))), v.beschikbaarheid === "aangepast" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Field, {
+    label: t.avail_from
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    className: "input",
+    value: v.beschikbaarVan || "",
+    onChange: e => update(v.id, {
+      beschikbaarVan: e.target.value
+    })
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.avail_to
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    className: "input",
+    value: v.beschikbaarTot || "",
+    onChange: e => update(v.id, {
+      beschikbaarTot: e.target.value
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: "1 / -1"
+    }
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: t.note
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: v.opmerking || "",
+    onChange: e => update(v.id, {
+      opmerking: e.target.value
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      gridColumn: "1 / -1",
+      display: "flex",
+      justifyContent: "flex-end",
+      paddingTop: "0.25rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary",
+    onPointerDownCapture: saveEdit,
+    onClickCapture: saveEdit,
+    onMouseDown: saveEdit,
+    onClick: saveEdit
+  }, t.volunteer_save)))));
+}
+
 function VrijwilligersTab({
   vrijwilligers,
   add,

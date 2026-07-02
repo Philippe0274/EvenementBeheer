@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.9.2
+- Regressieherstel vrijwilligersmodule: expliciete knop `Opslaan` toegevoegd aan de CRM-bewerkoverlay.
+- Nieuwe en bestaande vrijwilligers gebruiken opnieuw de bestaande `updateVrijwilliger`-stateflow; er is geen nieuwe opslaglogica of datamodelwijziging toegevoegd.
+- `Opslaan` sluit de overlay en toont onmiddellijk de bijgewerkte kaart en statistieken.
+- Layout, kaarten, profielfoto, planning, zoeken, verwijderen en statistieken blijven ongewijzigd.
+
+## 1.9.1
+- UI/UX Sprint 2.1: vrijwilligerskaarten visueel verfijnd zonder functionele, opslag- of datamodelwijzigingen.
+- Kaartgrid toont standaard maximaal drie kaarten per rij en schaalt responsief naar twee of één kolom.
+- Acties staan nu als compacte verticale iconenbalk rechts op elke kaart met hover-tooltips.
+- Kaarten gebruiken meer ruimte voor gegevens, kleinere avatar, compactere beschikbaarheidsbadge en subtielere labels.
+- Lange waarden zoals e-mail blijven afgekapt in de kaart en tonen de volledige waarde via hover-title.
+- Kaarten behouden dezelfde vaste hoogte in normale weergave; bewerkmodus blijft bewust uitbreidbaar.
+
+## 1.9.0
+- UI/UX Sprint 2: vrijwilligersmodule vernieuwd naar compacte CRM-kaarten zonder uitklapbare blokken in de zichtbare module.
+- Iedere kaart toont profielfoto of initialen-avatar, naam, roepnaam, beschikbaarheidsbadge, contactgegevens, adres, gemeente en een compacte opmerking.
+- Acties per vrijwilliger toegevoegd in de kaartweergave: bekijken, bewerken, planning en verwijderen.
+- Optionele profielfoto toegevoegd aan het bestaande vrijwilligersformulier met kiezen, vervangen, verwijderen, live preview en automatische vierkante compressie naar ongeveer 300x300 pixels.
+- Bovenaan de module staan compacte statistiekkaarten voor totaal, beschikbaar en niet beschikbaar op basis van bestaande vrijwilligersdata.
+- Bestaande vrijwilligers zonder foto blijven backward compatible; opslag, import/export, backup/restore, filters en planning blijven ongewijzigd.
+
 ## 1.8.1
 - Regressieherstel Business Continuity-invoer: bestaande artikelnummers tonen opnieuw de officiële snapshotreferentie.
 - Snapshotartikelen worden altijd genormaliseerd, ook wanneer ze onder `priceListSnapshot.articles` bewaard zijn.
