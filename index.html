@@ -196,7 +196,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.14.2";
+const APP_VERSION = "1.14.3";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -2150,6 +2150,21 @@ const ensureActiveEvent = data => {
   return next;
 };
 
+const EVENT_MEDIA_FIELDS = ["affiche", "afficheWatermark", "afficheNaam"];
+
+const protectEventMediaFields = (syncedInfo, activeInfo, mirrorInfo, options = {}) => {
+  if (options.allowBlankEventMedia === true) return syncedInfo;
+  const protectedInfo = {
+    ...syncedInfo
+  };
+  EVENT_MEDIA_FIELDS.forEach(field => {
+    if (!mirrorInfo[field] && activeInfo[field]) {
+      protectedInfo[field] = activeInfo[field];
+    }
+  });
+  return protectedInfo;
+};
+
 const ensureEventLifecycleStructure = (data, options = {}) => {
   const hadEvents = Array.isArray(data && data.events) && data.events.length > 0;
   const next = ensureActiveEvent(data || {});
@@ -2158,13 +2173,14 @@ const ensureEventLifecycleStructure = (data, options = {}) => {
   const mirrorInfo = normalizeEventInfo(next.event);
   const activeInfo = normalizeEventInfo(activeEvent.info);
   const preferEventMirror = options.preferEventMirror !== false;
-  const syncedInfo = preferEventMirror ? {
+  const mergedInfo = preferEventMirror ? {
     ...activeInfo,
     ...mirrorInfo
   } : {
     ...mirrorInfo,
     ...activeInfo
   };
+  const syncedInfo = protectEventMediaFields(mergedInfo, activeInfo, mirrorInfo, options);
   const id = syncedInfo.id || activeEvent.id || next.activeEventId || `evt_${uid()}`;
   const now = new Date().toISOString();
   const syncedEvent = {
@@ -2204,12 +2220,15 @@ const syncActiveEventMirror = data => ensureEventLifecycleStructure(data, {
   preferEventMirror: true
 });
 
-const updateEventMirror = (data, patch) => syncActiveEventMirror({
+const updateEventMirror = (data, patch) => ensureEventLifecycleStructure({
   ...data,
   event: {
     ...normalizeEventInfo(data && data.event),
     ...(patch || {})
   }
+}, {
+  preferEventMirror: true,
+  allowBlankEventMedia: EVENT_MEDIA_FIELDS.some(field => Object.prototype.hasOwnProperty.call(patch || {}, field))
 });
 
 const deepClone = value => value == null ? value : JSON.parse(JSON.stringify(value));

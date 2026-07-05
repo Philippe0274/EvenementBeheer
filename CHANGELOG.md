@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.14.3
+- Regressiefix: Event Lifecycle-sync bewaart bestaande event-affiches, watermerken en bestandsnamen wanneer de compatibiliteitsmirror lege waarden bevat.
+- Bewust verwijderen via de bestaande knop `Affiche verwijderen` blijft ondersteund.
+- Extra controle toegevoegd op backward compatibility voor `data.event` en `events[].info`.
+
 ## 1.14.2
 - Versieweergave in de header extra zichtbaar gemaakt als duidelijke badge tussen de headerknoppen.
 
