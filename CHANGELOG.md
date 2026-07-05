@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.14.2
+- Versieweergave in de header extra zichtbaar gemaakt als duidelijke badge tussen de headerknoppen.
+
 ## 1.14.1
 - Applicatieversie zichtbaar gemaakt in de header, zodat meteen gecontroleerd kan worden welke build actief geladen is.
 - Service worker cacheversie mee verhoogd zodat de zichtbare versie betrouwbaar vernieuwt na publicatie.
