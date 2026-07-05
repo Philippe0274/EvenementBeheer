@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.0
+- Historiek-tab uitgebreid naar read-only `Historiek / Archief`.
+- Afgesloten events uit `events[]` en oude records uit `eventHistory` worden gecombineerd zonder eventselector of event-wissel.
+- Snapshotdetails tonen alleen samenvattingen, kleine affichepreview en operationele aantallen.
+- Geen wijzigingen aan Excel-structuur, ledger, import engine of bestaande eventgebonden modules.
+
 ## 1.14.3
 - Regressiefix: Event Lifecycle-sync bewaart bestaande event-affiches, watermerken en bestandsnamen wanneer de compatibiliteitsmirror lege waarden bevat.
 - Bewust verwijderen via de bestaande knop `Affiche verwijderen` blijft ondersteund.

@@ -196,7 +196,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.14.3";
+const APP_VERSION = "1.15.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -283,7 +283,7 @@ const T = {
     tab_winkelgegevens: "WinkelGegevens",
     tab_winkelbestellingen: "Winkelbestellingen",
     tab_kostenbeheer: "Kostenbeheer",
-    tab_history: "Event History",
+    tab_history: "Historiek / Archief",
     tab_voorverkoop: "Voorverkoop",
     tab_kassabewegingen: "Kassa Bewegingen",
     tab_prijslijst: "Prijslijst",
@@ -514,6 +514,32 @@ const T = {
     history_intro: "Overzicht van afgesloten evenementen. Een evenement komt hier automatisch bij wanneer je 'Nieuw evenement' start.",
     history_geen: "Nog geen afgesloten evenementen.",
     history_afgesloten: "Afgesloten op",
+    history_snapshot_available: "Snapshot beschikbaar",
+    history_no_snapshot: "Geen snapshot",
+    history_snapshot_version: "Snapshotversie",
+    history_details_open: "Details bekijken",
+    history_details_close: "Details sluiten",
+    history_event_info: "Eventinfo",
+    history_financial_summary: "Financiële samenvatting",
+    history_operational_counts: "Operationele aantallen",
+    history_poster: "Affiche",
+    history_location: "Locatie",
+    history_responsible: "Verantwoordelijke",
+    history_tasks: "Taken",
+    history_assigned_tasks: "Toegewezen taken",
+    history_material_items: "Materiaalitems",
+    history_material_with_amount: "Materiaal met aantal",
+    history_shop_orders: "Winkelbestellingen",
+    history_receipts: "Kastickets",
+    history_presales: "Voorverkopen",
+    history_contributions: "Zelfinbreng",
+    history_price_items: "Prijslijstartikelen",
+    history_price_categories: "Prijslijstcategorieën",
+    history_bc_sheetsets: "BC sheetsets",
+    history_bc_sheets: "BC bladen",
+    history_bc_manual_entries: "BC manuele invoer",
+    history_bulk_history: "Bulkgeschiedenis",
+    history_skipped_issues: "Overgeslagen aandachtspunten",
     winkel_intro: "Beheer hier de winkels met hun BTW-nummer. Nieuwe winkels verschijnen alfabetisch in de winkel-keuzelijst bij materiaal.",
     winkel_add: "+ Winkel toevoegen",
     winkel_geen: "Nog geen winkels.",
@@ -950,7 +976,7 @@ const T = {
     tab_winkelgegevens: "Données du Magasin",
     tab_winkelbestellingen: "Commandes via Magasin",
     tab_kostenbeheer: "Gestion des coûts",
-    tab_history: "Historique",
+    tab_history: "Historique / Archives",
     tab_voorverkoop: "Prévente",
     tab_kassabewegingen: "Mouvements de Caisse",
     tab_prijslijst: "Liste de prix",
@@ -1181,6 +1207,32 @@ const T = {
     history_intro: "Aperçu des événements clôturés. Un événement est ajouté ici automatiquement lorsque vous démarrez un 'Nouvel événement'.",
     history_geen: "Aucun événement clôturé.",
     history_afgesloten: "Clôturé le",
+    history_snapshot_available: "Snapshot disponible",
+    history_no_snapshot: "Pas de snapshot",
+    history_snapshot_version: "Version du snapshot",
+    history_details_open: "Voir les détails",
+    history_details_close: "Masquer les détails",
+    history_event_info: "Infos événement",
+    history_financial_summary: "Résumé financier",
+    history_operational_counts: "Comptages opérationnels",
+    history_poster: "Affiche",
+    history_location: "Lieu",
+    history_responsible: "Responsable",
+    history_tasks: "Tâches",
+    history_assigned_tasks: "Tâches assignées",
+    history_material_items: "Articles matériel",
+    history_material_with_amount: "Matériel avec quantité",
+    history_shop_orders: "Commandes magasin",
+    history_receipts: "Tickets de caisse",
+    history_presales: "Préventes",
+    history_contributions: "Apports propres",
+    history_price_items: "Articles de prix",
+    history_price_categories: "Catégories de prix",
+    history_bc_sheetsets: "Jeux de feuilles BC",
+    history_bc_sheets: "Feuilles BC",
+    history_bc_manual_entries: "Saisies manuelles BC",
+    history_bulk_history: "Historique bulk",
+    history_skipped_issues: "Points d'attention ignorés",
     winkel_intro: "Gérez ici les magasins et leur numéro de TVA. Les nouveaux magasins apparaissent par ordre alphabétique dans la liste de choix du matériel.",
     winkel_add: "+ Ajouter un magasin",
     winkel_geen: "Aucun magasin pour l'instant.",
@@ -5614,7 +5666,7 @@ function App() {
       gap: "0.2rem",
       flexWrap: "wrap"
     }
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -5796,6 +5848,8 @@ function App() {
     }
   }, "Dit tabblad wordt binnenkort ingevuld...")), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
     eventHistory: data.eventHistory || [],
+    events: data.events || [],
+    activeEventId: data.activeEventId,
     t: t
   })), /*#__PURE__*/React.createElement("footer", {
     style: {
@@ -14860,12 +14914,205 @@ function VoorverkoopTab({
 }
 
 // ============================================================
-// EVENT HISTORY — afgesloten evenementen met kostenresultaat
+// HISTORIEK / ARCHIEF — read-only afgesloten evenementen
 // ============================================================
+const historyAsArray = value => Array.isArray(value) ? value : [];
+const historyAsObject = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+const historyMoney = value => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const n = Number(String(value || "0").replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+};
+const historyCountObject = value => Object.keys(historyAsObject(value)).length;
+const historyHasAmount = value => historyMoney(value) > 0;
+const historyCountBulk = value => Object.values(historyAsObject(value)).reduce((sum, item) => sum + (Array.isArray(item) ? item.length : item && typeof item === "object" ? historyCountObject(item) : item ? 1 : 0), 0);
+const historyCountAssignedTasks = taken => historyAsArray(taken).reduce((sum, taak) => {
+  const hoofd = historyAsArray(taak && taak.toegewezen).length > 0 ? 1 : 0;
+  const subtaken = historyAsArray(taak && taak.subtaken).filter(sub => historyAsArray(sub && sub.toegewezen).length > 0).length;
+  return sum + hoofd + subtaken;
+}, 0);
+const historySummaryValue = (summary, history, key) => {
+  const source = summary && Object.prototype.hasOwnProperty.call(summary, key) ? summary : history || {};
+  return historyMoney(source[key]);
+};
+const historyBuildArchiveItems = (eventHistory, events) => {
+  const map = new Map();
+  historyAsArray(eventHistory).forEach(record => {
+    if (!record || typeof record !== "object") return;
+    const key = record.eventId || `history:${record.id || uid()}`;
+    map.set(key, {
+      id: key,
+      history: record,
+      event: null
+    });
+  });
+  historyAsArray(events).filter(event => event && event.status === "closed").forEach(event => {
+    const snapshot = historyAsObject(event.snapshot);
+    const eventId = event.id || snapshot.eventId || event.info && event.info.id || "";
+    const key = eventId || `event:${event.id || uid()}`;
+    const existing = map.get(key) || {};
+    const matchedHistory = existing.history || historyAsArray(eventHistory).find(record => record && record.eventId && record.eventId === eventId) || null;
+    map.set(key, {
+      id: key,
+      history: matchedHistory,
+      event
+    });
+  });
+  return Array.from(map.values()).sort((a, b) => {
+    const ad = (a.event && (a.event.closedAt || a.event.updatedAt) || a.history && (a.history.afgesloten || a.history.datum) || "").toString();
+    const bd = (b.event && (b.event.closedAt || b.event.updatedAt) || b.history && (b.history.afgesloten || b.history.datum) || "").toString();
+    return bd.localeCompare(ad);
+  });
+};
+
 function EventHistoryTab({
   eventHistory,
+  events,
+  activeEventId,
   t
 }) {
+  const [openId, setOpenId] = useState("");
+  const archiveItems = historyBuildArchiveItems(eventHistory, events);
+  const renderMetric = (label, value, isMoney = false, color) => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.78rem",
+      textTransform: "uppercase",
+      letterSpacing: "0.02em"
+    }
+  }, label), /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: color || "inherit"
+    }
+  }, isMoney ? fmtEuro(value) : value));
+  const renderDetails = item => {
+    const event = item.event || {};
+    const snapshot = historyAsObject(event.snapshot);
+    const history = item.history || {};
+    const info = historyAsObject(snapshot.eventInfo || event.info || {});
+    const summary = event.summary || snapshot.summary || history;
+    const bc = historyAsObject(snapshot.businessContinuity);
+    const kastickets = historyAsObject(snapshot.kastickets);
+    const poster = info.affiche || info.afficheWatermark || info.flyer || info.poster || "";
+    const operational = [{
+      label: t.history_tasks,
+      value: historyAsArray(snapshot.takenState).length
+    }, {
+      label: t.history_assigned_tasks,
+      value: historyCountAssignedTasks(snapshot.takenState)
+    }, {
+      label: t.history_material_items,
+      value: historyAsArray(snapshot.materiaalState).length
+    }, {
+      label: t.history_material_with_amount,
+      value: historyAsArray(snapshot.materiaalState).filter(m => historyHasAmount(m && m.aantal)).length
+    }, {
+      label: t.history_shop_orders,
+      value: historyCountObject(snapshot.winkelbestellingen)
+    }, {
+      label: t.history_receipts,
+      value: historyCountObject(kastickets)
+    }, {
+      label: t.history_presales,
+      value: historyAsArray(snapshot.voorverkopen).length
+    }, {
+      label: t.history_contributions,
+      value: historyAsArray(snapshot.zelfinbreng).length
+    }, {
+      label: t.history_price_items,
+      value: historyAsArray(snapshot.prijslijst).length
+    }, {
+      label: t.history_price_categories,
+      value: historyAsArray(snapshot.prijslijstCategorien).length
+    }, {
+      label: t.history_bc_sheetsets,
+      value: historyAsArray(bc.sheetSets).length
+    }, {
+      label: t.history_bc_sheets,
+      value: historyAsArray(bc.sheets).length
+    }, {
+      label: t.history_bc_manual_entries,
+      value: historyAsArray(bc.manualEntryLines).length || historyAsArray(bc.manualEntryBatches).length
+    }, {
+      label: t.history_bulk_history,
+      value: historyCountBulk(snapshot.bulkGeschiedenis)
+    }, {
+      label: t.history_skipped_issues,
+      value: historyAsArray(snapshot.skippedIssues).length
+    }];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "1rem",
+        paddingTop: "1rem",
+        borderTop: "1px solid var(--line)",
+        display: "grid",
+        gap: "1rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: poster ? "minmax(0, 1fr) 120px" : "1fr",
+        gap: "1rem",
+        alignItems: "start"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: "0 0 0.6rem",
+        fontSize: "1rem"
+      }
+    }, t.history_event_info), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gap: "0.65rem"
+      }
+    }, renderMetric(t.event_name, info.naam || history.naam || "—"), renderMetric(t.date, info.datum || history.datum || "—"), renderMetric(t.history_location, info.locatieNaam || "—"), renderMetric(t.city, info.gemeente || history.gemeente || "—"), renderMetric(t.history_responsible, info.verantwNaam || "—"), renderMetric(t.history_afgesloten, event.closedAt ? event.closedAt.slice(0, 10) : history.afgesloten || "—"), renderMetric(t.history_snapshot_version, snapshot.snapshotVersion || history.snapshotVersion || "—"))), poster && /*#__PURE__*/React.createElement("div", {
+      title: t.history_poster,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 4,
+        background: "#fff",
+        padding: "0.35rem",
+        maxWidth: 120
+      }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: poster,
+      alt: t.history_poster,
+      style: {
+        display: "block",
+        width: "100%",
+        maxHeight: 120,
+        objectFit: "contain"
+      }
+    }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: "0 0 0.6rem",
+        fontSize: "1rem"
+      }
+    }, t.history_financial_summary), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
+        gap: "0.65rem"
+      }
+    }, renderMetric(t.kb_budget, historySummaryValue(summary, history, "budget"), true), renderMetric(t.kb_zaal, historySummaryValue(summary, history, "zaalhuur"), true), renderMetric(t.kb_winkel_totaal, historySummaryValue(summary, history, "winkelTotaal"), true), renderMetric(t.kb_manuele_kosten, historySummaryValue(summary, history, "manueelTotaal"), true), renderMetric(t.vv_totaal, historySummaryValue(summary, history, "voorverkoopTotaal"), true), renderMetric(t.zi_totaal, historySummaryValue(summary, history, "zelfinbrengTotaal"), true), renderMetric(t.kb_totaal_in, historySummaryValue(summary, history, "totaleInkomsten"), true), renderMetric(t.kb_totaal_uit, historySummaryValue(summary, history, "totaalUitgegeven"), true), renderMetric(t.kb_saldo, historySummaryValue(summary, history, "saldo"), true, historySummaryValue(summary, history, "saldo") < 0 ? "var(--accent)" : "#3a7d44"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: "0 0 0.6rem",
+        fontSize: "1rem"
+      }
+    }, t.history_operational_counts), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
+        gap: "0.65rem"
+      }
+    }, operational.map(metric => /*#__PURE__*/React.createElement("div", {
+      key: metric.label
+    }, renderMetric(metric.label, metric.value))))));
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -14883,7 +15130,7 @@ function EventHistoryTab({
       fontSize: "0.9rem",
       margin: 0
     }
-  }, t.history_intro)), eventHistory.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, t.history_intro)), archiveItems.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
@@ -14894,33 +15141,56 @@ function EventHistoryTab({
       display: "grid",
       gap: "1rem"
     }
-  }, eventHistory.map(e => {
-    const over = e.budget > 0 && e.saldo < 0;
+  }, archiveItems.map(item => {
+    const event = item.event || {};
+    const snapshot = historyAsObject(event.snapshot);
+    const history = item.history || {};
+    const info = historyAsObject(snapshot.eventInfo || event.info || {});
+    const summary = event.summary || snapshot.summary || history;
+    const hasSnapshot = !!event.snapshot || history.hasSnapshot === true;
+    const snapshotVersion = snapshot.snapshotVersion || history.snapshotVersion || "";
+    const saldo = historySummaryValue(summary, history, "saldo");
+    const over = historySummaryValue(summary, history, "budget") > 0 && saldo < 0;
+    const itemId = item.id;
+    const isOpen = openId === itemId;
     return /*#__PURE__*/React.createElement("div", {
-      key: e.id,
+      key: itemId,
       className: "card",
       style: {
         borderLeft: `3px solid ${over ? "var(--accent)" : "#3a7d44"}`
-      }
+      },
+      "data-active-event-id": activeEventId || ""
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "baseline",
+        alignItems: "flex-start",
         flexWrap: "wrap",
-        gap: "0.5rem"
+        gap: "0.75rem"
       }
-    }, /*#__PURE__*/React.createElement("strong", {
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
       className: "font-display",
       style: {
         fontSize: "1.15rem"
       }
-    }, e.naam), /*#__PURE__*/React.createElement("span", {
+    }, info.naam || history.naam || "—"), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: "0.82rem",
-        color: "var(--ink-soft)"
+        color: "var(--ink-soft)",
+        marginTop: "0.2rem"
       }
-    }, e.datum || "—", e.gemeente ? ` · ${e.gemeente}` : "")), /*#__PURE__*/React.createElement("div", {
+    }, info.datum || history.datum || "—", info.gemeente || history.gemeente ? ` · ${info.gemeente || history.gemeente}` : "", info.locatieNaam ? ` · ${info.locatieNaam}` : "")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap",
+        justifyContent: "flex-end"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `badge ${hasSnapshot ? "ok" : "warn"}`
+    }, hasSnapshot ? t.history_snapshot_available : t.history_no_snapshot), snapshotVersion && /*#__PURE__*/React.createElement("span", {
+      className: "badge"
+    }, `${t.history_snapshot_version}: ${snapshotVersion}`))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
@@ -14928,41 +15198,25 @@ function EventHistoryTab({
         marginTop: "0.8rem",
         fontSize: "0.85rem"
       }
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    }, renderMetric(t.kb_budget, historySummaryValue(summary, history, "budget"), true), renderMetric(t.kb_totaal_in, historySummaryValue(summary, history, "totaleInkomsten"), true), renderMetric(t.kb_totaal_uit, historySummaryValue(summary, history, "totaalUitgegeven"), true), renderMetric(over ? t.kb_over : t.kb_saldo, Math.abs(saldo), true, over ? "var(--accent)" : "#3a7d44")), /*#__PURE__*/React.createElement("div", {
       style: {
-        color: "var(--ink-soft)"
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "0.75rem",
+        flexWrap: "wrap",
+        marginTop: "0.7rem"
       }
-    }, t.kb_budget), /*#__PURE__*/React.createElement("strong", null, fmtEuro(e.budget))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        color: "var(--ink-soft)"
-      }
-    }, t.kb_zaal), /*#__PURE__*/React.createElement("strong", null, fmtEuro(e.zaalhuur))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        color: "var(--ink-soft)"
-      }
-    }, t.kb_winkel_totaal), /*#__PURE__*/React.createElement("strong", null, fmtEuro(e.winkelTotaal))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        color: "var(--ink-soft)"
-      }
-    }, t.kb_manuele_kosten), /*#__PURE__*/React.createElement("strong", null, fmtEuro(e.manueelTotaal))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        color: "var(--ink-soft)"
-      }
-    }, t.kb_totaal_uit), /*#__PURE__*/React.createElement("strong", null, fmtEuro(e.totaalUitgegeven))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        color: "var(--ink-soft)"
-      }
-    }, over ? t.kb_over : t.kb_saldo), /*#__PURE__*/React.createElement("strong", {
-      style: {
-        color: over ? "var(--accent)" : "#3a7d44"
-      }
-    }, fmtEuro(Math.abs(e.saldo))))), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: "0.75rem",
-        color: "var(--ink-soft)",
-        marginTop: "0.6rem"
+        color: "var(--ink-soft)"
       }
-    }, t.history_afgesloten, ": ", e.afgesloten || "—"));
+    }, t.history_afgesloten, ": ", event.closedAt ? event.closedAt.slice(0, 10) : history.afgesloten || "—"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn btn-ghost btn-sm",
+      onClick: () => setOpenId(isOpen ? "" : itemId)
+    }, isOpen ? t.history_details_close : t.history_details_open)), isOpen && renderDetails(item));
   })));
 }
 
