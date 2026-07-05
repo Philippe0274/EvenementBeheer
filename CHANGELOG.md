@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.12.2
+- Veldnamen op vrijwilligerskaarten duidelijker gemaakt met donkerdere, zwaardere labeltypografie.
+- Event-tabblad uitgebreid met een bewaarde affiche/flyer per evenement in het blok Basisinfo.
+- Affiches worden bij upload verkleind en krijgen automatisch een zachte watermerkvariant voor rapport-PDF's.
+- Dagoverzicht-, Winkelbestellingen- en Kostenbeheer-PDF's tonen de event-affiche voortaan als watermerk op elke pagina.
+- Event-affichevelden zijn backward compatible toegevoegd aan normalisatie, nieuw evenement en Excel-template/export/import.
+
+## 1.12.1
+- `Zonder oorsprong` is voortaan een vaste systeem-oorsprong in Oorsprongsbeheer met uploadbaar logo.
+- De systeem-oorsprong kan niet verwijderd of hernoemd worden; bestaande materialen zonder oorsprong blijven technisch leeg gekoppeld.
+- Materiaalblokken zonder oorsprong gebruiken voortaan het logo van de systeem-oorsprong wanneer dat beschikbaar is.
+- Alle app-kaarten gebruiken centraal dezelfde achtergrondkleur `#99AD7A` met een subtiele linkse band in `#DE3E3E`.
+- Excel-template, export en import bewaren de systeemmarkering van oorsprongen zodat back-up en restore consistent blijven.
+
+## 1.12.0
+- Oorsprongsbeheer toegevoegd als nieuw centraal beheer-tabblad voor alle niet-winkel-oorsprongen.
+- Bestaande oorsprongen uit de oude oorspronglijst worden automatisch als kaarten gemigreerd, zonder materiaalgegevens te wijzigen.
+- Per oorsprong kan nu een logo worden opgeladen, vervangen of verwijderd via dezelfde compacte kaartlogica als Winkelgegevens.
+- Materiaal blijft gekoppeld via het bestaande veld `oorsprong`, maar toont voortaan het logo uit Oorsprongsbeheer in de oorsprongsblokken.
+- De oude optie om oorsprongen rechtstreeks vanuit Materiaal toe te voegen is verwijderd; oorsprongen worden voortaan centraal beheerd.
+- Excel-export, materiaalexport, template en import ondersteunen de nieuwe `Oorsprongen`-sheet zodat logo's in back-ups en restores behouden blijven.
+- `Winkel_Magasin` blijft gereserveerd voor winkelmateriaal en blijft de bestaande winkellogo's uit Winkelgegevens gebruiken.
+
 ## 1.11.0
 - UI/UX Sprint 4: Winkelgegevens vernieuwd naar compacte CRM-kaarten in dezelfde stijl als Vrijwilligers en Materiaal.
 - Winkelkaarten tonen uitsluitend winkellogo, winkelnaam en BTW-nummer.

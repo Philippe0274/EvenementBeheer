@@ -32,7 +32,7 @@
   .tab-btn { padding: 0.6rem 1.1rem; border: none; background: transparent; color: var(--ink-soft); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; text-transform: uppercase; }
   .tab-btn:hover { color: var(--ink); }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 4px; padding: 1.5rem; }
+  .card { background: #99AD7A !important; border: 1px solid rgba(222, 62, 62, 0.35); border-left: 0.36rem solid #DE3E3E !important; border-radius: 4px; padding: 1.5rem; }
   .input, .select, .textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--line); background: white; border-radius: 3px; font-family: 'Inter Tight', sans-serif; font-size: 0.9rem; color: var(--ink); }
   .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
   .label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 0.35rem; }
@@ -97,7 +97,7 @@
   .volunteer-alias { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.18rem; }
   .volunteer-info { display: grid; gap: 0.34rem; font-size: 0.82rem; color: var(--ink); }
   .volunteer-info-row { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 0.45rem; min-width: 0; align-items: baseline; }
-  .volunteer-info-label { color: #9b9184; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+  .volunteer-info-label { color: #3f352d; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 800; opacity: 0.92; }
   .volunteer-info-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .volunteer-note { margin-top: auto; color: var(--ink-soft); font-size: 0.78rem; line-height: 1.38; min-height: 2.15em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .volunteer-card-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; padding: 0.85rem 0.35rem; border-left: 1px solid var(--line); background: #fbf8f2; }
@@ -196,11 +196,13 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.12.2";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
 const BC_DEFAULT_SHEET_COUNT = 5;
+const SYSTEM_ORIGIN_WITHOUT_ID = "origin_without_origin";
+const SYSTEM_ORIGIN_WITHOUT_NAME = "Zonder oorsprong";
 
 // ============================================================
 // I18N — Vertalingen voor de UI
@@ -646,6 +648,12 @@ const T = {
     event_name: "Eventnaam",
     date: "Datum",
     description: "Beschrijving",
+    event_flyer: "Affiche / flyer",
+    event_flyer_help: "Deze afbeelding wordt bewaard bij het evenement en automatisch als zacht watermerk gebruikt in rapport-PDF's.",
+    event_flyer_upload: "Affiche opladen",
+    event_flyer_replace: "Affiche vervangen",
+    event_flyer_remove: "Affiche verwijderen",
+    event_flyer_error: "Kon de affiche niet verwerken. Gebruik JPG, PNG of WebP.",
     location: "Locatie",
     location_name: "Locatienaam",
     street: "Straat",
@@ -1307,6 +1315,12 @@ const T = {
     event_name: "Nom de l'événement",
     date: "Date",
     description: "Description",
+    event_flyer: "Affiche / dépliant",
+    event_flyer_help: "Cette image est conservée avec l'événement et utilisée automatiquement comme filigrane discret dans les PDF de rapport.",
+    event_flyer_upload: "Télécharger l'affiche",
+    event_flyer_replace: "Remplacer l'affiche",
+    event_flyer_remove: "Supprimer l'affiche",
+    event_flyer_error: "Impossible de traiter l'affiche. Utilisez JPG, PNG ou WebP.",
     location: "Lieu",
     location_name: "Nom du lieu",
     street: "Rue",
@@ -1706,6 +1720,9 @@ const defaultData = {
     postcode: "",
     gemeente: "",
     beschrijving: "",
+    affiche: "",
+    afficheWatermark: "",
+    afficheNaam: "",
     verantwId: "",
     verantwNaam: "",
     verantwGsm: ""
@@ -1722,6 +1739,11 @@ const defaultData = {
   oorsprongLijst: ["Leuven", "Vilvoorde", "Winkel_Magasin"],
   // Oorsprongen: stamlijst voor alle oorsprongen met logo. [{id, naam, logo}]
   oorsprongen: [{
+    id: SYSTEM_ORIGIN_WITHOUT_ID,
+    naam: SYSTEM_ORIGIN_WITHOUT_NAME,
+    logo: "",
+    system: true
+  }, {
     id: "origin_leuven",
     naam: "Leuven",
     logo: ""
@@ -2063,7 +2085,10 @@ const normalizeData = raw => {
   safe.taal = raw.taal === "fr" ? "fr" : "nl";
   if (raw.event && typeof raw.event === "object") safe.event = {
     ...defaultData.event,
-    ...raw.event
+    ...raw.event,
+    affiche: raw.event.affiche || raw.event.flyer || raw.event.poster || "",
+    afficheWatermark: raw.event.afficheWatermark || "",
+    afficheNaam: raw.event.afficheNaam || raw.event.flyerNaam || raw.event.posterNaam || ""
   };
   if (Array.isArray(raw.vrijwilligers)) {
     safe.vrijwilligers = raw.vrijwilligers.map(v => ({
@@ -2227,7 +2252,8 @@ const normalizeData = raw => {
     safe.oorsprongen = raw.oorsprongen.filter(o => o && typeof o === "object").map(o => ({
       id: o.id || uid(),
       naam: (o.naam || o.name || "").toString().trim(),
-      logo: o.logo || o.logoUrl || o.logoDataUrl || o.afbeelding || o.image || o.imageUrl || ""
+      logo: o.logo || o.logoUrl || o.logoDataUrl || o.afbeelding || o.image || o.imageUrl || "",
+      system: !!o.system || o.id === SYSTEM_ORIGIN_WITHOUT_ID
     })).filter(o => o.naam && o.naam !== WINKEL_OORSPRONG);
   }
   const originsByName = new Map();
@@ -2235,8 +2261,16 @@ const normalizeData = raw => {
     const key = (o.naam || "").trim().toLowerCase();
     if (key) originsByName.set(key, o);
   });
+  const existingSystemOrigin = (safe.oorsprongen || []).find(o => o.id === SYSTEM_ORIGIN_WITHOUT_ID) || originsByName.get(SYSTEM_ORIGIN_WITHOUT_NAME.toLowerCase());
+  originsByName.set(SYSTEM_ORIGIN_WITHOUT_NAME.toLowerCase(), {
+    ...(existingSystemOrigin || {}),
+    id: SYSTEM_ORIGIN_WITHOUT_ID,
+    naam: SYSTEM_ORIGIN_WITHOUT_NAME,
+    logo: existingSystemOrigin?.logo || "",
+    system: true
+  });
   (safe.oorsprongLijst || []).forEach(loc => {
-    if (!loc || loc === WINKEL_OORSPRONG) return;
+    if (!loc || loc === WINKEL_OORSPRONG || loc === SYSTEM_ORIGIN_WITHOUT_NAME) return;
     const key = loc.trim().toLowerCase();
     if (!originsByName.has(key)) {
       originsByName.set(key, {
@@ -2247,7 +2281,7 @@ const normalizeData = raw => {
     }
   });
   safe.oorsprongen = [...originsByName.values()].sort((a, b) => (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase()));
-  const originsList = [...new Set([...(safe.oorsprongLijst || []), ...(safe.oorsprongen || []).map(o => o.naam)].filter(Boolean))];
+  const originsList = [...new Set([...(safe.oorsprongLijst || []), ...(safe.oorsprongen || []).filter(o => !o.system && o.id !== SYSTEM_ORIGIN_WITHOUT_ID).map(o => o.naam)].filter(Boolean))].filter(loc => loc !== SYSTEM_ORIGIN_WITHOUT_NAME);
   safe.oorsprongLijst = originsList.includes(WINKEL_OORSPRONG) ? originsList : [...originsList, WINKEL_OORSPRONG];
 
   // Winkels (stamlijst). Ontbreekt de lijst, dan blijven de defaults uit defaultData staan.
@@ -3986,7 +4020,7 @@ function App() {
   const addOorsprong = (item = {}) => {
     const id = uid();
     const naam = (item.naam || "").trim();
-    if (!naam || naam === WINKEL_OORSPRONG) return "";
+    if (!naam || naam === WINKEL_OORSPRONG || naam === SYSTEM_ORIGIN_WITHOUT_NAME) return "";
     setData(d => ({
       ...d,
       oorsprongen: [...(d.oorsprongen || []), {
@@ -4002,13 +4036,22 @@ function App() {
     const huidige = (d.oorsprongen || []).find(o => o.id === id);
     if (!huidige) return d;
     const oudeNaam = huidige.naam || "";
-    const nieuweNaam = (patch.naam || oudeNaam).trim();
+    const isSystemWithoutOrigin = huidige.system || huidige.id === SYSTEM_ORIGIN_WITHOUT_ID;
+    const nieuweNaam = isSystemWithoutOrigin ? SYSTEM_ORIGIN_WITHOUT_NAME : (patch.naam || oudeNaam).trim();
     if (!nieuweNaam || nieuweNaam === WINKEL_OORSPRONG) return d;
     const oorsprongen = (d.oorsprongen || []).map(o => o.id === id ? {
       ...o,
       ...patch,
-      naam: nieuweNaam
+      id: isSystemWithoutOrigin ? SYSTEM_ORIGIN_WITHOUT_ID : o.id,
+      naam: nieuweNaam,
+      system: isSystemWithoutOrigin ? true : o.system
     } : o);
+    if (isSystemWithoutOrigin) {
+      return {
+        ...d,
+        oorsprongen
+      };
+    }
     const oorsprongLijst = (d.oorsprongLijst || []).map(loc => loc === oudeNaam ? nieuweNaam : loc);
     const materiaal = (d.materiaal || []).map(m => m.oorsprong === oudeNaam ? {
       ...m,
@@ -4024,6 +4067,7 @@ function App() {
   const removeOorsprong = id => setData(d => {
     const oorsprong = (d.oorsprongen || []).find(o => o.id === id);
     if (!oorsprong) return d;
+    if (oorsprong.system || oorsprong.id === SYSTEM_ORIGIN_WITHOUT_ID) return d;
     const inUse = (d.materiaal || []).filter(m => m.oorsprong === oorsprong.naam).length;
     if (inUse > 0) {
       alert(t.oorsprong_inuse(inUse));
@@ -4538,7 +4582,8 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongen || []).map(o => ({
       id: o.id,
       naam: o.naam,
-      logo: o.logo || ""
+      logo: o.logo || "",
+      system: o.system ? "ja" : ""
     }))), "Oorsprongen");
     XLSX.writeFile(wb, `materiaal_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
@@ -4686,7 +4731,8 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongen || []).map(o => ({
       id: o.id,
       naam: o.naam,
-      logo: o.logo || ""
+      logo: o.logo || "",
+      system: o.system ? "ja" : ""
     }))), "Oorsprongen");
     const prefix = isBackup ? "backup" : "evenement";
     const fileName = `${prefix}_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -4702,7 +4748,10 @@ function App() {
       nummer: "5",
       postcode: "1000",
       gemeente: "Brussel",
-      beschrijving: "Jaarlijks lentefeest van de afdeling"
+      beschrijving: "Jaarlijks lentefeest van de afdeling",
+      affiche: "",
+      afficheWatermark: "",
+      afficheNaam: ""
     }]), "Event");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{
       id: "v1",
@@ -4776,13 +4825,20 @@ function App() {
       locatie: loc
     }))), "OorsprongLijst");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{
+      id: SYSTEM_ORIGIN_WITHOUT_ID,
+      naam: SYSTEM_ORIGIN_WITHOUT_NAME,
+      logo: "",
+      system: "ja"
+    }, {
       id: "origin_leuven",
       naam: "Leuven",
-      logo: ""
+      logo: "",
+      system: ""
     }, {
       id: "origin_vilvoorde",
       naam: "Vilvoorde",
-      logo: ""
+      logo: "",
+      system: ""
     }]), "Oorsprongen");
     XLSX.writeFile(wb, "evenement_sjabloon.xlsx");
   };
@@ -4915,9 +4971,10 @@ function App() {
     }));
     const newOorsprongLijst = oRows.map(r => (r.locatie || "").toString().trim()).filter(Boolean);
     const newOorsprongen = originRows.filter(r => r.naam || r.logo).map(r => ({
-      id: r.id || uid(),
+      id: r.id || ((r.naam || "").toString().trim() === SYSTEM_ORIGIN_WITHOUT_NAME ? SYSTEM_ORIGIN_WITHOUT_ID : uid()),
       naam: (r.naam || "").toString().trim(),
-      logo: r.logo || ""
+      logo: r.logo || "",
+      system: r.system === "ja" || r.system === true || r.id === SYSTEM_ORIGIN_WITHOUT_ID
     })).filter(o => o.naam && o.naam !== WINKEL_OORSPRONG);
     return {
       event: newEvent,
@@ -5087,6 +5144,9 @@ function App() {
           postcode: "",
           gemeente: "",
           beschrijving: "",
+          affiche: "",
+          afficheWatermark: "",
+          afficheNaam: "",
           verantwId: "",
           verantwNaam: "",
           verantwGsm: ""
@@ -5712,9 +5772,11 @@ function DagoverzichtBlok({
     const nieuwePagina = nodig => {
       if (y + nodig > pageH - marge) {
         doc.addPage();
+        applyEventFlyerWatermark(doc, data.event, pageW, pageH);
         y = marge;
       }
     };
+    applyEventFlyerWatermark(doc, data.event, pageW, pageH);
 
     // Kop
     doc.setFillColor(200, 68, 42);
@@ -6352,6 +6414,7 @@ function EventTab({
   const mapsAuto = buildMapsLink(event, "driving");
   const mapsOv = buildMapsLink(event, "transit");
   const nmbs = buildNmbsLink(event);
+  const [flyerError, setFlyerError] = useState("");
   const sortedVrij = [...(vrijwilligers || [])].sort((a, b) => {
     const an = (a.naam || "").toLowerCase(),
       bn = (b.naam || "").toLowerCase();
@@ -6378,6 +6441,20 @@ function EventTab({
       update({
         verantwId: vId
       });
+    }
+  };
+  const handleFlyer = async file => {
+    if (!file) return;
+    try {
+      const resized = await resizeEventFlyer(file);
+      setFlyerError("");
+      update({
+        affiche: resized.image,
+        afficheWatermark: resized.watermark,
+        afficheNaam: resized.name
+      });
+    } catch {
+      setFlyerError(t.event_flyer_error);
     }
   };
   return /*#__PURE__*/React.createElement("div", {
@@ -6421,7 +6498,84 @@ function EventTab({
     onChange: e => update({
       beschrijving: e.target.value
     })
-  })))), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: t.event_flyer
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "0.75rem"
+    }
+  }, event.affiche && /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: "260px",
+      border: "1px solid var(--line)",
+      borderRadius: "4px",
+      overflow: "hidden",
+      background: "white"
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: event.affiche,
+    alt: t.event_flyer,
+    style: {
+      display: "block",
+      width: "100%",
+      height: "auto"
+    }
+  })), event.afficheNaam && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.78rem",
+      color: "var(--ink-soft)",
+      overflowWrap: "anywhere"
+    }
+  }, event.afficheNaam), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.55rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "btn btn-ghost btn-sm",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "0.35rem"
+    }
+  }, event.affiche ? t.event_flyer_replace : t.event_flyer_upload, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/jpeg,image/png,image/webp",
+    style: {
+      display: "none"
+    },
+    onChange: e => {
+      handleFlyer(e.target.files && e.target.files[0]);
+      e.target.value = "";
+    }
+  })), event.affiche && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-danger btn-sm",
+    onClick: () => {
+      setFlyerError("");
+      update({
+        affiche: "",
+        afficheWatermark: "",
+        afficheNaam: ""
+      });
+    }
+  }, t.event_flyer_remove)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.78rem",
+      color: "var(--ink-soft)",
+      lineHeight: 1.35
+    }
+  }, t.event_flyer_help), flyerError && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--accent)",
+      fontSize: "0.8rem",
+      fontWeight: 700
+    }
+  }, flyerError))))), /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "font-display",
@@ -6635,6 +6789,70 @@ const resizeVolunteerPhoto = file => new Promise((resolve, reject) => {
   };
   reader.readAsDataURL(file);
 });
+
+const resizeEventFlyer = file => new Promise((resolve, reject) => {
+  if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type || "")) {
+    reject(new Error("unsupported"));
+    return;
+  }
+  const reader = new FileReader();
+  reader.onerror = () => reject(new Error("read"));
+  reader.onload = () => {
+    const img = new Image();
+    img.onerror = () => reject(new Error("image"));
+    img.onload = () => {
+      const maxW = 1200;
+      const maxH = 1600;
+      const scale = Math.min(1, maxW / img.width, maxH / img.height);
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      const image = canvas.toDataURL("image/jpeg", 0.86);
+      const wm = document.createElement("canvas");
+      wm.width = w;
+      wm.height = h;
+      const wmCtx = wm.getContext("2d");
+      wmCtx.fillStyle = "#ffffff";
+      wmCtx.fillRect(0, 0, w, h);
+      wmCtx.globalAlpha = 0.16;
+      wmCtx.drawImage(img, 0, 0, w, h);
+      wmCtx.globalAlpha = 1;
+      const watermark = wm.toDataURL("image/jpeg", 0.7);
+      resolve({
+        image,
+        watermark,
+        name: file.name || ""
+      });
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+const applyEventFlyerWatermark = (doc, event, pageW, pageH) => {
+  const src = event && (event.afficheWatermark || event.affiche);
+  if (!doc || !src) return;
+  try {
+    const props = doc.getImageProperties(src);
+    const maxW = pageW * 0.82;
+    const maxH = pageH * 0.82;
+    let w = maxW;
+    let h = props.height / props.width * w;
+    if (h > maxH) {
+      h = maxH;
+      w = props.width / props.height * h;
+    }
+    const x = (pageW - w) / 2;
+    const y = (pageH - h) / 2;
+    doc.addImage(src, "JPEG", x, y, w, h);
+  } catch (e) {/* watermerk overslaan bij onleesbare afbeelding */}
+};
 
 const volunteerInitials = v => {
   const parts = [v.voornaam, v.naam].filter(Boolean);
@@ -9392,7 +9610,13 @@ const materialShopName = (winkelId, winkels, t) => {
 };
 const materialShopRecord = (winkelId, winkels) => (winkels || []).find(x => x.id === winkelId) || null;
 const materialShopLogoSrc = winkel => winkel ? winkel.logo || winkel.logoUrl || winkel.logoDataUrl || winkel.afbeelding || winkel.image || winkel.imageUrl || "" : "";
-const materialOriginRecord = (origin, oorsprongen) => (oorsprongen || []).find(o => (o.naam || "").toLowerCase() === (origin || "").toLowerCase()) || null;
+const materialOriginRecord = (origin, oorsprongen, t) => {
+  const normalized = (origin || "").toLowerCase();
+  if (!origin || origin === t?.mat_without_origin || normalized === SYSTEM_ORIGIN_WITHOUT_NAME.toLowerCase()) {
+    return (oorsprongen || []).find(o => o.id === SYSTEM_ORIGIN_WITHOUT_ID || o.system) || null;
+  }
+  return (oorsprongen || []).find(o => (o.naam || "").toLowerCase() === normalized) || null;
+};
 const materialOriginLogoSrc = oorsprong => oorsprong ? oorsprong.logo || oorsprong.logoUrl || oorsprong.logoDataUrl || oorsprong.afbeelding || oorsprong.image || oorsprong.imageUrl || "" : "";
 const normalizeMaterialDraft = draft => {
   const oorsprong = draft.oorsprong || "";
@@ -9706,7 +9930,7 @@ function MateriaalTab({
     const key = groupKey(group.key);
     const totalPieces = group.items.reduce((sum, m) => sum + materialAmountNumber(m.aantal), 0);
     const isShopOrigin = group.key === WINKEL_OORSPRONG;
-    const oorsprongRecord = !isShopOrigin ? materialOriginRecord(group.key, oorsprongen) : null;
+    const oorsprongRecord = !isShopOrigin ? materialOriginRecord(group.key, oorsprongen, t) : null;
     let body;
     if (isShopOrigin) {
       const shops = new Map();
@@ -10448,8 +10672,9 @@ function OorsprongsbeheerTab({
   };
   const saveDraft = () => {
     if (!editing) return;
+    const isSystemDraft = editing.draft.system || editing.id === SYSTEM_ORIGIN_WITHOUT_ID;
     const normalized = {
-      naam: (editing.draft.naam || "").trim(),
+      naam: isSystemDraft ? SYSTEM_ORIGIN_WITHOUT_NAME : (editing.draft.naam || "").trim(),
       logo: editing.draft.logo || ""
     };
     if (!normalized.naam) return;
@@ -10479,7 +10704,10 @@ function OorsprongsbeheerTab({
     if (editing.mode === "new") {
       savedId = add(normalized);
     } else {
-      update(editing.id, normalized);
+      update(editing.id, {
+        ...normalized,
+        system: isSystemDraft
+      });
     }
     setEditing(null);
     setHighlightedId(savedId || "");
@@ -10593,6 +10821,7 @@ function OorsprongKaart({
   onRemove
 }) {
   const logo = materialOriginLogoSrc(oorsprong);
+  const isSystem = oorsprong.system || oorsprong.id === SYSTEM_ORIGIN_WITHOUT_ID;
   return /*#__PURE__*/React.createElement("div", {
     id: `origin-card-${oorsprong.id}`,
     className: `card shop-card${highlighted ? " marked" : ""}`,
@@ -10625,7 +10854,7 @@ function OorsprongKaart({
     title: t.oorsprong_edit,
     "aria-label": t.oorsprong_edit,
     onClick: onEdit
-  }, "\u270F"), /*#__PURE__*/React.createElement("button", {
+  }, "\u270F"), !isSystem && /*#__PURE__*/React.createElement("button", {
     className: "btn btn-danger btn-sm",
     title: t.remove,
     "aria-label": t.remove,
@@ -10644,6 +10873,7 @@ function OorsprongEditor({
 }) {
   const [error, setError] = useState("");
   const logo = draft.logo || "";
+  const isSystem = draft.system || draft.id === SYSTEM_ORIGIN_WITHOUT_ID || draft.naam === SYSTEM_ORIGIN_WITHOUT_NAME;
   const handleLogo = async file => {
     if (!file) return;
     try {
@@ -10688,6 +10918,8 @@ function OorsprongEditor({
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
     value: draft.naam || "",
+    readOnly: isSystem,
+    disabled: isSystem,
     onChange: e => updateDraft({
       naam: e.target.value
     })
@@ -10950,9 +11182,11 @@ function WinkelbestellingenTab({
     const nieuwePagina = nodig => {
       if (y + nodig > pageH - marge) {
         doc.addPage();
+        applyEventFlyerWatermark(doc, data.event, pageW, pageH);
         y = marge;
       }
     };
+    applyEventFlyerWatermark(doc, data.event, pageW, pageH);
 
     // Kop
     doc.setFillColor(200, 68, 42);
@@ -11532,9 +11766,11 @@ function KostenbeheerTab({
     const nieuwePagina = nodig => {
       if (y + nodig > pageH - marge) {
         doc.addPage();
+        applyEventFlyerWatermark(doc, data.event, pageW, pageH);
         y = marge;
       }
     };
+    applyEventFlyerWatermark(doc, data.event, pageW, pageH);
 
     // Kleuren
     const ROOD = [192, 57, 43],
