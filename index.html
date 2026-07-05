@@ -196,7 +196,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.13.0";
+const APP_VERSION = "1.14.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -2212,6 +2212,59 @@ const updateEventMirror = (data, patch) => syncActiveEventMirror({
   }
 });
 
+const deepClone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+
+const buildCurrentEventSnapshot = data => {
+  const synced = syncActiveEventMirror(data || {});
+  const activeEvent = getActiveEvent(synced);
+  const eventInfo = normalizeEventInfo(synced.event || activeEvent && activeEvent.info);
+  const eventId = eventInfo.id || synced.activeEventId || activeEvent && activeEvent.id || `evt_${uid()}`;
+  const createdAt = new Date().toISOString();
+  const summary = berekenKosten(synced);
+  const bc = synced.businessContinuity || defaultData.businessContinuity;
+  const sheetSets = (bc.sheetSets || []).filter(set => set && set.eventId === eventId);
+  const sheetSetIds = new Set(sheetSets.map(set => set.id).filter(Boolean));
+  const sheets = (bc.sheets || []).filter(sheet => sheet && (sheet.eventId === eventId || sheetSetIds.has(sheet.sheetSetId)));
+  const sheetIds = new Set(sheets.map(sheet => sheet.id).filter(Boolean));
+  const belongsToCurrentEvent = item => {
+    if (!item || typeof item !== "object") return false;
+    if (item.eventId) return item.eventId === eventId;
+    if (item.sheetSetId) return sheetSetIds.has(item.sheetSetId);
+    if (item.sheetId) return sheetIds.has(item.sheetId);
+    return true;
+  };
+  return {
+    snapshotVersion: "1.0.0",
+    createdAt,
+    eventId,
+    eventInfo: deepClone({
+      ...eventInfo,
+      id: eventId
+    }),
+    summary: deepClone(summary),
+    takenState: deepClone(synced.taken || []),
+    materiaalState: deepClone(synced.materiaal || []),
+    winkelbestellingen: deepClone(synced.winkelbestellingen || {}),
+    kastickets: deepClone(synced.kastickets || {}),
+    kostenbeheer: deepClone(synced.kostenbeheer || defaultData.kostenbeheer),
+    voorverkoopStreefdoel: synced.voorverkoopStreefdoel || "",
+    voorverkopen: deepClone(synced.voorverkopen || []),
+    zelfinbreng: deepClone(synced.zelfinbreng || []),
+    prijslijst: deepClone(synced.prijslijst || []),
+    prijslijstCategorien: deepClone(synced.prijslijstCategorien || []),
+    businessContinuity: {
+      sheetSets: deepClone(sheetSets),
+      sheets: deepClone(sheets),
+      manualEntryBatches: deepClone((bc.manualEntryBatches || []).filter(belongsToCurrentEvent)),
+      manualEntryLines: deepClone((bc.manualEntryLines || []).filter(belongsToCurrentEvent)),
+      incidents: deepClone((bc.incidents || []).filter(belongsToCurrentEvent)),
+      priceListChanges: deepClone((bc.priceListChanges || []).filter(belongsToCurrentEvent))
+    },
+    bulkGeschiedenis: deepClone(synced.bulkGeschiedenis || {}),
+    skippedIssues: deepClone(synced.overgeslagenAandachtspunten || [])
+  };
+};
+
 // Veilige normalisatie van geladen data
 const normalizeData = raw => {
   if (!raw || typeof raw !== "object") return defaultData;
@@ -2524,14 +2577,20 @@ const normalizeData = raw => {
   if (Array.isArray(raw.eventHistory)) {
     safe.eventHistory = raw.eventHistory.filter(e => e && typeof e === "object").map(e => ({
       id: e.id || uid(),
+      eventId: e.eventId || "",
       naam: e.naam || "",
       datum: e.datum || "",
       gemeente: e.gemeente || "",
       afgesloten: e.afgesloten || "",
+      snapshotVersion: e.snapshotVersion || "",
+      hasSnapshot: !!e.hasSnapshot,
       budget: e.budget || 0,
       zaalhuur: e.zaalhuur || 0,
       winkelTotaal: e.winkelTotaal || 0,
       manueelTotaal: e.manueelTotaal || 0,
+      voorverkoopTotaal: e.voorverkoopTotaal || 0,
+      zelfinbrengTotaal: e.zelfinbrengTotaal || 0,
+      totaleInkomsten: e.totaleInkomsten || 0,
       totaalUitgegeven: e.totaalUitgegeven || 0,
       saldo: e.saldo || 0
     }));
@@ -5247,15 +5306,40 @@ function App() {
       if (!confirm(t.backup_mislukt)) return;
     }
     setData(d => {
+      const synced = syncActiveEventMirror(d);
+      const snapshot = buildCurrentEventSnapshot(synced);
+      const closedAt = snapshot.createdAt;
+      const oldEventId = snapshot.eventId;
+      const newEventId = `evt_${uid()}`;
+      const newEvent = {
+        id: newEventId,
+        naam: "",
+        datum: "",
+        locatieNaam: "",
+        straat: "",
+        nummer: "",
+        postcode: "",
+        gemeente: "",
+        beschrijving: "",
+        affiche: "",
+        afficheWatermark: "",
+        afficheNaam: "",
+        verantwId: "",
+        verantwNaam: "",
+        verantwGsm: ""
+      };
       // Stap 2: het oude evenement met kostenresultaat naar Event History
-      const k = berekenKosten(d);
-      const heeftInhoud = (d.event.naam || "").trim() || (d.event.datum || "").trim();
+      const k = snapshot.summary || berekenKosten(synced);
+      const heeftInhoud = (synced.event.naam || "").trim() || (synced.event.datum || "").trim();
       const historyEntry = heeftInhoud ? [{
         id: uid(),
-        naam: d.event.naam || "(naamloos)",
-        datum: d.event.datum || "",
-        gemeente: d.event.gemeente || "",
-        afgesloten: new Date().toISOString().slice(0, 10),
+        eventId: oldEventId,
+        naam: synced.event.naam || "(naamloos)",
+        datum: synced.event.datum || "",
+        gemeente: synced.event.gemeente || "",
+        afgesloten: closedAt.slice(0, 10),
+        snapshotVersion: snapshot.snapshotVersion,
+        hasSnapshot: true,
         budget: k.budget,
         zaalhuur: k.zaalhuur,
         winkelTotaal: k.winkelTotaal,
@@ -5266,28 +5350,42 @@ function App() {
         totaalUitgegeven: k.totaalUitgegeven,
         saldo: k.saldo
       }] : [];
-      return syncActiveEventMirror({
-        ...d,
-        // Oud evenement bewaren in de geschiedenis
-        eventHistory: [...historyEntry, ...(d.eventHistory || [])],
-        // Wissen
-        event: {
-          id: "",
-          naam: "",
-          datum: "",
-          locatieNaam: "",
-          straat: "",
-          nummer: "",
-          postcode: "",
-          gemeente: "",
-          beschrijving: "",
-          affiche: "",
-          afficheWatermark: "",
-          afficheNaam: "",
-          verantwId: "",
-          verantwNaam: "",
-          verantwGsm: ""
+      const closedEvents = (synced.events || []).map(event => event.id === synced.activeEventId ? {
+        ...event,
+        id: oldEventId,
+        status: "closed",
+        closedAt,
+        updatedAt: closedAt,
+        info: {
+          ...normalizeEventInfo(event.info),
+          ...snapshot.eventInfo,
+          id: oldEventId
         },
+        snapshot,
+        summary: snapshot.summary
+      } : event.status === "active" ? {
+        ...event,
+        status: "closed",
+        closedAt: event.closedAt || closedAt,
+        updatedAt: closedAt
+      } : event);
+      const newActiveEvent = {
+        id: newEventId,
+        status: "active",
+        createdAt: closedAt,
+        updatedAt: closedAt,
+        closedAt: "",
+        archivedAt: "",
+        info: newEvent
+      };
+      return syncActiveEventMirror({
+        ...synced,
+        activeEventId: newEventId,
+        events: [...closedEvents, newActiveEvent],
+        // Oud evenement bewaren in de geschiedenis
+        eventHistory: [...historyEntry, ...(synced.eventHistory || [])],
+        // Wissen
+        event: newEvent,
         bulkGeschiedenis: {},
         businessContinuity: defaultData.businessContinuity,
         winkelbestellingen: {},
@@ -5307,7 +5405,7 @@ function App() {
         voorverkopen: [],
         zelfinbreng: [],
         // Taken: behouden, maar toewijzingen + status + verantwoordelijke wissen
-        taken: d.taken.map(tt => ({
+        taken: synced.taken.map(tt => ({
           ...tt,
           toegewezen: [],
           status: "open",
@@ -5320,7 +5418,7 @@ function App() {
           }))
         })),
         // Materiaal: behouden, maar aantallen leegmaken
-        materiaal: (d.materiaal || []).map(m => ({
+        materiaal: (synced.materiaal || []).map(m => ({
           ...m,
           aantal: ""
         }))
@@ -5361,13 +5459,28 @@ function App() {
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "font-body",
     style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "0.45rem",
       fontSize: "0.7rem",
       textTransform: "uppercase",
       letterSpacing: "0.15em",
       color: "var(--accent)",
       fontWeight: 600
     }
-  }, t.app_subtitle), /*#__PURE__*/React.createElement("h1", {
+  }, /*#__PURE__*/React.createElement("span", null, t.app_subtitle), /*#__PURE__*/React.createElement("span", {
+    title: `APP_VERSION ${APP_VERSION}`,
+    style: {
+      letterSpacing: 0,
+      textTransform: "none",
+      color: "var(--ink-soft)",
+      border: "1px solid var(--line)",
+      borderRadius: 999,
+      padding: "0.1rem 0.45rem",
+      fontSize: "0.68rem",
+      fontWeight: 600
+    }
+  }, `v${APP_VERSION}`)), /*#__PURE__*/React.createElement("h1", {
     className: "font-display",
     style: {
       margin: "0.2rem 0 0 0",

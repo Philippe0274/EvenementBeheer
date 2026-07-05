@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.14.1
+- Applicatieversie zichtbaar gemaakt in de header, zodat meteen gecontroleerd kan worden welke build actief geladen is.
+- Service worker cacheversie mee verhoogd zodat de zichtbare versie betrouwbaar vernieuwt na publicatie.
+
+## 1.14.0
+- Event Lifecycle fase 2 voorbereid met een snapshot van het actieve event bij `Nieuw evenement`, vóór de werkruimte wordt gereset.
+- Afgesloten events bewaren voortaan eventinfo, affichevelden, financiële samenvatting, taken-/materiaalstaat, winkelbestellingen, kastickets, kostenbeheer, voorverkoop, prijslijst en relevante Business Continuity-data in `events[].snapshot`.
+- Nieuwe `eventHistory`-records worden gekoppeld aan `eventId` en bewaren extra samenvattingsvelden zoals voorverkoop, zelfinbreng en totale inkomsten.
+- Er is geen eventselector, archief-UI of zichtbare workflowwijziging toegevoegd.
+
 ## 1.13.0
 - Event Lifecycle basislaag voorbereid zonder zichtbare UI-wijzigingen.
 - `events[]` en `activeEventId` worden compatibel toegevoegd via normalisatie.
