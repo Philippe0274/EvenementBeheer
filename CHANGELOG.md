@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.0
+- Event Lifecycle basislaag voorbereid zonder zichtbare UI-wijzigingen.
+- `events[]` en `activeEventId` worden compatibel toegevoegd via normalisatie.
+- `data.event` blijft in deze fase de operationele compatibiliteitsmirror.
+- Oude backups zonder event lifecycle en nieuwe backups met `events[]` worden veilig ondersteund.
+
 ## 1.12.2
 - Veldnamen op vrijwilligerskaarten duidelijker gemaakt met donkerdere, zwaardere labeltypografie.
 - Event-tabblad uitgebreid met een bewaarde affiche/flyer per evenement in het blok Basisinfo.

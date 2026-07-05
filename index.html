@@ -196,9 +196,10 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.12.2";
+const APP_VERSION = "1.13.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
+const EVENT_LIFECYCLE_VERSION = "1.0.0";
 const BC_SHEET_VERSION = "1.0";
 const BC_DEFAULT_SHEET_COUNT = 5;
 const SYSTEM_ORIGIN_WITHOUT_ID = "origin_without_origin";
@@ -1727,6 +1728,13 @@ const defaultData = {
     verantwNaam: "",
     verantwGsm: ""
   },
+  activeEventId: "",
+  events: [],
+  eventLifecycleMeta: {
+    version: EVENT_LIFECYCLE_VERSION,
+    migratedFromSingleEvent: false,
+    migratedAt: ""
+  },
   vrijwilligers: [],
   taken: [],
   woordenboek: defaultDictionary,
@@ -2068,11 +2076,148 @@ const formatDateShort = (iso, lang = "nl") => {
   });
 };
 
+const normalizeEventInfo = event => {
+  const input = event && typeof event === "object" && !Array.isArray(event) ? event : {};
+  return {
+    ...defaultData.event,
+    ...input,
+    affiche: input.affiche || input.flyer || input.poster || "",
+    afficheWatermark: input.afficheWatermark || "",
+    afficheNaam: input.afficheNaam || input.flyerNaam || input.posterNaam || ""
+  };
+};
+
+const createEventFromLegacyData = data => {
+  const now = new Date().toISOString();
+  const info = normalizeEventInfo(data && data.event);
+  const id = info.id || data && data.activeEventId || `evt_${uid()}`;
+  return {
+    id,
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
+    closedAt: "",
+    archivedAt: "",
+    info: {
+      ...info,
+      id
+    }
+  };
+};
+
+const normalizeLifecycleEvent = event => {
+  if (!event || typeof event !== "object" || Array.isArray(event)) return null;
+  const info = normalizeEventInfo(event.info || event.event || {});
+  const id = event.id || info.id || `evt_${uid()}`;
+  return {
+    ...event,
+    id,
+    status: event.status || "active",
+    createdAt: event.createdAt || "",
+    updatedAt: event.updatedAt || "",
+    closedAt: event.closedAt || "",
+    archivedAt: event.archivedAt || "",
+    info: {
+      ...info,
+      id: info.id || id
+    }
+  };
+};
+
+const getActiveEvent = data => {
+  const events = Array.isArray(data && data.events) ? data.events : [];
+  return events.find(event => event && event.id === data.activeEventId) || events.find(event => event && event.status === "active") || events.find(event => event && event.status !== "archived") || events[0] || null;
+};
+
+const getActiveEventInfo = data => {
+  const activeEvent = getActiveEvent(data);
+  return normalizeEventInfo(activeEvent && activeEvent.info || data && data.event);
+};
+
+const ensureActiveEvent = data => {
+  const next = {
+    ...data
+  };
+  let events = Array.isArray(next.events) ? next.events.map(normalizeLifecycleEvent).filter(Boolean) : [];
+  let activeEvent = events.find(event => event.id === next.activeEventId);
+  if (!activeEvent) activeEvent = events.find(event => event.status === "active") || events.find(event => event.status !== "archived") || events[0] || null;
+  if (!activeEvent) {
+    activeEvent = createEventFromLegacyData(next);
+    events = [activeEvent];
+  }
+  next.activeEventId = activeEvent.id;
+  next.events = events;
+  return next;
+};
+
+const ensureEventLifecycleStructure = (data, options = {}) => {
+  const hadEvents = Array.isArray(data && data.events) && data.events.length > 0;
+  const next = ensureActiveEvent(data || {});
+  const activeIndex = next.events.findIndex(event => event.id === next.activeEventId);
+  const activeEvent = next.events[activeIndex] || createEventFromLegacyData(next);
+  const mirrorInfo = normalizeEventInfo(next.event);
+  const activeInfo = normalizeEventInfo(activeEvent.info);
+  const preferEventMirror = options.preferEventMirror !== false;
+  const syncedInfo = preferEventMirror ? {
+    ...activeInfo,
+    ...mirrorInfo
+  } : {
+    ...mirrorInfo,
+    ...activeInfo
+  };
+  const id = syncedInfo.id || activeEvent.id || next.activeEventId || `evt_${uid()}`;
+  const now = new Date().toISOString();
+  const syncedEvent = {
+    ...activeEvent,
+    id,
+    status: activeEvent.status || "active",
+    createdAt: activeEvent.createdAt || now,
+    updatedAt: activeEvent.updatedAt || now,
+    closedAt: activeEvent.closedAt || "",
+    archivedAt: activeEvent.archivedAt || "",
+    info: {
+      ...syncedInfo,
+      id
+    }
+  };
+  const events = [...next.events];
+  if (activeIndex >= 0) {
+    events[activeIndex] = syncedEvent;
+  } else {
+    events.push(syncedEvent);
+  }
+  return {
+    ...next,
+    event: syncedEvent.info,
+    activeEventId: id,
+    events,
+    eventLifecycleMeta: {
+      ...(next.eventLifecycleMeta && typeof next.eventLifecycleMeta === "object" && !Array.isArray(next.eventLifecycleMeta) ? next.eventLifecycleMeta : {}),
+      version: EVENT_LIFECYCLE_VERSION,
+      migratedFromSingleEvent: next.eventLifecycleMeta && next.eventLifecycleMeta.migratedFromSingleEvent === true || !hadEvents,
+      migratedAt: next.eventLifecycleMeta && next.eventLifecycleMeta.migratedAt || (!hadEvents ? now : "")
+    }
+  };
+};
+
+const syncActiveEventMirror = data => ensureEventLifecycleStructure(data, {
+  preferEventMirror: true
+});
+
+const updateEventMirror = (data, patch) => syncActiveEventMirror({
+  ...data,
+  event: {
+    ...normalizeEventInfo(data && data.event),
+    ...(patch || {})
+  }
+});
+
 // Veilige normalisatie van geladen data
 const normalizeData = raw => {
   if (!raw || typeof raw !== "object") return defaultData;
   const safe = {
-    ...defaultData
+    ...defaultData,
+    ...raw
   };
   safe.appMeta = {
     ...defaultData.appMeta,
@@ -2083,13 +2228,8 @@ const normalizeData = raw => {
     ledgerMode: "immutable"
   };
   safe.taal = raw.taal === "fr" ? "fr" : "nl";
-  if (raw.event && typeof raw.event === "object") safe.event = {
-    ...defaultData.event,
-    ...raw.event,
-    affiche: raw.event.affiche || raw.event.flyer || raw.event.poster || "",
-    afficheWatermark: raw.event.afficheWatermark || "",
-    afficheNaam: raw.event.afficheNaam || raw.event.flyerNaam || raw.event.posterNaam || ""
-  };
+  const rawHasEvent = raw.event && typeof raw.event === "object" && !Array.isArray(raw.event);
+  if (rawHasEvent) safe.event = normalizeEventInfo(raw.event);
   if (Array.isArray(raw.vrijwilligers)) {
     safe.vrijwilligers = raw.vrijwilligers.map(v => ({
       id: v.id || uid(),
@@ -2440,7 +2580,9 @@ const normalizeData = raw => {
       migrationNotes: Array.isArray(raw.legacy.migrationNotes) ? raw.legacy.migrationNotes : []
     };
   }
-  return safe;
+  return ensureEventLifecycleStructure(safe, {
+    preferEventMirror: rawHasEvent || !Array.isArray(raw.events) || raw.events.length === 0
+  });
 };
 
 // Slimme merge: bestaande data + nieuwe data (matchen op id)
@@ -3530,7 +3672,7 @@ function GroepverzendingenTab({
   }, s.taal === "fr" ? "🇫🇷" : "🇳🇱", " ", new Date(s.date).toLocaleString(), " \u2014 ", s.count, " ", s.taal.toUpperCase()))))));
 }
 function App() {
-  const [data, setData] = useState(defaultData);
+  const [data, setData] = useState(() => normalizeData(defaultData));
   const [tab, setTab] = useState("dashboard");
   const [toonTerugKnop, setToonTerugKnop] = useState(false);
   // Sprong vanuit een Dashboard-aandachtspunt: onthoud dat we terug kunnen
@@ -3591,13 +3733,7 @@ function App() {
     ...d,
     taal
   }));
-  const updateEvent = patch => setData(d => ({
-    ...d,
-    event: {
-      ...d.event,
-      ...patch
-    }
-  }));
+  const updateEvent = patch => setData(d => updateEventMirror(d, patch));
   const addVrijwilliger = () => {
     const id = uid();
     setData(d => ({
@@ -4356,7 +4492,7 @@ function App() {
       priceListSnapshot
     };
     const bc = d.businessContinuity || defaultData.businessContinuity;
-    return {
+    return syncActiveEventMirror({
       ...d,
       event: {
         ...d.event,
@@ -4368,7 +4504,7 @@ function App() {
         sheetSets: [...(bc.sheetSets || []), sheetSet],
         sheets: [...(bc.sheets || []), ...sheets]
       }
-    };
+    });
   });
     showToast(t.bc_generated_ok(sheetCount));
   };
@@ -4620,28 +4756,29 @@ function App() {
 
   // ---- Excel ----
   const exportExcel = isBackup => {
+    const exportData = syncActiveEventMirror(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([data.event]), "Event");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.vrijwilligers), "Vrijwilligers");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([exportData.event]), "Event");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportData.vrijwilligers), "Vrijwilligers");
 
     // Hulpfunctie: zet lijst van vrijwilliger-ids om in leesbare namen
     const idsToNamen = ids => {
       return (ids || []).map(id => {
-        const v = data.vrijwilligers.find(x => x.id === id);
+        const v = exportData.vrijwilligers.find(x => x.id === id);
         if (v) return `${v.naam} ${v.voornaam}`.trim();
         return "(onbekend)";
       }).join(", ");
     };
     const takenRows = [];
-    data.taken.forEach(tt => {
+    exportData.taken.forEach(tt => {
       // Verantwoordelijke leesbare naam berekenen
       let verantwNaam = "";
       if (tt.verantwoordelijkeId === "__ander__") {
         verantwNaam = tt.verantwoordelijkeVrij || "";
       } else if (tt.verantwoordelijkeId) {
-        const vr = data.vrijwilligers.find(x => x.id === tt.verantwoordelijkeId);
+        const vr = exportData.vrijwilligers.find(x => x.id === tt.verantwoordelijkeId);
         if (vr) verantwNaam = `${vr.naam} ${vr.voornaam}`.trim();else {
-          const ec = (data.externeContacten || []).find(c => c.id === tt.verantwoordelijkeId);
+          const ec = (exportData.externeContacten || []).find(c => c.id === tt.verantwoordelijkeId);
           if (ec) verantwNaam = ec.naam;
         }
       }
@@ -4685,29 +4822,29 @@ function App() {
       });
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(takenRows), "Taken");
-    const dictRows = Object.entries(data.woordenboek).map(([nl, fr]) => ({
+    const dictRows = Object.entries(exportData.woordenboek).map(([nl, fr]) => ({
       nl,
       fr
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dictRows), "Woordenboek");
-    const sjabloonRows = data.sjablonen.map(s => ({
+    const sjabloonRows = exportData.sjablonen.map(s => ({
       id: s.id,
       titel: s.titel,
       nl: s.nl,
       fr: s.fr
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sjabloonRows), "Sjablonen");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.externeContacten), "ExterneContacten");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportData.externeContacten), "ExterneContacten");
 
     // Materiaal — met leesbare verantwoordelijke-naam
-    const materiaalRows = (data.materiaal || []).map(m => {
+    const materiaalRows = (exportData.materiaal || []).map(m => {
       let verantwNaam = "";
       if (m.verantwoordelijkeId === "__ander__") {
         verantwNaam = m.verantwoordelijkeVrij || "";
       } else if (m.verantwoordelijkeId) {
-        const v = data.vrijwilligers.find(vv => vv.id === m.verantwoordelijkeId);
+        const v = exportData.vrijwilligers.find(vv => vv.id === m.verantwoordelijkeId);
         if (v) verantwNaam = `${v.naam} ${v.voornaam}`.trim();else {
-          const c = (data.externeContacten || []).find(cc => cc.id === m.verantwoordelijkeId);
+          const c = (exportData.externeContacten || []).find(cc => cc.id === m.verantwoordelijkeId);
           if (c) verantwNaam = c.naam;
         }
       }
@@ -4725,17 +4862,17 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(materiaalRows), "Materiaal");
 
     // OorsprongLijst
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongLijst || []).map(loc => ({
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((exportData.oorsprongLijst || []).map(loc => ({
       locatie: loc
     }))), "OorsprongLijst");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongen || []).map(o => ({
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((exportData.oorsprongen || []).map(o => ({
       id: o.id,
       naam: o.naam,
       logo: o.logo || "",
       system: o.system ? "ja" : ""
     }))), "Oorsprongen");
     const prefix = isBackup ? "backup" : "evenement";
-    const fileName = `${prefix}_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const fileName = `${prefix}_${exportData.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
   const downloadTemplate = () => {
@@ -4993,7 +5130,7 @@ function App() {
   const importExcelReplace = async file => {
     try {
       const parsed = await parseImportedExcel(file);
-      setData(d => ({
+      setData(d => syncActiveEventMirror({
         ...d,
         event: parsed.event,
         vrijwilligers: parsed.vrijwilligers,
@@ -5016,7 +5153,7 @@ function App() {
   const importExcelMerge = async file => {
     try {
       const parsed = await parseImportedExcel(file);
-      setData(d => mergeData(d, {
+      setData(d => syncActiveEventMirror(mergeData(d, {
         event: parsed.event,
         vrijwilligers: parsed.vrijwilligers,
         taken: parsed.taken,
@@ -5025,7 +5162,7 @@ function App() {
         materiaal: parsed.materiaal,
         oorsprongLijst: parsed.oorsprongLijst,
         oorsprongen: parsed.oorsprongen
-      }));
+      })));
       showToast(t.import_ok(`${parsed.vrijwilligers.length} ${t.volunteers.toLowerCase()} · ${parsed.taken.length} ${t.tab_taken.toLowerCase()}`));
     } catch (e) {
       console.error(e);
@@ -5033,7 +5170,7 @@ function App() {
     }
   };
   const resetAll = () => {
-    if (confirm(t.confirm_reset)) setData(defaultData);
+    if (confirm(t.confirm_reset)) setData(normalizeData(defaultData));
   };
 
   // Algemene backup: volledige app-data als .json (verliesvrij)
@@ -5043,7 +5180,7 @@ function App() {
       const stempel = nu.toISOString().slice(0, 10) + "_" + String(nu.getHours()).padStart(2, "0") + String(nu.getMinutes()).padStart(2, "0");
       // De backup-datum mee opslaan in de geëxporteerde data
       const teExporteren = {
-        ...data,
+        ...syncActiveEventMirror(data),
         laatsteBackup: nu.toISOString()
       };
       const blob = new Blob([JSON.stringify(teExporteren, null, 2)], {
@@ -5058,7 +5195,7 @@ function App() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       // Datum onthouden zodat de herinnering reset
-      setData(d => ({
+      setData(d => syncActiveEventMirror({
         ...d,
         laatsteBackup: nu.toISOString()
       }));
@@ -5129,7 +5266,7 @@ function App() {
         totaalUitgegeven: k.totaalUitgegeven,
         saldo: k.saldo
       }] : [];
-      return {
+      return syncActiveEventMirror({
         ...d,
         // Oud evenement bewaren in de geschiedenis
         eventHistory: [...historyEntry, ...(d.eventHistory || [])],
@@ -5188,7 +5325,7 @@ function App() {
           aantal: ""
         }))
         // Behouden: vrijwilligers, winkels, oorsprongen, sjablonen, woordenboek, externeContacten, eventHistory, voorverkoopBronnen, betaalrekeningen
-      };
+      });
     });
     showToast(t.nieuw_evenement_klaar);
   };
