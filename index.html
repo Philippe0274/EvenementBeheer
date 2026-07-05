@@ -196,7 +196,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const BC_SHEET_VERSION = "1.0";
@@ -260,7 +260,7 @@ const T = {
     help_button: "Werking",
     help_close: "Sluiten",
     nieuw_evenement: "Nieuw evenement",
-    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nEr wordt eerst automatisch een Excel-backup gedownload van het huidige evenement.\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Materiaal-aantallen (lijst zelf blijft)\n• Bulk-zendgeschiedenis\n• Winkelbestellingen + kastickets\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaallijst (zonder aantallen)\n• Winkels + BTW-nummers\n• Sjablonen + woordenboek\n• Externe contacten\n\nDoorgaan?",
+    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nEr wordt eerst automatisch een Excel-backup gedownload van het huidige evenement.\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Materiaal-aantallen (lijst zelf blijft)\n• Bulk-zendgeschiedenis\n• Winkelbestellingen + kastickets\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaallijst (zonder aantallen)\n• Winkels + BTW-nummers\n• Oorsprongen + logo's\n• Sjablonen + woordenboek\n• Externe contacten\n\nDoorgaan?",
     backup_mislukt: "De automatische Excel-backup is niet gelukt. Toch doorgaan met het nieuwe evenement? (Niet aanbevolen zonder backup.)",
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard",
@@ -536,6 +536,27 @@ const T = {
     winkel_inuse: n => `Deze winkel is nog gekoppeld aan ${n} materiaal-${n === 1 ? "rij" : "rijen"}. Pas die eerst aan.`,
     winkel_kies: "Winkel",
     winkel_kies_hint: "Kies de winkel — beheer de lijst in het tabblad WinkelGegevens.",
+    tab_oorsprongsbeheer: "Oorsprongsbeheer",
+    oorsprong_intro: "Beheer hier alle oorsprongen met hun logo. Nieuwe oorsprongen verschijnen automatisch in de keuzelijst bij materiaal.",
+    oorsprong_add: "+ Oorsprong toevoegen",
+    oorsprong_geen: "Nog geen oorsprongen.",
+    oorsprong_naam: "Oorsprong",
+    oorsprong_zoek_ph: "🔍 Zoek oorsprong…",
+    oorsprong_zoek_geen: "Geen oorsprongen gevonden voor deze zoekterm.",
+    oorsprong_zoek_resultaat: (n, totaal) => `${n} van ${totaal} getoond`,
+    oorsprong_logo: "Oorspronglogo",
+    oorsprong_logo_choose: "Logo kiezen",
+    oorsprong_logo_replace: "Logo vervangen",
+    oorsprong_logo_remove: "Logo verwijderen",
+    oorsprong_logo_help: "PNG, JPG of WEBP. Wordt automatisch vierkant verkleind.",
+    oorsprong_logo_error: "Het logo kon niet verwerkt worden. Kies een PNG, JPG of WEBP.",
+    oorsprong_save: "Opslaan",
+    oorsprong_cancel: "Annuleren",
+    oorsprong_view: "👁 Bekijken",
+    oorsprong_edit: "✏ Bewerken",
+    oorsprong_bestaat: "Deze oorsprong bestaat reeds.",
+    oorsprong_reserved: "Deze naam is gereserveerd voor winkels.",
+    oorsprong_inuse: n => `Deze oorsprong is nog gekoppeld aan ${n} materiaal-${n === 1 ? "rij" : "rijen"}. Pas die eerst aan.`,
     winkel_best_intro: "Hier verschijnt enkel het materiaal met oorsprong \"Winkel_Magasin\". Vul de aankoopdatum en de aankoper in.",
     winkel_best_geen: "Nog geen materiaal met oorsprong \"Winkel_Magasin\".",
     winkel_datum: "Aankoopdatum",
@@ -900,7 +921,7 @@ const T = {
     help_button: "Fonctionnement",
     help_close: "Fermer",
     nieuw_evenement: "Nouvel événement",
-    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nUne sauvegarde Excel de l'événement actuel sera d'abord téléchargée automatiquement.\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Quantités de matériel (la liste reste)\n• Historique des envois groupés\n• Commandes via magasin + tickets\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Liste du matériel (sans quantités)\n• Magasins + numéros de TVA\n• Modèles + dictionnaire\n• Contacts externes\n\nContinuer ?",
+    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nUne sauvegarde Excel de l'événement actuel sera d'abord téléchargée automatiquement.\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Quantités de matériel (la liste reste)\n• Historique des envois groupés\n• Commandes via magasin + tickets\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Liste du matériel (sans quantités)\n• Magasins + numéros de TVA\n• Sources + logos\n• Modèles + dictionnaire\n• Contacts externes\n\nContinuer ?",
     backup_mislukt: "La sauvegarde Excel automatique a échoué. Continuer quand même avec le nouvel événement ? (Déconseillé sans sauvegarde.)",
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord",
@@ -1176,6 +1197,27 @@ const T = {
     winkel_inuse: n => `Ce magasin est encore lié à ${n} ligne${n === 1 ? "" : "s"} de matériel. Modifiez-les d'abord.`,
     winkel_kies: "Magasin",
     winkel_kies_hint: "Choisissez le magasin — gérez la liste dans l'onglet Données du Magasin.",
+    tab_oorsprongsbeheer: "Gestion des Sources",
+    oorsprong_intro: "Gérez ici toutes les sources et leur logo. Les nouvelles sources apparaissent automatiquement dans la liste de choix du matériel.",
+    oorsprong_add: "+ Ajouter une source",
+    oorsprong_geen: "Aucune source pour l'instant.",
+    oorsprong_naam: "Source",
+    oorsprong_zoek_ph: "🔍 Rechercher une source…",
+    oorsprong_zoek_geen: "Aucune source trouvée pour ce terme.",
+    oorsprong_zoek_resultaat: (n, totaal) => `${n} sur ${totaal} affichés`,
+    oorsprong_logo: "Logo de la source",
+    oorsprong_logo_choose: "Choisir un logo",
+    oorsprong_logo_replace: "Remplacer le logo",
+    oorsprong_logo_remove: "Supprimer le logo",
+    oorsprong_logo_help: "PNG, JPG ou WEBP. L'image est recadrée en carré automatiquement.",
+    oorsprong_logo_error: "Le logo n'a pas pu être traité. Choisissez un PNG, JPG ou WEBP.",
+    oorsprong_save: "Enregistrer",
+    oorsprong_cancel: "Annuler",
+    oorsprong_view: "👁 Voir",
+    oorsprong_edit: "✏ Modifier",
+    oorsprong_bestaat: "Cette source existe déjà.",
+    oorsprong_reserved: "Ce nom est réservé aux magasins.",
+    oorsprong_inuse: n => `Cette source est encore liée à ${n} ligne${n === 1 ? "" : "s"} de matériel. Modifiez-les d'abord.`,
     winkel_best_intro: "Seul le matériel dont la source est « Winkel_Magasin » apparaît ici. Indiquez la date d'achat et l'acheteur.",
     winkel_best_geen: "Aucun matériel avec la source « Winkel_Magasin ».",
     winkel_datum: "Date d'achat",
@@ -1678,6 +1720,16 @@ const defaultData = {
   materiaal: [],
   // [{id, naamNl, naamFr, aantal, oorsprong, verantwoordelijkeId, verantwoordelijkeVrij, winkelId}]
   oorsprongLijst: ["Leuven", "Vilvoorde", "Winkel_Magasin"],
+  // Oorsprongen: stamlijst voor alle oorsprongen met logo. [{id, naam, logo}]
+  oorsprongen: [{
+    id: "origin_leuven",
+    naam: "Leuven",
+    logo: ""
+  }, {
+    id: "origin_vilvoorde",
+    naam: "Vilvoorde",
+    logo: ""
+  }],
   aankopen: [],
   // Winkels: stamlijst, behouden over evenementen heen. [{id, naam, btw, logo}]
   winkels: [{
@@ -2170,6 +2222,34 @@ const normalizeData = raw => {
     }
   }
 
+  // Oorsprongen (stamlijst met logo). Oude data met enkel oorsprongLijst krijgt automatisch kaarten.
+  if (Array.isArray(raw.oorsprongen) && raw.oorsprongen.length > 0) {
+    safe.oorsprongen = raw.oorsprongen.filter(o => o && typeof o === "object").map(o => ({
+      id: o.id || uid(),
+      naam: (o.naam || o.name || "").toString().trim(),
+      logo: o.logo || o.logoUrl || o.logoDataUrl || o.afbeelding || o.image || o.imageUrl || ""
+    })).filter(o => o.naam && o.naam !== WINKEL_OORSPRONG);
+  }
+  const originsByName = new Map();
+  (safe.oorsprongen || []).forEach(o => {
+    const key = (o.naam || "").trim().toLowerCase();
+    if (key) originsByName.set(key, o);
+  });
+  (safe.oorsprongLijst || []).forEach(loc => {
+    if (!loc || loc === WINKEL_OORSPRONG) return;
+    const key = loc.trim().toLowerCase();
+    if (!originsByName.has(key)) {
+      originsByName.set(key, {
+        id: uid(),
+        naam: loc,
+        logo: ""
+      });
+    }
+  });
+  safe.oorsprongen = [...originsByName.values()].sort((a, b) => (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase()));
+  const originsList = [...new Set([...(safe.oorsprongLijst || []), ...(safe.oorsprongen || []).map(o => o.naam)].filter(Boolean))];
+  safe.oorsprongLijst = originsList.includes(WINKEL_OORSPRONG) ? originsList : [...originsList, WINKEL_OORSPRONG];
+
   // Winkels (stamlijst). Ontbreekt de lijst, dan blijven de defaults uit defaultData staan.
   if (Array.isArray(raw.winkels) && raw.winkels.length > 0) {
     safe.winkels = raw.winkels.filter(w => w && typeof w === "object").map(w => ({
@@ -2433,6 +2513,33 @@ const mergeData = (oldData, newData) => {
       if (!merged.includes(loc)) merged.push(loc);
     });
     result.oorsprongLijst = merged;
+  }
+
+  // Oorsprongen: matchen op id, anders op naam zodat logo's uit back-ups behouden blijven
+  if (Array.isArray(newData.oorsprongen) && newData.oorsprongen.length > 0) {
+    const existingById = new Map((oldData.oorsprongen || []).map(o => [o.id, o]));
+    const existingByName = new Map((oldData.oorsprongen || []).map(o => [(o.naam || "").toLowerCase(), o]));
+    newData.oorsprongen.forEach(o => {
+      const naam = (o.naam || "").toString().trim();
+      if (!naam || naam === WINKEL_OORSPRONG) return;
+      const byId = o.id && existingById.get(o.id);
+      const byName = existingByName.get(naam.toLowerCase());
+      const base = byId || byName || {};
+      const merged = {
+        ...base,
+        ...o,
+        id: base.id || o.id || uid(),
+        naam
+      };
+      existingById.set(merged.id, merged);
+      existingByName.set(naam.toLowerCase(), merged);
+    });
+    result.oorsprongen = Array.from(existingById.values()).filter(o => o && o.naam && o.naam !== WINKEL_OORSPRONG);
+    const mergedOrigins = [...(result.oorsprongLijst || oldData.oorsprongLijst || [])];
+    result.oorsprongen.forEach(o => {
+      if (!mergedOrigins.includes(o.naam)) mergedOrigins.push(o.naam);
+    });
+    result.oorsprongLijst = mergedOrigins.includes(WINKEL_OORSPRONG) ? mergedOrigins : [...mergedOrigins, WINKEL_OORSPRONG];
   }
   return result;
 };
@@ -3875,6 +3982,60 @@ function App() {
     };
   });
 
+  // Oorsprongen (stamlijst met logo)
+  const addOorsprong = (item = {}) => {
+    const id = uid();
+    const naam = (item.naam || "").trim();
+    if (!naam || naam === WINKEL_OORSPRONG) return "";
+    setData(d => ({
+      ...d,
+      oorsprongen: [...(d.oorsprongen || []), {
+        id,
+        naam,
+        logo: item.logo || ""
+      }],
+      oorsprongLijst: (d.oorsprongLijst || []).includes(naam) ? d.oorsprongLijst : [...(d.oorsprongLijst || []), naam]
+    }));
+    return id;
+  };
+  const updateOorsprong = (id, patch) => setData(d => {
+    const huidige = (d.oorsprongen || []).find(o => o.id === id);
+    if (!huidige) return d;
+    const oudeNaam = huidige.naam || "";
+    const nieuweNaam = (patch.naam || oudeNaam).trim();
+    if (!nieuweNaam || nieuweNaam === WINKEL_OORSPRONG) return d;
+    const oorsprongen = (d.oorsprongen || []).map(o => o.id === id ? {
+      ...o,
+      ...patch,
+      naam: nieuweNaam
+    } : o);
+    const oorsprongLijst = (d.oorsprongLijst || []).map(loc => loc === oudeNaam ? nieuweNaam : loc);
+    const materiaal = (d.materiaal || []).map(m => m.oorsprong === oudeNaam ? {
+      ...m,
+      oorsprong: nieuweNaam
+    } : m);
+    return {
+      ...d,
+      oorsprongen,
+      oorsprongLijst: oorsprongLijst.includes(nieuweNaam) ? oorsprongLijst : [...oorsprongLijst, nieuweNaam],
+      materiaal
+    };
+  });
+  const removeOorsprong = id => setData(d => {
+    const oorsprong = (d.oorsprongen || []).find(o => o.id === id);
+    if (!oorsprong) return d;
+    const inUse = (d.materiaal || []).filter(m => m.oorsprong === oorsprong.naam).length;
+    if (inUse > 0) {
+      alert(t.oorsprong_inuse(inUse));
+      return d;
+    }
+    return {
+      ...d,
+      oorsprongen: (d.oorsprongen || []).filter(o => o.id !== id),
+      oorsprongLijst: (d.oorsprongLijst || []).filter(loc => loc !== oorsprong.naam)
+    };
+  });
+
   // Winkelbestellingen (per materiaal-item: datum + aankoper)
   const updateWinkelbestelling = (materiaalId, patch) => setData(d => ({
     ...d,
@@ -4000,27 +4161,6 @@ function App() {
       }
     };
   });
-  const addOorsprongLocatie = () => {
-    const naam = prompt(t.mat_new_loc_prompt);
-    if (!naam || !naam.trim()) return;
-    const trimmed = naam.trim();
-    setData(d => ({
-      ...d,
-      oorsprongLijst: (d.oorsprongLijst || []).includes(trimmed) ? d.oorsprongLijst : [...(d.oorsprongLijst || []), trimmed]
-    }));
-  };
-  const removeOorsprongLocatie = locatie => {
-    const inUse = (data.materiaal || []).filter(m => m.oorsprong === locatie).length;
-    if (inUse > 0) {
-      alert(t.mat_loc_inuse(locatie, inUse));
-      return;
-    }
-    if (!confirm(t.mat_remove_loc_q(locatie))) return;
-    setData(d => ({
-      ...d,
-      oorsprongLijst: (d.oorsprongLijst || []).filter(x => x !== locatie)
-    }));
-  };
   const addPrijslijstArtikel = () => setData(d => ({
     ...d,
     prijslijst: [...(d.prijslijst || []), { id: uid(), naam: "", prijs: "", categorie: (d.prijslijstCategorien || [])[0] || "", beschrijving: "", actief: true, volgorde: (d.prijslijst || []).length }]
@@ -4395,6 +4535,11 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongLijst || []).map(loc => ({
       locatie: loc
     }))), "OorsprongLijst");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongen || []).map(o => ({
+      id: o.id,
+      naam: o.naam,
+      logo: o.logo || ""
+    }))), "Oorsprongen");
     XLSX.writeFile(wb, `materiaal_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
@@ -4538,6 +4683,11 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongLijst || []).map(loc => ({
       locatie: loc
     }))), "OorsprongLijst");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.oorsprongen || []).map(o => ({
+      id: o.id,
+      naam: o.naam,
+      logo: o.logo || ""
+    }))), "Oorsprongen");
     const prefix = isBackup ? "backup" : "evenement";
     const fileName = `${prefix}_${data.event.naam || "export"}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
@@ -4625,6 +4775,15 @@ function App() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(["Leuven", "Vilvoorde"].map(loc => ({
       locatie: loc
     }))), "OorsprongLijst");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{
+      id: "origin_leuven",
+      naam: "Leuven",
+      logo: ""
+    }, {
+      id: "origin_vilvoorde",
+      naam: "Vilvoorde",
+      logo: ""
+    }]), "Oorsprongen");
     XLSX.writeFile(wb, "evenement_sjabloon.xlsx");
   };
   const parseImportedExcel = async file => {
@@ -4638,6 +4797,7 @@ function App() {
     const eRows = XLSX.utils.sheet_to_json(wb.Sheets["ExterneContacten"] || {});
     const mRows = XLSX.utils.sheet_to_json(wb.Sheets["Materiaal"] || {});
     const oRows = XLSX.utils.sheet_to_json(wb.Sheets["OorsprongLijst"] || {});
+    const originRows = XLSX.utils.sheet_to_json(wb.Sheets["Oorsprongen"] || {});
     const newEvent = eventRows[0] ? {
       ...defaultData.event,
       ...eventRows[0]
@@ -4754,6 +4914,11 @@ function App() {
       verantwoordelijkeVrij: r.verantwoordelijke_vrij || ""
     }));
     const newOorsprongLijst = oRows.map(r => (r.locatie || "").toString().trim()).filter(Boolean);
+    const newOorsprongen = originRows.filter(r => r.naam || r.logo).map(r => ({
+      id: r.id || uid(),
+      naam: (r.naam || "").toString().trim(),
+      logo: r.logo || ""
+    })).filter(o => o.naam && o.naam !== WINKEL_OORSPRONG);
     return {
       event: newEvent,
       vrijwilligers: newVrijwilligers,
@@ -4763,6 +4928,7 @@ function App() {
       externeContacten: newExtern,
       materiaal: newMateriaal,
       oorsprongLijst: newOorsprongLijst,
+      oorsprongen: newOorsprongen,
       vSkipped,
       tSkipped
     };
@@ -4779,7 +4945,8 @@ function App() {
         sjablonen: parsed.sjablonen.length > 0 ? parsed.sjablonen : d.sjablonen,
         externeContacten: parsed.externeContacten,
         materiaal: parsed.materiaal || [],
-        oorsprongLijst: parsed.oorsprongLijst && parsed.oorsprongLijst.length > 0 ? parsed.oorsprongLijst : d.oorsprongLijst
+        oorsprongLijst: parsed.oorsprongLijst && parsed.oorsprongLijst.length > 0 ? parsed.oorsprongLijst : d.oorsprongLijst,
+        oorsprongen: parsed.oorsprongen && parsed.oorsprongen.length > 0 ? parsed.oorsprongen : d.oorsprongen
       }));
       const parts = [`${parsed.vrijwilligers.length} ${t.volunteers.toLowerCase()}, ${parsed.taken.length} ${t.tab_taken.toLowerCase()}`];
       if (parsed.vSkipped + parsed.tSkipped > 0) parts.push(`${parsed.vSkipped + parsed.tSkipped} doublons`);
@@ -4799,7 +4966,8 @@ function App() {
         woordenboek: parsed.woordenboek,
         sjablonen: parsed.sjablonen,
         materiaal: parsed.materiaal,
-        oorsprongLijst: parsed.oorsprongLijst
+        oorsprongLijst: parsed.oorsprongLijst,
+        oorsprongen: parsed.oorsprongen
       }));
       showToast(t.import_ok(`${parsed.vrijwilligers.length} ${t.volunteers.toLowerCase()} · ${parsed.taken.length} ${t.tab_taken.toLowerCase()}`));
     } catch (e) {
@@ -4959,7 +5127,7 @@ function App() {
           ...m,
           aantal: ""
         }))
-        // Behouden: vrijwilligers, winkels, sjablonen, woordenboek, externeContacten, oorsprongLijst, eventHistory, voorverkoopBronnen, betaalrekeningen
+        // Behouden: vrijwilligers, winkels, oorsprongen, sjablonen, woordenboek, externeContacten, eventHistory, voorverkoopBronnen, betaalrekeningen
       };
     });
     showToast(t.nieuw_evenement_klaar);
@@ -5103,7 +5271,7 @@ function App() {
       gap: "0.2rem",
       flexWrap: "wrap"
     }
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -5192,13 +5360,12 @@ function App() {
     vrijwilligers: data.vrijwilligers,
     externeContacten: data.externeContacten || [],
     winkels: data.winkels || [],
+    oorsprongen: data.oorsprongen || [],
     dict: data.woordenboek,
     taal: data.taal,
     add: addMateriaal,
     update: updateMateriaal,
     remove: removeMateriaal,
-    addLocatie: addOorsprongLocatie,
-    removeLocatie: removeOorsprongLocatie,
     exportMateriaal: exportMateriaalAlleen,
     t: t
   }), tab === "winkelgegevens" && /*#__PURE__*/React.createElement(WinkelGegevensTab, {
@@ -5207,6 +5374,13 @@ function App() {
     add: addWinkel,
     update: updateWinkel,
     remove: removeWinkel,
+    showToast: showToast,
+    t: t
+  }), tab === "oorsprongsbeheer" && /*#__PURE__*/React.createElement(OorsprongsbeheerTab, {
+    oorsprongen: data.oorsprongen || [],
+    add: addOorsprong,
+    update: updateOorsprong,
+    remove: removeOorsprong,
     showToast: showToast,
     t: t
   }), tab === "winkelbestellingen" && (data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) && /*#__PURE__*/React.createElement(WinkelbestellingenTab, {
@@ -9218,6 +9392,8 @@ const materialShopName = (winkelId, winkels, t) => {
 };
 const materialShopRecord = (winkelId, winkels) => (winkels || []).find(x => x.id === winkelId) || null;
 const materialShopLogoSrc = winkel => winkel ? winkel.logo || winkel.logoUrl || winkel.logoDataUrl || winkel.afbeelding || winkel.image || winkel.imageUrl || "" : "";
+const materialOriginRecord = (origin, oorsprongen) => (oorsprongen || []).find(o => (o.naam || "").toLowerCase() === (origin || "").toLowerCase()) || null;
+const materialOriginLogoSrc = oorsprong => oorsprong ? oorsprong.logo || oorsprong.logoUrl || oorsprong.logoDataUrl || oorsprong.afbeelding || oorsprong.image || oorsprong.imageUrl || "" : "";
 const normalizeMaterialDraft = draft => {
   const oorsprong = draft.oorsprong || "";
   return {
@@ -9274,19 +9450,31 @@ function MaterialShopLogo({
   }) : "\u25A3");
 }
 
+function MaterialOriginLogo({
+  oorsprong
+}) {
+  const src = materialOriginLogoSrc(oorsprong);
+  return /*#__PURE__*/React.createElement("span", {
+    className: "material-shop-logo",
+    "aria-hidden": "true"
+  }, src ? /*#__PURE__*/React.createElement("img", {
+    src,
+    alt: ""
+  }) : "\u25A3");
+}
+
 function MateriaalTab({
   materiaal,
   oorsprongLijst,
   vrijwilligers,
   externeContacten,
   winkels,
+  oorsprongen,
   dict,
   taal,
   add,
   update,
   remove,
-  addLocatie,
-  removeLocatie,
   exportMateriaal,
   t
 }) {
@@ -9483,57 +9671,7 @@ function MateriaalTab({
   }, t.mat_export), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
     onClick: openNew
-  }, t.mat_add))), /*#__PURE__*/React.createElement("details", {
-    style: {
-      marginTop: "1rem",
-      paddingTop: "1rem",
-      borderTop: "1px dashed var(--line)"
-    }
-  }, /*#__PURE__*/React.createElement("summary", {
-    style: {
-      fontSize: "0.85rem",
-      color: "var(--ink-soft)",
-      cursor: "pointer"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "chevron"
-  }, "\u25B6"), " ", t.mat_manage_loc, " (", (oorsprongLijst || []).length, ")"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: "0.8rem",
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "0.4rem"
-    }
-  }, (oorsprongLijst || []).length === 0 ? /*#__PURE__*/React.createElement("em", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.85rem"
-    }
-  }, "\u2014") : oorsprongLijst.map(loc => /*#__PURE__*/React.createElement("span", {
-    key: loc,
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "0.4rem",
-      padding: "0.3rem 0.7rem",
-      background: "var(--bg)",
-      border: "1px solid var(--line)",
-      borderRadius: 999,
-      fontSize: "0.85rem"
-    }
-  }, loc, /*#__PURE__*/React.createElement("button", {
-    onClick: () => removeLocatie(loc),
-    title: t.remove,
-    style: {
-      background: "none",
-      border: "none",
-      color: "var(--accent)",
-      cursor: "pointer",
-      padding: 0,
-      fontSize: "0.85rem",
-      lineHeight: 1
-    }
-  }, "\u2715")))))), materiaal.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, t.mat_add))), materiaal.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
@@ -9568,14 +9706,16 @@ function MateriaalTab({
     const key = groupKey(group.key);
     const totalPieces = group.items.reduce((sum, m) => sum + materialAmountNumber(m.aantal), 0);
     const isShopOrigin = group.key === WINKEL_OORSPRONG;
-    const body = isShopOrigin ? (() => {
+    const oorsprongRecord = !isShopOrigin ? materialOriginRecord(group.key, oorsprongen) : null;
+    let body;
+    if (isShopOrigin) {
       const shops = new Map();
       group.items.forEach(m => {
         const sk = m.winkelId || t.mat_without_shop;
         if (!shops.has(sk)) shops.set(sk, []);
         shops.get(sk).push(m);
       });
-      return [...shops.entries()].sort((a, b) => materialShopName(a[0], winkels, t).toLowerCase().localeCompare(materialShopName(b[0], winkels, t).toLowerCase())).map(([sk, items]) => {
+      body = [...shops.entries()].sort((a, b) => materialShopName(a[0], winkels, t).toLowerCase().localeCompare(materialShopName(b[0], winkels, t).toLowerCase())).map(([sk, items]) => {
         const sKey = shopKey(group.key, sk);
         const winkel = materialShopRecord(sk, winkels);
         const winkelNaam = materialShopName(sk, winkels, t);
@@ -9613,20 +9753,22 @@ function MateriaalTab({
           onRemove: () => remove(m.id)
         })))));
       });
-    })() : /*#__PURE__*/React.createElement("div", {
-      className: "material-grid"
-    }, group.items.map(m => /*#__PURE__*/React.createElement(MateriaalKaart, {
-      key: m.id,
-      m,
-      t,
-      winkels,
-      sortedVrij,
-      sortedExtern,
-      highlighted: highlightedId === m.id,
-      onView: () => setHighlightedId(m.id),
-      onEdit: () => openEdit(m),
-      onRemove: () => remove(m.id)
-    })));
+    } else {
+      body = /*#__PURE__*/React.createElement("div", {
+        className: "material-grid"
+      }, group.items.map(m => /*#__PURE__*/React.createElement(MateriaalKaart, {
+        key: m.id,
+        m,
+        t,
+        winkels,
+        sortedVrij,
+        sortedExtern,
+        highlighted: highlightedId === m.id,
+        onView: () => setHighlightedId(m.id),
+        onEdit: () => openEdit(m),
+        onRemove: () => remove(m.id)
+      })));
+    }
     return /*#__PURE__*/React.createElement("section", {
       className: "material-source-block",
       key: group.key,
@@ -9642,7 +9784,9 @@ function MateriaalTab({
       onClick: () => toggleOpen(key)
     }, /*#__PURE__*/React.createElement("div", {
       className: "material-source-title"
-    }, /*#__PURE__*/React.createElement("span", null, isOpen(key) ? "\u25BE" : "\u25B8"), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCE6 ", group.key)), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", null, isOpen(key) ? "\u25BE" : "\u25B8"), isShopOrigin ? /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCE6") : /*#__PURE__*/React.createElement(MaterialOriginLogo, {
+      oorsprong: oorsprongRecord
+    }), /*#__PURE__*/React.createElement("span", null, group.key)), /*#__PURE__*/React.createElement("div", {
       className: "material-source-stats"
     }, /*#__PURE__*/React.createElement("span", {
       className: "badge badge-open",
@@ -9683,9 +9827,8 @@ function MateriaalTab({
     updateDraft,
     saveDraft,
     close: () => setEditing(null),
-    addLocatie,
     openDuplicate
-  })));
+  }))));
 }
 function MateriaalKaart({
   m,
@@ -9761,7 +9904,6 @@ function MateriaalEditor({
   updateDraft,
   saveDraft,
   close,
-  addLocatie,
   openDuplicate
 }) {
   const verantwIsAnder = draft.verantwoordelijkeId === "__ander__";
@@ -9825,10 +9967,6 @@ function MateriaalEditor({
     className: "select",
     value: draft.oorsprong || "",
     onChange: e => {
-      if (e.target.value === "__add__") {
-        addLocatie();
-        return;
-      }
       const nieuwe = e.target.value;
       updateDraft({
         oorsprong: nieuwe,
@@ -9840,9 +9978,7 @@ function MateriaalEditor({
   }, t.mat_without_origin), (oorsprongLijst || []).map(loc => /*#__PURE__*/React.createElement("option", {
     key: loc,
     value: loc
-  }, loc)), /*#__PURE__*/React.createElement("option", {
-    value: "__add__"
-  }, t.mat_new_loc))), draft.oorsprong === WINKEL_OORSPRONG && /*#__PURE__*/React.createElement(Field, {
+  }, loc))), draft.oorsprong === WINKEL_OORSPRONG && /*#__PURE__*/React.createElement(Field, {
     label: t.winkel_kies
   }, /*#__PURE__*/React.createElement("select", {
     className: "select",
@@ -9900,7 +10036,7 @@ function MateriaalEditor({
   }, t.mat_cancel), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
     onClick: saveDraft
-  }, t.mat_save)));
+  }, t.mat_save))));
 }
 
 // ============================================================
@@ -10260,6 +10396,354 @@ function WinkelEditor({
     className: "btn btn-primary",
     onClick: saveDraft
   }, t.winkel_save)));
+}
+
+// ============================================================
+// OORSPRONGSBEHEER — stamlijst van oorsprongen met logo
+// ============================================================
+function OorsprongsbeheerTab({
+  oorsprongen,
+  add,
+  update,
+  remove,
+  showToast,
+  t
+}) {
+  const [zoek, setZoek] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [highlightedId, setHighlightedId] = useState("");
+  const sorted = [...(oorsprongen || [])].sort((a, b) => (a.naam || "").toLowerCase().localeCompare((b.naam || "").toLowerCase()));
+  const zoekTerm = zoek.trim().toLowerCase();
+  const zichtbaar = zoekTerm ? sorted.filter(o => (o.naam || "").toLowerCase().includes(zoekTerm)) : sorted;
+  const openNew = () => setEditing({
+    mode: "new",
+    error: "",
+    draft: {
+      naam: "",
+      logo: ""
+    }
+  });
+  const openEdit = oorsprong => setEditing({
+    mode: "edit",
+    id: oorsprong.id,
+    error: "",
+    draft: {
+      ...oorsprong,
+      logo: materialOriginLogoSrc(oorsprong)
+    }
+  });
+  const updateDraft = patch => setEditing(e => e ? {
+    ...e,
+    error: "",
+    draft: {
+      ...e.draft,
+      ...patch
+    }
+  } : e);
+  const closeEditor = () => setEditing(null);
+  const duplicateFor = (draft, currentId) => {
+    const name = (draft.naam || "").trim().toLowerCase();
+    if (!name) return null;
+    return (oorsprongen || []).find(o => o.id !== currentId && (o.naam || "").trim().toLowerCase() === name) || null;
+  };
+  const saveDraft = () => {
+    if (!editing) return;
+    const normalized = {
+      naam: (editing.draft.naam || "").trim(),
+      logo: editing.draft.logo || ""
+    };
+    if (!normalized.naam) return;
+    if (normalized.naam === WINKEL_OORSPRONG) {
+      showToast ? showToast(t.oorsprong_reserved) : alert(t.oorsprong_reserved);
+      setEditing(e => e ? {
+        ...e,
+        error: t.oorsprong_reserved
+      } : e);
+      return;
+    }
+    const duplicate = duplicateFor(normalized, editing.mode === "edit" ? editing.id : null);
+    if (duplicate) {
+      showToast ? showToast(t.oorsprong_bestaat) : alert(t.oorsprong_bestaat);
+      setEditing(e => e ? {
+        ...e,
+        error: t.oorsprong_bestaat
+      } : e);
+      setHighlightedId(duplicate.id);
+      setTimeout(() => {
+        const el = document.getElementById(`origin-card-${duplicate.id}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
+      return;
+    }
+    let savedId = editing.id;
+    if (editing.mode === "new") {
+      savedId = add(normalized);
+    } else {
+      update(editing.id, normalized);
+    }
+    setEditing(null);
+    setHighlightedId(savedId || "");
+    setTimeout(() => {
+      const el = document.getElementById(`origin-card-${savedId}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
+  React.useEffect(() => {
+    if (!zoekTerm) return;
+    const first = zichtbaar[0];
+    if (!first) return;
+    setHighlightedId(first.id);
+    setTimeout(() => {
+      const el = document.getElementById(`origin-card-${first.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  }, [zoekTerm]);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: "1rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 250
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      marginTop: 0,
+      fontSize: "1.4rem"
+    }
+  }, t.tab_oorsprongsbeheer), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.9rem",
+      margin: 0
+    }
+  }, t.oorsprong_intro)), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: openNew
+  }, t.oorsprong_add))), sorted.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, t.oorsprong_geen) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "shop-toolbar"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    type: "search",
+    value: zoek,
+    onChange: e => setZoek(e.target.value),
+    placeholder: t.oorsprong_zoek_ph,
+    style: {
+      width: "min(360px, 100%)"
+    }
+  }), zoekTerm && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: "0.7rem",
+      fontSize: "0.83rem",
+      color: "var(--ink-soft)"
+    }
+  }, t.oorsprong_zoek_resultaat(zichtbaar.length, sorted.length)))), zichtbaar.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, t.oorsprong_zoek_geen) : /*#__PURE__*/React.createElement("div", {
+    className: "shop-grid"
+  }, zichtbaar.map(oorsprong => /*#__PURE__*/React.createElement(OorsprongKaart, {
+    key: oorsprong.id,
+    oorsprong,
+    t,
+    highlighted: highlightedId === oorsprong.id,
+    onView: () => setHighlightedId(oorsprong.id),
+    onEdit: () => openEdit(oorsprong),
+    onRemove: () => remove(oorsprong.id)
+  })))), editing && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "shop-edit-backdrop",
+    onClick: closeEditor
+  }), /*#__PURE__*/React.createElement(OorsprongEditor, {
+    draft: editing.draft,
+    mode: editing.mode,
+    t,
+    updateDraft,
+    saveDraft,
+    close: closeEditor,
+    formError: editing.error || ""
+  })));
+}
+
+function OorsprongKaart({
+  oorsprong,
+  t,
+  highlighted,
+  onView,
+  onEdit,
+  onRemove
+}) {
+  const logo = materialOriginLogoSrc(oorsprong);
+  return /*#__PURE__*/React.createElement("div", {
+    id: `origin-card-${oorsprong.id}`,
+    className: `card shop-card${highlighted ? " marked" : ""}`,
+    onClick: onView,
+    onDoubleClick: onEdit
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-main"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo"
+  }, logo ? /*#__PURE__*/React.createElement("img", {
+    src: logo,
+    alt: t.oorsprong_logo
+  }) : "\u25A3"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-title",
+    title: oorsprong.naam || ""
+  }, oorsprong.naam || "?"))), /*#__PURE__*/React.createElement("div", {
+    className: "shop-card-actions",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.oorsprong_view,
+    "aria-label": t.oorsprong_view,
+    onClick: onView
+  }, "\uD83D\uDC41"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    title: t.oorsprong_edit,
+    "aria-label": t.oorsprong_edit,
+    onClick: onEdit
+  }, "\u270F"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-danger btn-sm",
+    title: t.remove,
+    "aria-label": t.remove,
+    onClick: onRemove
+  }, "\uD83D\uDDD1")));
+}
+
+function OorsprongEditor({
+  draft,
+  mode,
+  t,
+  updateDraft,
+  saveDraft,
+  close,
+  formError
+}) {
+  const [error, setError] = useState("");
+  const logo = draft.logo || "";
+  const handleLogo = async file => {
+    if (!file) return;
+    try {
+      const resized = await resizeVolunteerPhoto(file);
+      setError("");
+      updateDraft({
+        logo: resized
+      });
+    } catch {
+      setError(t.oorsprong_logo_error);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "shop-edit-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "1rem",
+      gap: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: 0
+    }
+  }, mode === "new" ? t.oorsprong_add : t.oorsprong_edit), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: close
+  }, t.oorsprong_cancel)), formError && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: "0.85rem",
+      color: "var(--accent)",
+      fontSize: "0.86rem",
+      fontWeight: 700
+    }
+  }, formError), /*#__PURE__*/React.createElement("div", {
+    className: "shop-form-grid"
+  }, /*#__PURE__*/React.createElement(Field, {
+    label: t.oorsprong_naam
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: draft.naam || "",
+    onChange: e => updateDraft({
+      naam: e.target.value
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shop-logo-preview"
+  }, logo ? /*#__PURE__*/React.createElement("img", {
+    src: logo,
+    alt: t.oorsprong_logo
+  }) : "\u25A3"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "label",
+    style: {
+      marginBottom: "0.35rem"
+    }
+  }, t.oorsprong_logo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "btn btn-ghost btn-sm"
+  }, logo ? t.oorsprong_logo_replace : t.oorsprong_logo_choose, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/jpeg,image/png,image/webp",
+    style: {
+      display: "none"
+    },
+    onChange: e => handleLogo(e.target.files && e.target.files[0])
+  })), logo && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => updateDraft({
+      logo: ""
+    })
+  }, t.oorsprong_logo_remove)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.45rem",
+      color: error ? "var(--accent)" : "var(--ink-soft)",
+      fontSize: "0.78rem"
+    }
+  }, error || t.oorsprong_logo_help))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "0.5rem",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: close
+  }, t.oorsprong_cancel), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary",
+    onClick: saveDraft
+  }, t.oorsprong_save)));
 }
 
 // ============================================================
