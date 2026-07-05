@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.15.3
+- Woordenboek-tab visueel vernieuwd naar een professionelere terminologiebeheerder.
+- Titelkaart, termteller, zoekbalk, invoerkaart en compacte tabelweergave toegevoegd zonder datamodelwijziging.
+- Bestaande woordenboekfuncties voor zoeken, toevoegen, bewerken, verwijderen en standaardlijst herstellen behouden.
+- Geen wijzigingen aan Event Lifecycle, Kassa Tool-logica, weerscontrole, affiche, Excel, PDF, backup/restore of Business Continuity.
+
+## 1.15.2
+- Laptopheader visueel rustiger en meer gecentreerd gemaakt.
+- Eventidentiteit, toolbar en tabnavigatie in subtiele aparte headerblokken geplaatst.
+- Toolbar over de beschikbare laptopbreedte gegroepeerd zonder knoppen te dupliceren of te verwijderen.
+- Actieve tab duidelijker vormgegeven als rustige badge/knop.
+- Geen dataflow-, lifecycle-, weer-, affiche-, Business Continuity-, Excel-, PDF-, backup/restore- of Kassa Tool-wijzigingen.
+
+## 1.15.1
+- Laptopinterface visueel rustiger gemaakt zonder functionele of dataflow-wijzigingen.
+- Header, toolbar, horizontale tabs, dashboardkaarten en meldingen subtiel verfijnd.
+- Weerkaart visueel rustiger gemaakt; bestaande weerscontrole, weerdataflow en refreshgedrag behouden.
+- Geen wijzigingen aan Event Lifecycle, Historiek / Archief, Business Continuity, Excel, PDF, backup/restore of Kassa Tool-logica.
+
 ## 1.15.0
 - Historiek-tab uitgebreid naar read-only `Historiek / Archief`.
 - Afgesloten events uit `events[]` en oude records uit `eventHistory` worden gecombineerd zonder eventselector of event-wissel.

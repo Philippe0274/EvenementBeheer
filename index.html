@@ -21,42 +21,62 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
   :root {
-    --bg: #f5f1ea; --bg-card: #fbf8f2; --ink: #1a1612; --ink-soft: #5c544a;
-    --accent: #c8442a; --accent-soft: #e8d5cd; --line: #d9cfc1;
+    --bg: #f6f2eb; --bg-card: #fffaf3; --ink: #1a1612; --ink-soft: #5c544a;
+    --accent: #b93f2b; --accent-soft: #f1dfd8; --line: #ded3c4;
     --gold: #b8923a; --green: #4a6b3a; --amber: #c08a2e; --whatsapp: #25d366;
+    --card: #fffdf8; --muted-panel: #f9f4ec; --shadow-soft: 0 1px 0 rgba(44, 38, 31, 0.03);
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter Tight', 'Helvetica Neue', system-ui, sans-serif; }
   .font-display { font-family: 'Fraunces', 'Playfair Display', Georgia, serif; font-weight: 600; letter-spacing: -0.02em; }
   .font-body { font-family: 'Inter Tight', 'Helvetica Neue', system-ui, sans-serif; }
-  .tab-btn { padding: 0.6rem 1.1rem; border: none; background: transparent; color: var(--ink-soft); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; text-transform: uppercase; }
-  .tab-btn:hover { color: var(--ink); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .card { background: #99AD7A !important; border: 1px solid rgba(222, 62, 62, 0.35); border-left: 0.36rem solid #DE3E3E !important; border-radius: 4px; padding: 1.5rem; }
+  .app-header { border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #fffaf3 0%, #f6f2eb 100%); }
+  .app-header-inner { max-width: 1240px; margin: 0 auto; padding: 1.05rem 2rem 1.35rem; }
+  .app-topline { display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem; }
+  .app-topline > div:first-child { width: 100%; text-align: center; background: rgba(255, 253, 248, 0.88); border: 1px solid rgba(222, 211, 196, 0.78); border-radius: 8px; padding: 1rem 1.25rem 1.05rem; box-shadow: var(--shadow-soft); }
+  .app-kicker { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 650; }
+  .app-version-pill { display: inline-flex; align-items: center; min-height: 1.45rem; padding: 0 0.55rem; border-radius: 999px; border: 1px solid var(--line); background: var(--muted-panel); color: var(--ink-soft); letter-spacing: 0; text-transform: none; font-size: 0.68rem; font-weight: 650; }
+  .event-title-row { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.25rem; }
+  .event-title-row h1 { margin: 0; font-size: 1.85rem; line-height: 1.05; }
+  .event-status-badge { display: inline-flex; align-items: center; padding: 0.16rem 0.55rem; border-radius: 999px; background: #eef3e8; border: 1px solid #cad8bd; color: var(--green); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .event-subline { font-size: 0.9rem; color: var(--ink-soft); margin-top: 0.35rem; }
+  .app-toolbar { width: 100%; display: flex; gap: 0.55rem 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; background: rgba(249, 244, 236, 0.96); border: 1px solid rgba(222, 211, 196, 0.82); border-radius: 8px; padding: 0.65rem 0.75rem; box-shadow: var(--shadow-soft); }
+  .toolbar-group { display: inline-flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; padding-right: 0.75rem; margin-right: 0.1rem; border-right: 1px solid rgba(217, 207, 193, 0.72); }
+  .toolbar-group:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+  .tab-nav { margin-top: 0.75rem; display: flex; gap: 0.32rem 0.42rem; flex-wrap: wrap; align-items: center; justify-content: center; background: rgba(255, 253, 248, 0.72); border: 1px solid rgba(222, 211, 196, 0.72); border-radius: 8px; padding: 0.65rem 0.75rem 0.55rem; }
+  .tab-btn { padding: 0.54rem 0.88rem; border: 1px solid transparent; background: transparent; color: #574d42; font-size: 0.8rem; font-weight: 560; letter-spacing: 0.025em; cursor: pointer; transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s; text-transform: uppercase; border-radius: 999px; }
+  .tab-btn:hover { color: var(--ink); background: rgba(255, 255, 255, 0.72); border-color: rgba(222, 211, 196, 0.7); }
+  .tab-btn.active { color: #8f2f20; border-color: rgba(185, 63, 43, 0.34); background: #f3dfd7; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55); font-weight: 720; }
+  .card { background: var(--card) !important; border: 1px solid rgba(217, 207, 193, 0.88); border-left: 0.28rem solid rgba(185, 63, 43, 0.48) !important; border-radius: 7px; padding: 1.35rem; box-shadow: var(--shadow-soft); }
   .input, .select, .textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--line); background: white; border-radius: 3px; font-family: 'Inter Tight', sans-serif; font-size: 0.9rem; color: var(--ink); }
   .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
   .label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 0.35rem; }
-  .btn { padding: 0.55rem 1rem; border-radius: 3px; border: none; font-family: 'Inter Tight', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s; letter-spacing: 0.01em; }
+  .btn { padding: 0.55rem 1rem; border-radius: 5px; border: none; font-family: 'Inter Tight', sans-serif; font-size: 0.85rem; font-weight: 560; cursor: pointer; transition: all 0.15s; letter-spacing: 0.01em; }
   .btn-primary { background: var(--accent); color: white; }
   .btn-primary:hover { background: #a8341f; }
-  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost { background: rgba(255, 255, 255, 0.54); color: var(--ink); border: 1px solid var(--line); }
   .btn-ghost:hover { background: var(--bg); border-color: var(--ink-soft); }
-  .btn-danger { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-danger { background: rgba(255, 255, 255, 0.54); color: var(--accent); border: 1px solid rgba(185, 63, 43, 0.7); }
   .btn-danger:hover { background: var(--accent); color: white; }
   .btn-whatsapp { background: var(--whatsapp); color: white; }
   .btn-whatsapp:hover { background: #1ebe57; }
-  .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.78rem; }
+  .btn-sm { padding: 0.42rem 0.72rem; font-size: 0.78rem; min-height: 2.15rem; display: inline-flex; align-items: center; justify-content: center; }
   .badge { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
   .badge-open { background: #ede4d3; color: var(--ink-soft); }
   .badge-bezig { background: #f4e4c5; color: var(--amber); }
   .badge-ok { background: #dde7d3; color: var(--green); }
   .badge-pasok { background: var(--accent-soft); color: var(--accent); }
-  .stat-num { font-family: 'Fraunces', serif; font-size: 2.5rem; font-weight: 600; color: var(--ink); line-height: 1; letter-spacing: -0.03em; }
-  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-top: 0.4rem; font-weight: 500; }
-  .alert-bar { padding: 1rem 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-  .alert-amber { background: #f4e4c5; border-left: 4px solid var(--amber); }
-  .alert-red { background: var(--accent-soft); border-left: 4px solid var(--accent); }
-  .alert-green { background: #dde7d3; border-left: 4px solid var(--green); }
+  .stat-num { font-family: 'Fraunces', serif; font-size: 2.25rem; font-weight: 600; color: var(--ink); line-height: 1; letter-spacing: -0.02em; }
+  .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-soft); margin-top: 0.42rem; font-weight: 600; }
+  .alert-bar { padding: 0.85rem 1.1rem; border-radius: 7px; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; border: 1px solid rgba(217, 207, 193, 0.7); }
+  .alert-amber { background: #fbf0dc; border-left: 3px solid rgba(192, 138, 46, 0.76); }
+  .alert-red { background: #f6e6df; border-left: 3px solid rgba(185, 63, 43, 0.78); }
+  .alert-green { background: #eef4e8; border-left: 3px solid rgba(74, 107, 58, 0.72); }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.9rem; margin-bottom: 1.5rem; }
+  .dashboard-card { min-height: 112px; }
+  .dashboard-section { margin-bottom: 1.35rem; }
+  .weather-card { margin-bottom: 1.25rem; background: linear-gradient(135deg, #f8fbfc 0%, #fffaf3 100%) !important; border-left-color: rgba(74, 107, 58, 0.38) !important; }
+  .quick-nav-card h2 { margin-top: 0; margin-bottom: 1rem; font-size: 1.22rem; }
   .pill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; font-size: 0.78rem; color: var(--ink); margin: 0.15rem; cursor: pointer; }
   .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
   .pill.warn { border-color: var(--amber); background: #fdf6e3; }
@@ -76,6 +96,30 @@
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 0.7rem 1.2rem; border-radius: 4px; font-size: 0.85rem; z-index: 1000; }
   .dict-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
   .dict-row:last-child { border-bottom: none; }
+  .dictionary-shell { display: grid; gap: 1rem; }
+  .dictionary-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; }
+  .dictionary-title { margin: 0; font-size: 1.45rem; line-height: 1.1; }
+  .dictionary-intro { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.55; margin: 0.65rem 0 0; max-width: 820px; }
+  .dictionary-count { min-width: 92px; text-align: center; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 7px; background: rgba(255, 255, 255, 0.58); }
+  .dictionary-count strong { display: block; font-family: 'Fraunces', serif; font-size: 1.6rem; line-height: 1; }
+  .dictionary-toolbar { display: grid; grid-template-columns: minmax(260px, 1fr) auto; gap: 0.8rem; align-items: center; }
+  .dictionary-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 0.75rem; align-items: end; }
+  .dictionary-table { padding: 0; overflow: hidden; }
+  .dictionary-table-head, .dictionary-row { display: grid; grid-template-columns: minmax(180px, 0.9fr) minmax(220px, 1fr) minmax(170px, auto); gap: 0.85rem; align-items: center; }
+  .dictionary-table-head { padding: 0.75rem 1rem; background: rgba(249, 244, 236, 0.86); border-bottom: 1px solid var(--line); color: var(--ink-soft); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+  .dictionary-row { padding: 0.72rem 1rem; border-bottom: 1px solid rgba(217, 207, 193, 0.7); background: rgba(255, 253, 248, 0.72); }
+  .dictionary-row:last-child { border-bottom: none; }
+  .dictionary-row:hover { background: rgba(255, 255, 255, 0.86); }
+  .dictionary-term { min-width: 0; font-weight: 650; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dictionary-language-label { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .dictionary-actions { display: flex; justify-content: flex-end; align-items: center; gap: 0.35rem; }
+  .dictionary-empty { color: var(--ink-soft); text-align: center; margin: 0; padding: 1.5rem; }
+  @media (max-width: 980px) {
+    .dictionary-hero, .dictionary-toolbar, .dictionary-form, .dictionary-table-head, .dictionary-row { grid-template-columns: 1fr; }
+    .dictionary-count { text-align: left; }
+    .dictionary-actions { justify-content: flex-start; }
+    .dictionary-table-head { display: none; }
+  }
   .lang-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
   .lang-toggle button { background: transparent; border: none; padding: 0.4rem 0.7rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--ink-soft); }
   .lang-toggle button.active { background: var(--accent); color: white; }
@@ -196,7 +240,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.15.0";
+const APP_VERSION = "1.15.3";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -808,6 +852,7 @@ const T = {
     search_dict: "Zoek in woordenboek…",
     restore_default: "Herstel standaardlijst",
     terms: "termen",
+    dictionary_actions: "Acties",
     no_terms: "Geen termen gevonden.",
     fill_both: "Vul beide velden in.",
     confirm_remove_term: nl => `Verwijder "${nl}" uit het woordenboek?`,
@@ -1501,6 +1546,7 @@ const T = {
     search_dict: "Rechercher dans le dictionnaire…",
     restore_default: "Rétablir la liste par défaut",
     terms: "termes",
+    dictionary_actions: "Actions",
     no_terms: "Aucun terme trouvé.",
     fill_both: "Remplissez les deux champs.",
     confirm_remove_term: nl => `Supprimer "${nl}" du dictionnaire ?`,
@@ -5509,83 +5555,30 @@ function App() {
     onClose: () => setHelpOpen(false),
     t: t
   }), /*#__PURE__*/React.createElement("header", {
-    style: {
-      borderBottom: "1px solid var(--line)",
-      background: "var(--bg-card)"
-    }
+    className: "app-header"
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 1200,
-      margin: "0 auto",
-      padding: "1.5rem 2rem"
-    }
+    className: "app-header-inner"
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "baseline",
-      gap: "1rem",
-      flexWrap: "wrap"
-    }
+    className: "app-topline"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "font-body",
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: "0.45rem",
-      fontSize: "0.7rem",
-      textTransform: "uppercase",
-      letterSpacing: "0.15em",
-      color: "var(--accent)",
-      fontWeight: 600
-    }
+    className: "font-body app-kicker"
   }, /*#__PURE__*/React.createElement("span", null, t.app_subtitle), /*#__PURE__*/React.createElement("span", {
     title: `APP_VERSION ${APP_VERSION}`,
-    style: {
-      letterSpacing: 0,
-      textTransform: "none",
-      color: "var(--ink-soft)",
-      border: "1px solid var(--line)",
-      borderRadius: 999,
-      padding: "0.1rem 0.45rem",
-      fontSize: "0.68rem",
-      fontWeight: 600
-    }
-  }, `v${APP_VERSION}`)), /*#__PURE__*/React.createElement("h1", {
-    className: "font-display",
-    style: {
-      margin: "0.2rem 0 0 0",
-      fontSize: "2rem"
-    }
-  }, data.event.naam || t.no_event), data.event.datum && /*#__PURE__*/React.createElement("div", {
+    className: "app-version-pill"
+  }, `v${APP_VERSION}`)), /*#__PURE__*/React.createElement("div", {
+    className: "event-title-row"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "font-display"
+  }, data.event.naam || t.no_event), /*#__PURE__*/React.createElement("span", {
+    className: "event-status-badge"
+  }, t.pl_actief)), data.event.datum && /*#__PURE__*/React.createElement("div", {
     className: "font-body",
-    style: {
-      fontSize: "0.9rem",
-      color: "var(--ink-soft)",
-      marginTop: "0.3rem"
-    }
+    className: "event-subline"
   }, formatDate(data.event.datum, data.taal), " \xB7 ", data.event.gemeente || "—")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "0.5rem",
-      flexWrap: "wrap",
-      alignItems: "center"
-    }
+    className: "app-toolbar"
   }, /*#__PURE__*/React.createElement("div", {
-    title: `APP_VERSION ${APP_VERSION}`,
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      minHeight: "2.2rem",
-      padding: "0 0.75rem",
-      borderRadius: 6,
-      background: "#fff3cd",
-      border: "1px solid #d49b2a",
-      color: "#5f3b00",
-      fontWeight: 700,
-      fontSize: "0.9rem"
-    }
-  }, `Versie ${APP_VERSION}`), /*#__PURE__*/React.createElement("div", {
+    className: "toolbar-group"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "lang-toggle"
   }, /*#__PURE__*/React.createElement("button", {
     className: data.taal === "nl" ? "active" : "",
@@ -5593,13 +5586,17 @@ function App() {
   }, "\uD83C\uDDF3\uD83C\uDDF1 NL"), /*#__PURE__*/React.createElement("button", {
     className: data.taal === "fr" ? "active" : "",
     onClick: () => setTaal("fr")
-  }, "\uD83C\uDDEB\uD83C\uDDF7 FR")), /*#__PURE__*/React.createElement("button", {
+  }, "\uD83C\uDDEB\uD83C\uDDF7 FR"))), /*#__PURE__*/React.createElement("div", {
+    className: "toolbar-group"
+  }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: () => setHelpOpen(true)
   }, "\u2753 ", t.help_button), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: downloadTemplate
-  }, t.template), /*#__PURE__*/React.createElement("label", {
+  }, t.template)), /*#__PURE__*/React.createElement("div", {
+    className: "toolbar-group"
+  }, /*#__PURE__*/React.createElement("label", {
     className: "btn btn-ghost btn-sm",
     style: {
       cursor: "pointer"
@@ -5626,7 +5623,9 @@ function App() {
   })), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary btn-sm",
     onClick: () => exportExcel(false)
-  }, t.export), /*#__PURE__*/React.createElement("button", {
+  }, t.export)), /*#__PURE__*/React.createElement("div", {
+    className: "toolbar-group"
+  }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary btn-sm",
     onClick: algemeneBackup,
     title: t.backup_titel
@@ -5646,7 +5645,9 @@ function App() {
       herstelBackup(e.target.files[0]);
       e.target.value = "";
     }
-  })), /*#__PURE__*/React.createElement("button", {
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "toolbar-group"
+  }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: nieuwEvenement,
     title: t.nieuw_evenement
@@ -5659,13 +5660,8 @@ function App() {
       color: "#c8442a",
       marginRight: "0.3rem"
     }
-  }, "\u26A0\uFE0F"), t.reset))), /*#__PURE__*/React.createElement("nav", {
-    style: {
-      marginTop: "1.5rem",
-      display: "flex",
-      gap: "0.2rem",
-      flexWrap: "wrap"
-    }
+  }, "\u26A0\uFE0F"), t.reset)))), /*#__PURE__*/React.createElement("nav", {
+    className: "tab-nav"
   }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
@@ -5959,10 +5955,9 @@ function WeerKaart({
   if (staat === "geenadres") return null; // geen gemeente ingevuld → niets tonen
 
   return /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "card weather-card",
     style: {
-      marginBottom: "1.5rem",
-      background: "linear-gradient(135deg, #eaf4fb 0%, #f5f1e8 100%)"
+      marginBottom: "1.5rem"
     }
   }, staat === "laden" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6631,32 +6626,27 @@ function Dashboard({
     data: data,
     t: t
   }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "1rem",
-      marginBottom: "2rem"
-    }
+    className: "dashboard-grid"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "card"
+    className: "card dashboard-card"
   }, /*#__PURE__*/React.createElement("div", {
     className: "stat-num"
   }, dagen === null ? "—" : dagen < 0 ? "✓" : dagen), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
   }, dagen === null ? t.no_date : dagen < 0 ? t.past : dagen === 1 ? t.day_left : t.days_left)), /*#__PURE__*/React.createElement("div", {
-    className: "card"
+    className: "card dashboard-card"
   }, /*#__PURE__*/React.createElement("div", {
     className: "stat-num"
   }, data.vrijwilligers.length), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
   }, t.volunteers)), /*#__PURE__*/React.createElement("div", {
-    className: "card"
+    className: "card dashboard-card"
   }, /*#__PURE__*/React.createElement("div", {
     className: "stat-num"
   }, allUnits.length), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
   }, t.workunits)), /*#__PURE__*/React.createElement("div", {
-    className: "card"
+    className: "card dashboard-card"
   }, /*#__PURE__*/React.createElement("div", {
     className: "stat-num",
     style: {
@@ -6665,12 +6655,7 @@ function Dashboard({
   }, niettoegewezen), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
   }, t.unassigned))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "1rem",
-      marginBottom: "2rem"
-    }
+    className: "dashboard-grid"
   }, /*#__PURE__*/React.createElement(StatusCard, {
     label: t.status_open,
     count: stats.open,
@@ -6688,13 +6673,9 @@ function Dashboard({
     count: stats.pasok,
     cls: "badge-pasok"
   })), /*#__PURE__*/React.createElement("div", {
-    className: "card"
+    className: "card quick-nav-card"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.4rem"
-    }
   }, t.quick_nav), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -6721,7 +6702,7 @@ function StatusCard({
   cls
 }) {
   return /*#__PURE__*/React.createElement("div", {
-    className: "card",
+    className: "card dashboard-card",
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -15267,40 +15248,29 @@ function WoordenboekTab({
     update(defaultDictionary);
     showToast("✓");
   };
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    className: "font-display",
-    style: {
-      marginTop: 0,
-      fontSize: "1.4rem"
-    }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-shell"
+  }, /*#__PURE__*/React.createElement("section", {
+    className: "card dictionary-hero"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display dictionary-title"
   }, t.woord_title), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.9rem"
-    }
+    className: "dictionary-intro"
   }, t.woord_intro)), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: "1.5rem"
-    }
+    className: "dictionary-count"
+  }, /*#__PURE__*/React.createElement("strong", null, entries.length), /*#__PURE__*/React.createElement("span", {
+    className: "stat-label"
+  }, t.terms))), /*#__PURE__*/React.createElement("section", {
+    className: "card"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-display",
     style: {
       marginTop: 0,
-      fontSize: "1.1rem"
+      marginBottom: "0.9rem",
+      fontSize: "1.12rem"
     }
   }, t.new_term), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr auto",
-      gap: "0.5rem",
-      alignItems: "end"
-    }
+    className: "dictionary-form"
   }, /*#__PURE__*/React.createElement(Field, {
     label: t.dutch
   }, /*#__PURE__*/React.createElement("input", {
@@ -15316,53 +15286,43 @@ function WoordenboekTab({
   })), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary",
     onClick: addEntry
-  }, t.add))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "1rem",
-      marginBottom: "1rem",
-      flexWrap: "wrap"
-    }
+  }, t.add))), /*#__PURE__*/React.createElement("section", {
+    className: "dictionary-toolbar"
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",
     placeholder: t.search_dict,
     value: zoek,
-    onChange: e => setZoek(e.target.value),
-    style: {
-      maxWidth: 300
-    }
+    onChange: e => setZoek(e.target.value)
   }), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: resetDict
-  }, t.restore_default), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.85rem",
-      alignSelf: "center"
-    }
-  }, entries.length, " ", t.terms)), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, filtered.length === 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      textAlign: "center",
-      margin: 0
-    }
+  }, t.restore_default)), /*#__PURE__*/React.createElement("section", {
+    className: "card dictionary-table"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-table-head"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-language-label"
+  }, "\uD83C\uDDF3\uD83C\uDDF1 ", t.dutch), /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-language-label"
+  }, "\uD83C\uDDEB\uD83C\uDDF7 ", t.french), /*#__PURE__*/React.createElement("div", null, t.dictionary_actions)), filtered.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    className: "dictionary-empty"
   }, t.no_terms) : filtered.map(([nl, fr]) => /*#__PURE__*/React.createElement("div", {
     key: nl,
-    className: "dict-row"
+    className: "dictionary-row"
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: "0.9rem"
-    }
+    className: "dictionary-term",
+    title: nl
   }, nl), /*#__PURE__*/React.createElement("input", {
     className: "input",
     value: fr,
     onChange: e => updateEntry(nl, e.target.value)
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-actions"
+  }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-danger btn-sm",
+    title: t.confirm_remove_term(nl),
     onClick: () => removeEntry(nl)
-  }, "\u2715")))));
+  }, "\u2715"))))));
 }
 
 // ============================================================
