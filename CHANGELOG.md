@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.17.0
+- Google Drive-basislaag toegevoegd aan de Hoofdapp met zichtbaar dashboardpaneel voor EventToolSync.
+- Nieuwe Drive-map ingesteld: `EventToolSync` met folder-ID `1annD2FEIq0uRSDtGAHQ4NiDSIUdN6gzi`.
+- Toegevoegd: verbinden, herverbinden, ontkoppelen, Drive-map openen en sync-test via `eventtool-connection-test.json`.
+- De basislaag gebruikt dezelfde Google Identity Services-aanpak als de Health app, maar met eigen `eventtool_gdrive_*` localStorage-sleutels.
+- Nog geen prijslijst-publicatie, Kassa Tool-import, transactieverwerking, ledger-posting of datamodelwijziging toegevoegd.
+
 ## 1.16.1
 - Kassa Tool-beginprijslijstexport technisch verfijnd en duidelijker vastgelegd als frozen contract.
 - Exportbestand bevat nu genormaliseerde prijzen met bedrag, centen, valuta en displaywaarde.

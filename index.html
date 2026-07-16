@@ -19,6 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --bg: #f6f2eb; --bg-card: #fffaf3; --ink: #1a1612; --ink-soft: #5c544a;
@@ -267,14 +268,255 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.16.1";
+const APP_VERSION = "1.17.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
 const BC_SHEET_VERSION = "1.0";
 const BC_DEFAULT_SHEET_COUNT = 5;
+const EVENT_TOOL_GDRIVE_CLIENT_ID = "333079195698-gt6gm0ra37e53ujd782424nea5e9iiqq.apps.googleusercontent.com";
+const EVENT_TOOL_GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile";
+const EVENT_TOOL_GDRIVE_ACCOUNT_HINT = "philippe.demeersman1970@gmail.com";
+const EVENT_TOOL_SYNC_FOLDER_ID = "1annD2FEIq0uRSDtGAHQ4NiDSIUdN6gzi";
+const EVENT_TOOL_SYNC_FOLDER_URL = `https://drive.google.com/drive/folders/${EVENT_TOOL_SYNC_FOLDER_ID}`;
+const EVENT_TOOL_DRIVE_TEST_FILE_NAME = "eventtool-connection-test.json";
 const SYSTEM_ORIGIN_WITHOUT_ID = "origin_without_origin";
 const SYSTEM_ORIGIN_WITHOUT_NAME = "Zonder oorsprong";
+
+let eventToolGDriveTokenClient = null;
+let eventToolGDriveAccessToken = null;
+let eventToolGDriveTokenExpiry = 0;
+let eventToolGDriveUserName = null;
+let eventToolGDriveSilentAuth = false;
+let eventToolGDriveInitStarted = false;
+const eventToolGDriveListeners = new Set();
+
+function eventToolGDriveEmit() {
+  eventToolGDriveListeners.forEach(listener => {
+    try {
+      listener(eventToolGDriveSnapshot());
+    } catch (e) {
+      console.warn("Google Drive listener error:", e);
+    }
+  });
+}
+
+function eventToolGDriveSubscribe(listener) {
+  eventToolGDriveListeners.add(listener);
+  listener(eventToolGDriveSnapshot());
+  return () => eventToolGDriveListeners.delete(listener);
+}
+
+function eventToolGDriveIsTokenValid() {
+  if (!eventToolGDriveAccessToken || eventToolGDriveAccessToken === "null" || eventToolGDriveAccessToken === "") return false;
+  if (!eventToolGDriveTokenExpiry || eventToolGDriveTokenExpiry <= 0) return false;
+  return Date.now() < eventToolGDriveTokenExpiry - 60000;
+}
+
+function eventToolGDriveWantsConnection() {
+  return localStorage.getItem("eventtool_gdrive_auto_connect") === "1" || !!localStorage.getItem("eventtool_gdrive_user_name");
+}
+
+function eventToolGDriveSnapshot() {
+  return {
+    ready: !!eventToolGDriveTokenClient,
+    connected: eventToolGDriveIsTokenValid(),
+    wantsConnection: eventToolGDriveWantsConnection(),
+    userName: eventToolGDriveUserName || localStorage.getItem("eventtool_gdrive_user_name") || "",
+    lastTest: Number(localStorage.getItem("eventtool_gdrive_last_test") || 0),
+    lastError: localStorage.getItem("eventtool_gdrive_last_error") || "",
+    folderId: EVENT_TOOL_SYNC_FOLDER_ID,
+    folderUrl: EVENT_TOOL_SYNC_FOLDER_URL
+  };
+}
+
+function eventToolGDriveLoadStoredToken() {
+  const storedToken = localStorage.getItem("eventtool_gdrive_token");
+  const storedExpiry = Number(localStorage.getItem("eventtool_gdrive_token_expiry") || 0);
+  eventToolGDriveUserName = localStorage.getItem("eventtool_gdrive_user_name") || null;
+  if (storedToken && storedToken !== "null" && storedToken !== "" && storedExpiry && Date.now() < storedExpiry - 60000) {
+    eventToolGDriveAccessToken = storedToken;
+    eventToolGDriveTokenExpiry = storedExpiry;
+  } else {
+    localStorage.removeItem("eventtool_gdrive_token");
+    localStorage.removeItem("eventtool_gdrive_token_expiry");
+    eventToolGDriveAccessToken = null;
+    eventToolGDriveTokenExpiry = 0;
+  }
+}
+
+function initEventToolGoogleDrive() {
+  if (eventToolGDriveInitStarted && eventToolGDriveTokenClient) return;
+  eventToolGDriveInitStarted = true;
+  eventToolGDriveLoadStoredToken();
+  if (typeof google === "undefined" || !google.accounts) {
+    setTimeout(initEventToolGoogleDrive, 1000);
+    return;
+  }
+  eventToolGDriveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: EVENT_TOOL_GDRIVE_CLIENT_ID,
+    scope: EVENT_TOOL_GDRIVE_SCOPE,
+    callback: async resp => {
+      const wasSilent = eventToolGDriveSilentAuth;
+      eventToolGDriveSilentAuth = false;
+      if (resp.error) {
+        if (!wasSilent) localStorage.setItem("eventtool_gdrive_last_error", resp.error);
+        eventToolGDriveEmit();
+        return;
+      }
+      eventToolGDriveAccessToken = resp.access_token;
+      eventToolGDriveTokenExpiry = Date.now() + ((resp.expires_in || 3600) * 1000);
+      localStorage.setItem("eventtool_gdrive_token", eventToolGDriveAccessToken);
+      localStorage.setItem("eventtool_gdrive_token_expiry", String(eventToolGDriveTokenExpiry));
+      localStorage.setItem("eventtool_gdrive_auto_connect", "1");
+      localStorage.removeItem("eventtool_gdrive_last_error");
+      await eventToolGDriveFetchUserInfo();
+      eventToolGDriveEmit();
+    }
+  });
+  if (eventToolGDriveWantsConnection() && !eventToolGDriveIsTokenValid()) {
+    eventToolGDriveSilentReconnect();
+  }
+  eventToolGDriveEmit();
+}
+
+function eventToolGDriveSilentReconnect() {
+  if (!eventToolGDriveTokenClient || eventToolGDriveIsTokenValid() || !eventToolGDriveWantsConnection()) return;
+  try {
+    eventToolGDriveSilentAuth = true;
+    eventToolGDriveTokenClient.requestAccessToken({
+      prompt: "none",
+      login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
+    });
+  } catch (e) {
+    eventToolGDriveSilentAuth = false;
+    console.warn("Silent EventTool Google Drive reconnect failed:", e);
+  }
+}
+
+async function eventToolGDriveFetchUserInfo() {
+  if (!eventToolGDriveIsTokenValid()) return;
+  try {
+    const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: {
+        Authorization: `Bearer ${eventToolGDriveAccessToken}`
+      }
+    });
+    const d = await r.json();
+    eventToolGDriveUserName = d.name || d.email || "Google";
+    localStorage.setItem("eventtool_gdrive_user_name", eventToolGDriveUserName);
+  } catch (e) {
+    console.warn("EventTool Google userinfo:", e);
+  }
+}
+
+function eventToolGDriveConnect() {
+  if (!eventToolGDriveTokenClient) {
+    initEventToolGoogleDrive();
+    return false;
+  }
+  eventToolGDriveTokenClient.requestAccessToken({
+    prompt: eventToolGDriveUserName ? "" : "consent",
+    login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
+  });
+  return true;
+}
+
+function eventToolGDriveDisconnect() {
+  eventToolGDriveAccessToken = null;
+  eventToolGDriveTokenExpiry = 0;
+  eventToolGDriveUserName = null;
+  ["eventtool_gdrive_token", "eventtool_gdrive_token_expiry", "eventtool_gdrive_user_name", "eventtool_gdrive_auto_connect", "eventtool_gdrive_file_id", "eventtool_gdrive_last_error"].forEach(key => localStorage.removeItem(key));
+  eventToolGDriveEmit();
+}
+
+function eventToolGDriveEscapeQueryValue(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+async function eventToolGDriveSearchFile(fileName) {
+  const q = `name='${eventToolGDriveEscapeQueryValue(fileName)}' and '${EVENT_TOOL_SYNC_FOLDER_ID}' in parents and trashed=false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,modifiedTime,size)`;
+  const r = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!r.ok) throw new Error(`Drive search failed: ${r.status}`);
+  const data = await r.json();
+  return data.files || [];
+}
+
+async function eventToolGDriveUploadJson(fileName, payload) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const existing = await eventToolGDriveSearchFile(fileName);
+  for (const file of existing) {
+    try {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${eventToolGDriveAccessToken}`
+        }
+      });
+    } catch (e) {
+      console.warn("Drive delete failed:", e);
+    }
+  }
+  const form = new FormData();
+  form.append("metadata", new Blob([JSON.stringify({
+    name: fileName,
+    parents: [EVENT_TOOL_SYNC_FOLDER_ID]
+  })], {
+    type: "application/json"
+  }));
+  form.append("file", new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json"
+  }));
+  const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    },
+    body: form
+  });
+  if (!r.ok) throw new Error(`Drive upload failed: ${r.status}`);
+  return await r.json();
+}
+
+async function eventToolGDriveDownloadJson(fileName) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const files = await eventToolGDriveSearchFile(fileName);
+  if (!files.length) throw new Error(`Bestand niet gevonden: ${fileName}`);
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!r.ok) throw new Error(`Drive download failed: ${r.status}`);
+  return await r.json();
+}
+
+async function eventToolGDriveRunConnectionTest(data) {
+  const payload = {
+    schemaName: "be.zomerfeest.eventtool-drive-test",
+    schemaVersion: "1.0.0",
+    app: "Hoofdapp",
+    appVersion: APP_VERSION,
+    folderId: EVENT_TOOL_SYNC_FOLDER_ID,
+    eventId: data && data.activeEventId || data && data.event && data.event.id || "",
+    eventName: data && data.event && data.event.naam || "",
+    createdAt: new Date().toISOString()
+  };
+  await eventToolGDriveUploadJson(EVENT_TOOL_DRIVE_TEST_FILE_NAME, payload);
+  const readBack = await eventToolGDriveDownloadJson(EVENT_TOOL_DRIVE_TEST_FILE_NAME);
+  if (!readBack || readBack.schemaName !== payload.schemaName) {
+    throw new Error("Drive testbestand kon niet correct gelezen worden.");
+  }
+  localStorage.setItem("eventtool_gdrive_last_test", String(Date.now()));
+  localStorage.removeItem("eventtool_gdrive_last_error");
+  eventToolGDriveEmit();
+  return readBack;
+}
 
 // ============================================================
 // I18N — Vertalingen voor de UI
@@ -330,6 +572,23 @@ const T = {
     herstel_ongeldig: "Dit is geen geldig backupbestand (.json). Controleer of je het juiste bestand koos.",
     backup_nooit: "Je hebt nog geen algemene backup gemaakt. Klik op 'ALGEMENE BACKUP' bovenaan om je werk veilig te stellen.",
     backup_herinnering: n => `Je laatste algemene backup is ${n} dagen geleden. Tijd voor een nieuwe — klik op 'ALGEMENE BACKUP' bovenaan.`,
+    gdrive_title: "Google Drive",
+    gdrive_subtitle: "Centrale EventToolSync-map voor Hoofdapp en Kassa Tool.",
+    gdrive_connected: "Verbonden",
+    gdrive_not_connected: "Niet verbonden",
+    gdrive_reconnect_saved: "Koppeling bewaard · herverbinden mogelijk",
+    gdrive_connect: "Verbinden",
+    gdrive_reconnect: "Herverbinden",
+    gdrive_disconnect: "Ontkoppelen",
+    gdrive_test: "Sync testen",
+    gdrive_open_folder: "Map openen",
+    gdrive_testing: "Test bezig...",
+    gdrive_test_ok: "✓ Testbestand geschreven en gelezen",
+    gdrive_test_error: "Drive-test mislukt",
+    gdrive_last_test: "Laatste test",
+    gdrive_never: "Nog nooit",
+    gdrive_folder: "Drive-map",
+    gdrive_ready_hint: "Deze basislaag schrijft alleen een testbestand. Prijslijstpublicatie en Kassa-import volgen later.",
     reset: "Reset",
     help_button: "Werking",
     help_close: "Sluiten",
@@ -1052,6 +1311,23 @@ const T = {
     herstel_ongeldig: "Ce n'est pas un fichier de sauvegarde valide (.json). Vérifiez que vous avez choisi le bon fichier.",
     backup_nooit: "Vous n'avez pas encore fait de sauvegarde générale. Cliquez sur 'BACKUP GÉNÉRAL' en haut pour protéger votre travail.",
     backup_herinnering: n => `Votre dernière sauvegarde générale date de ${n} jours. Il est temps d'en faire une nouvelle — cliquez sur 'BACKUP GÉNÉRAL' en haut.`,
+    gdrive_title: "Google Drive",
+    gdrive_subtitle: "Dossier central EventToolSync pour l'application principale et la Kassa Tool.",
+    gdrive_connected: "Connecté",
+    gdrive_not_connected: "Non connecté",
+    gdrive_reconnect_saved: "Connexion mémorisée · reconnexion possible",
+    gdrive_connect: "Connecter",
+    gdrive_reconnect: "Reconnecter",
+    gdrive_disconnect: "Déconnecter",
+    gdrive_test: "Tester la sync",
+    gdrive_open_folder: "Ouvrir le dossier",
+    gdrive_testing: "Test en cours...",
+    gdrive_test_ok: "✓ Fichier test écrit et relu",
+    gdrive_test_error: "Échec du test Drive",
+    gdrive_last_test: "Dernier test",
+    gdrive_never: "Jamais",
+    gdrive_folder: "Dossier Drive",
+    gdrive_ready_hint: "Cette couche de base écrit seulement un fichier test. La publication de la liste de prix et l'import Kassa suivront plus tard.",
     reset: "Réinitialiser",
     help_button: "Fonctionnement",
     help_close: "Fermer",
@@ -6402,6 +6678,189 @@ function DagoverzichtBlok({
     }
   }, /*#__PURE__*/React.createElement("span", null, "\u2022 ", m.naam), m.gsm && /*#__PURE__*/React.createElement("span", null, m.gsm))))))))));
 }
+function GoogleDrivePanel({
+  data,
+  t
+}) {
+  const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    initEventToolGoogleDrive();
+    const unsub = eventToolGDriveSubscribe(setDrive);
+    const onFocus = () => eventToolGDriveSilentReconnect();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      unsub();
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+  const statusText = drive.connected ? t.gdrive_connected : drive.wantsConnection ? t.gdrive_reconnect_saved : t.gdrive_not_connected;
+  const statusColor = drive.connected ? "#2f6f3e" : drive.wantsConnection ? "#b7791f" : "#8a3b2e";
+  const lastTest = drive.lastTest ? new Date(drive.lastTest).toLocaleString(data.taal === "fr" ? "fr-BE" : "nl-BE") : t.gdrive_never;
+  const runTest = async () => {
+    setBusy(true);
+    setMessage(t.gdrive_testing);
+    try {
+      if (!eventToolGDriveIsTokenValid()) {
+        eventToolGDriveConnect();
+        setMessage(t.gdrive_reconnect_saved);
+        return;
+      }
+      await eventToolGDriveRunConnectionTest(data);
+      setMessage(t.gdrive_test_ok);
+    } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      setMessage(`${t.gdrive_test_error}: ${msg}`);
+      eventToolGDriveEmit();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card dashboard-section",
+    style: {
+      borderLeft: "4px solid #99AD7A",
+      background: "linear-gradient(180deg, rgba(153,173,122,0.14), rgba(255,255,255,0.92))"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      alignItems: "flex-start",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: 0,
+      fontSize: "1.18rem"
+    }
+  }, "☁️ ", t.gdrive_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.35rem 0 0",
+      color: "var(--ink-soft)",
+      fontSize: "0.9rem"
+    }
+  }, t.gdrive_subtitle)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "0.35rem",
+      borderRadius: 999,
+      padding: "0.32rem 0.65rem",
+      background: "rgba(255,255,255,0.78)",
+      color: statusColor,
+      border: `1px solid ${statusColor}33`,
+      fontWeight: 800,
+      fontSize: "0.82rem"
+    }
+  }, drive.connected ? "🟢" : drive.wantsConnection ? "🟡" : "🔴", " ", statusText)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+      gap: "0.65rem",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0.7rem",
+      borderRadius: 8,
+      background: "rgba(255,255,255,0.74)",
+      border: "1px solid var(--line)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.72rem",
+      color: "var(--ink-soft)",
+      textTransform: "uppercase",
+      fontWeight: 800
+    }
+  }, t.gdrive_folder), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.78rem",
+      fontFamily: "monospace",
+      wordBreak: "break-all",
+      marginTop: "0.25rem"
+    }
+  }, drive.folderId)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0.7rem",
+      borderRadius: 8,
+      background: "rgba(255,255,255,0.74)",
+      border: "1px solid var(--line)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.72rem",
+      color: "var(--ink-soft)",
+      textTransform: "uppercase",
+      fontWeight: 800
+    }
+  }, t.gdrive_last_test), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.86rem",
+      marginTop: "0.25rem",
+      fontWeight: 700
+    }
+  }, lastTest)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0.7rem",
+      borderRadius: 8,
+      background: "rgba(255,255,255,0.74)",
+      border: "1px solid var(--line)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.72rem",
+      color: "var(--ink-soft)",
+      textTransform: "uppercase",
+      fontWeight: 800
+    }
+  }, "Account"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.86rem",
+      marginTop: "0.25rem",
+      fontWeight: 700
+    }
+  }, drive.userName || "—"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.45rem",
+      flexWrap: "wrap",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    disabled: busy || !drive.ready,
+    onClick: () => {
+      eventToolGDriveConnect();
+      setMessage(drive.connected ? t.gdrive_connected : t.gdrive_reconnect_saved);
+    }
+  }, drive.connected ? t.gdrive_reconnect : t.gdrive_connect), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    disabled: busy || !drive.ready,
+    onClick: runTest
+  }, busy ? t.gdrive_testing : t.gdrive_test), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => window.open(EVENT_TOOL_SYNC_FOLDER_URL, "_blank")
+  }, t.gdrive_open_folder), drive.connected && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    disabled: busy,
+    onClick: () => {
+      eventToolGDriveDisconnect();
+      setMessage(t.gdrive_not_connected);
+    }
+  }, t.gdrive_disconnect)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.8rem 0 0",
+      color: "var(--ink-soft)",
+      fontSize: "0.82rem"
+    }
+  }, message || drive.lastError || t.gdrive_ready_hint));
+}
 function Dashboard({
   data,
   dagen,
@@ -6616,6 +7075,9 @@ function Dashboard({
   }, "\uD83D\uDCBE ", backupHerinnering)), /*#__PURE__*/React.createElement(WeerKaart, {
     event: data.event,
     lang: data.taal === "fr" ? "fr" : "nl",
+    t: t
+  }), /*#__PURE__*/React.createElement(GoogleDrivePanel, {
+    data: data,
     t: t
   }), heeftData && /*#__PURE__*/React.createElement("div", {
     className: "card",
