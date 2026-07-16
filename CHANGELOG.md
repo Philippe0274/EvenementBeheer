@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.7
+- Prijslijst-tab uitgebreid met een read-only "Kassa Tool voorbereiding"-statuskaart.
+- De statuskaart controleert EventId, categorieën, artikelen, actieve/inactieve artikelen, lege artikelnamen, ontbrekende categorieën, ontbrekende/ongeldige prijzen en dubbele artikelnummers.
+- Officiële beginprijslijst-snapshot bevat nu ook eventId, eventnaam en eventdatum als voorbereiding op latere Kassa Tool-koppeling.
+- Geen export, sync, import, ledger-posting of transactielogica toegevoegd; Hoofdapp blijft eigenaar van de officiële beginprijslijst.
+
 ## 1.15.6
 - Winkelbestellingen-PDF toont nu per kasticket/aankoper ook de rekeninginfo van de vrijwilliger.
 - De rekeninginfo wordt gelezen uit het bestaande vrijwilligersveld `opmerking`; er is geen datamodel- of opslagwijziging.

@@ -249,7 +249,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.15.6";
+const APP_VERSION = "1.15.7";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -461,6 +461,26 @@ const T = {
     pl_categorie_nieuw: "+ Nieuwe categorie",
     pl_beschrijving: "Beschrijving",
     pl_actief: "Actief",
+    pl_kassa_prep_title: "Kassa Tool voorbereiding",
+    pl_kassa_prep_intro: "Controleert of de officiële beginprijslijst klaar is om later veilig naar de Kassa Tool te gaan. Dit voert nog geen export of synchronisatie uit.",
+    pl_kassa_ready: "Klaar voor Kassa Tool",
+    pl_kassa_not_ready: "Nog niet klaar",
+    pl_kassa_event_id: "EventId",
+    pl_kassa_schema: "Schema",
+    pl_kassa_categories: "Categorieën",
+    pl_kassa_articles: "Artikelen",
+    pl_kassa_active_articles: "Actief",
+    pl_kassa_inactive_articles: "Inactief",
+    pl_kassa_warnings: "Aandachtspunten",
+    pl_kassa_no_warnings: "Geen aandachtspunten. De beginprijslijst is technisch klaar.",
+    pl_kassa_warning_no_event_id: "EventId ontbreekt.",
+    pl_kassa_warning_no_articles: "Er zijn nog geen artikelen.",
+    pl_kassa_warning_missing_name: nr => `Artikel ${nr} heeft geen naam.`,
+    pl_kassa_warning_missing_category: nr => `Artikel ${nr} heeft geen categorie.`,
+    pl_kassa_warning_missing_price: nr => `Artikel ${nr} heeft geen prijs.`,
+    pl_kassa_warning_invalid_price: nr => `Artikel ${nr} heeft een ongeldige prijs.`,
+    pl_kassa_warning_duplicate_number: nr => `Artikelnummer ${nr} komt meerdere keren voor.`,
+    pl_kassa_readonly_note: "Voorbereiding alleen-lezen: de Hoofdapp blijft eigenaar van deze officiële beginprijslijst.",
     vv_intro: "Beheer hier de voorverkoop en de zelfinbreng. Alle bedragen tellen mee in het kostenplaatje.",
     vv_streefdoel: "Streefdoel voorverkoop",
     vv_streefdoel_ph: "bv. 750",
@@ -1155,6 +1175,26 @@ const T = {
     pl_categorie_nieuw: "+ Nouvelle catégorie",
     pl_beschrijving: "Description",
     pl_actief: "Actif",
+    pl_kassa_prep_title: "Préparation Kassa Tool",
+    pl_kassa_prep_intro: "Vérifie si la liste de prix officielle de départ est prête pour un envoi ultérieur vers la Kassa Tool. Aucun export ni aucune synchronisation n'est effectué ici.",
+    pl_kassa_ready: "Prêt pour la Kassa Tool",
+    pl_kassa_not_ready: "Pas encore prêt",
+    pl_kassa_event_id: "EventId",
+    pl_kassa_schema: "Schéma",
+    pl_kassa_categories: "Catégories",
+    pl_kassa_articles: "Articles",
+    pl_kassa_active_articles: "Actifs",
+    pl_kassa_inactive_articles: "Inactifs",
+    pl_kassa_warnings: "Points d'attention",
+    pl_kassa_no_warnings: "Aucun point d'attention. La liste de prix de départ est techniquement prête.",
+    pl_kassa_warning_no_event_id: "EventId manquant.",
+    pl_kassa_warning_no_articles: "Il n'y a pas encore d'articles.",
+    pl_kassa_warning_missing_name: nr => `L'article ${nr} n'a pas de nom.`,
+    pl_kassa_warning_missing_category: nr => `L'article ${nr} n'a pas de catégorie.`,
+    pl_kassa_warning_missing_price: nr => `L'article ${nr} n'a pas de prix.`,
+    pl_kassa_warning_invalid_price: nr => `L'article ${nr} a un prix invalide.`,
+    pl_kassa_warning_duplicate_number: nr => `Le numéro d'article ${nr} est utilisé plusieurs fois.`,
+    pl_kassa_readonly_note: "Préparation en lecture seule : l'application principale reste propriétaire de cette liste de prix officielle de départ.",
     vv_intro: "Gérez ici les préventes et l'apport personnel. Tous les montants comptent dans le bilan des coûts.",
     vv_streefdoel: "Objectif de prévente",
     vv_streefdoel_ph: "p.ex. 750",
@@ -4578,6 +4618,9 @@ function App() {
       schemaName: "be.zomerfeest.hoofdapp-official-start-pricelist",
       schemaVersion: "1.0.0",
       source: "hoofdapp.prijslijst",
+      eventId: d.activeEventId || d.event && d.event.id || "",
+      eventName: d.event && d.event.naam || "",
+      eventDate: d.event && d.event.datum || "",
       immutable: true,
       capturedAt: new Date().toISOString(),
       categories: categorySnapshots,
@@ -5802,6 +5845,8 @@ function App() {
     showToast: showToast,
     t: t
   }), tab === "prijslijst" && /*#__PURE__*/React.createElement(PrijslijstTab, {
+    event: data.event || {},
+    activeEventId: data.activeEventId || "",
     prijslijst: data.prijslijst || [],
     categorien: data.prijslijstCategorien || [],
     add: addPrijslijstArtikel,
@@ -14353,11 +14398,128 @@ function BusinessContinuityTab({
   })));
 }
 
-function PrijslijstTab({ prijslijst, categorien, add, update, remove, addCategorie, t }) {
+function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, t }) {
   const [bewerk, setBewerk] = React.useState(null);
+  const articleNumberFor = (artikel, index) => {
+    const bestaand = artikel && (artikel.artikelNummer || artikel.nummer || artikel.code);
+    return bestaand ? String(bestaand).padStart(3, "0") : String(index + 1).padStart(3, "0");
+  };
+  const kassaPrepArticles = [...(prijslijst || [])].map((artikel, index) => ({
+    ...artikel,
+    articleNumber: articleNumberFor(artikel, index),
+    volgorde: Number.isFinite(Number(artikel.volgorde)) ? Number(artikel.volgorde) : index
+  })).sort((a, b) => (a.volgorde || 0) - (b.volgorde || 0));
+  const kassaPrepCategories = [...new Set([...(categorien || []), ...kassaPrepArticles.map(a => a.categorie)].filter(Boolean).map(c => String(c).trim()).filter(Boolean))];
+  const kassaWarnings = [];
+  const eventId = activeEventId || event && event.id || "";
+  if (!eventId) kassaWarnings.push(t.pl_kassa_warning_no_event_id);
+  if (!kassaPrepArticles.length) kassaWarnings.push(t.pl_kassa_warning_no_articles);
+  const articleNumberCounts = {};
+  kassaPrepArticles.forEach(article => {
+    articleNumberCounts[article.articleNumber] = (articleNumberCounts[article.articleNumber] || 0) + 1;
+  });
+  Object.keys(articleNumberCounts).filter(nr => articleNumberCounts[nr] > 1).forEach(nr => kassaWarnings.push(t.pl_kassa_warning_duplicate_number(nr)));
+  kassaPrepArticles.forEach(article => {
+    const nr = article.articleNumber || "?";
+    const priceText = String(article.prijs == null ? "" : article.prijs).trim();
+    const price = Number(priceText.replace(",", "."));
+    if (!String(article.naam || "").trim()) kassaWarnings.push(t.pl_kassa_warning_missing_name(nr));
+    if (!String(article.categorie || "").trim()) kassaWarnings.push(t.pl_kassa_warning_missing_category(nr));
+    if (!priceText) kassaWarnings.push(t.pl_kassa_warning_missing_price(nr));
+    else if (!Number.isFinite(price) || price < 0) kassaWarnings.push(t.pl_kassa_warning_invalid_price(nr));
+  });
+  const kassaReady = kassaWarnings.length === 0;
+  const activeCount = kassaPrepArticles.filter(a => a.actief !== false).length;
+  const inactiveCount = kassaPrepArticles.length - activeCount;
+  const kassaMetric = (label, value) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid var(--line)",
+      borderRadius: 5,
+      background: "rgba(255,255,255,0.6)",
+      padding: "0.65rem 0.75rem",
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "label",
+    style: {
+      marginBottom: "0.28rem"
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      overflowWrap: "anywhere"
+    }
+  }, value || "—"));
 
   return /*#__PURE__*/React.createElement("div", null,
     /*#__PURE__*/React.createElement("p", { style: { color: "var(--ink-soft)" } }, t.pl_intro),
+    /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        marginBottom: "1.2rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "1rem",
+        alignItems: "flex-start",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: "0 0 0.35rem",
+        fontSize: "1.15rem"
+      }
+    }, t.pl_kassa_prep_title), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        color: "var(--ink-soft)",
+        fontSize: "0.88rem",
+        lineHeight: 1.45,
+        maxWidth: 820
+      }
+    }, t.pl_kassa_prep_intro)), /*#__PURE__*/React.createElement("span", {
+      className: `badge ${kassaReady ? "badge-ok" : "badge-bezig"}`
+    }, kassaReady ? t.pl_kassa_ready : t.pl_kassa_not_ready)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+        gap: "0.65rem",
+        marginTop: "1rem"
+      }
+    }, kassaMetric(t.pl_kassa_event_id, eventId), kassaMetric(t.pl_kassa_schema, "hoofdapp-official-start-pricelist 1.0.0"), kassaMetric(t.pl_kassa_categories, kassaPrepCategories.length), kassaMetric(t.pl_kassa_articles, kassaPrepArticles.length), kassaMetric(t.pl_kassa_active_articles, activeCount), kassaMetric(t.pl_kassa_inactive_articles, inactiveCount)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.9rem",
+        paddingTop: "0.8rem",
+        borderTop: "1px solid var(--line)",
+        fontSize: "0.86rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        marginBottom: "0.35rem"
+      }
+    }, t.pl_kassa_warnings), kassaWarnings.length ? /*#__PURE__*/React.createElement("ul", {
+      style: {
+        margin: 0,
+        paddingLeft: "1.2rem",
+        color: "var(--accent)"
+      }
+    }, kassaWarnings.map((warning, index) => /*#__PURE__*/React.createElement("li", {
+      key: `${warning}-${index}`
+    }, warning))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--green)",
+        fontWeight: 600
+      }
+    }, t.pl_kassa_no_warnings), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        marginTop: "0.55rem"
+      }
+    }, t.pl_kassa_readonly_note))),
     /*#__PURE__*/React.createElement("div", { style: { display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" } },
       /*#__PURE__*/React.createElement("button", { className: "btn btn-primary btn-sm", onClick: add }, t.pl_add),
       /*#__PURE__*/React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => { const naam = prompt(t.pl_categorie_nieuw); if (naam?.trim()) addCategorie(naam); } }, t.pl_categorie_nieuw)
