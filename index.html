@@ -267,7 +267,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.16.0";
+const APP_VERSION = "1.16.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -480,7 +480,7 @@ const T = {
     pl_beschrijving: "Beschrijving",
     pl_actief: "Actief",
     pl_kassa_prep_title: "Kassa Tool voorbereiding",
-    pl_kassa_prep_intro: "Controleert of de officiële beginprijslijst klaar is om later veilig naar de Kassa Tool te gaan. Dit voert nog geen export of synchronisatie uit.",
+    pl_kassa_prep_intro: "Controleert of de officiële beginprijslijst klaar is om veilig naar de Kassa Tool te gaan. Dit voert nog geen synchronisatie of import uit.",
     pl_kassa_ready: "Klaar voor Kassa Tool",
     pl_kassa_not_ready: "Nog niet klaar",
     pl_kassa_event_id: "EventId",
@@ -1202,7 +1202,7 @@ const T = {
     pl_beschrijving: "Description",
     pl_actief: "Actif",
     pl_kassa_prep_title: "Préparation Kassa Tool",
-    pl_kassa_prep_intro: "Vérifie si la liste de prix officielle de départ est prête pour un envoi ultérieur vers la Kassa Tool. Aucun export ni aucune synchronisation n'est effectué ici.",
+    pl_kassa_prep_intro: "Vérifie si la liste de prix officielle de départ est prête pour la Kassa Tool. Aucune synchronisation ni importation n'est effectuée ici.",
     pl_kassa_ready: "Prêt pour la Kassa Tool",
     pl_kassa_not_ready: "Pas encore prêt",
     pl_kassa_event_id: "EventId",
@@ -14435,9 +14435,31 @@ function BusinessContinuityTab({
 
 function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, showToast, t }) {
   const [bewerk, setBewerk] = React.useState(null);
+  const KASSA_START_PRICE_LIST_SCHEMA_NAME = "be.zomerfeest.hoofdapp-official-start-pricelist";
+  const KASSA_START_PRICE_LIST_SCHEMA_VERSION = "1.0.0";
   const articleNumberFor = (artikel, index) => {
     const bestaand = artikel && (artikel.artikelNummer || artikel.nummer || artikel.code);
     return bestaand ? String(bestaand).padStart(3, "0") : String(index + 1).padStart(3, "0");
+  };
+  const safeContractId = value => String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const parseKassaPrice = value => {
+    const raw = String(value == null ? "" : value).trim();
+    const amount = Number(raw.replace(",", "."));
+    if (!raw || !Number.isFinite(amount) || amount < 0) {
+      return {
+        raw,
+        amount: null,
+        cents: null,
+        display: ""
+      };
+    }
+    const rounded = Math.round(amount * 100) / 100;
+    return {
+      raw,
+      amount: rounded,
+      cents: Math.round(rounded * 100),
+      display: rounded.toFixed(2)
+    };
   };
   const kassaPrepArticles = [...(prijslijst || [])].map((artikel, index) => ({
     ...artikel,
@@ -14456,44 +14478,69 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
   Object.keys(articleNumberCounts).filter(nr => articleNumberCounts[nr] > 1).forEach(nr => kassaWarnings.push(t.pl_kassa_warning_duplicate_number(nr)));
   kassaPrepArticles.forEach(article => {
     const nr = article.articleNumber || "?";
-    const priceText = String(article.prijs == null ? "" : article.prijs).trim();
-    const price = Number(priceText.replace(",", "."));
+    const parsedPrice = parseKassaPrice(article.prijs);
     if (!String(article.naam || "").trim()) kassaWarnings.push(t.pl_kassa_warning_missing_name(nr));
     if (!String(article.categorie || "").trim()) kassaWarnings.push(t.pl_kassa_warning_missing_category(nr));
-    if (!priceText) kassaWarnings.push(t.pl_kassa_warning_missing_price(nr));
-    else if (!Number.isFinite(price) || price < 0) kassaWarnings.push(t.pl_kassa_warning_invalid_price(nr));
+    if (!parsedPrice.raw) kassaWarnings.push(t.pl_kassa_warning_missing_price(nr));
+    else if (parsedPrice.cents == null) kassaWarnings.push(t.pl_kassa_warning_invalid_price(nr));
   });
   const kassaReady = kassaWarnings.length === 0;
   const activeCount = kassaPrepArticles.filter(a => a.actief !== false).length;
   const inactiveCount = kassaPrepArticles.length - activeCount;
   const buildKassaToolStartPriceListExport = () => {
-    const articles = kassaPrepArticles.map((article, index) => ({
-      articleId: article.id || article.articleId || "",
-      articleNumber: article.articleNumber,
-      categorie: article.categorie || "",
-      naam: article.naam || "",
-      prijs: String(article.prijs == null ? "" : article.prijs).trim(),
-      actief: article.actief !== false,
-      volgorde: Number.isFinite(Number(article.volgorde)) ? Number(article.volgorde) : index,
-      beschrijving: article.beschrijving || ""
-    }));
     const categories = kassaPrepCategories.map((categorie, index) => ({
-      id: `cat_${String(index + 1).padStart(3, "0")}`,
-      naam: categorie,
-      volgorde: index,
-      articles: articles.filter(article => article.categorie === categorie).map(article => article.articleId)
+      categoryId: `category-${String(index + 1).padStart(3, "0")}-${safeContractId(categorie) || "zonder-categorie"}`,
+      name: categorie,
+      sortOrder: index
+    }));
+    const categoryIdByName = categories.reduce((acc, category) => {
+      acc[category.name] = category.categoryId;
+      return acc;
+    }, {});
+    const articles = kassaPrepArticles.map((article, index) => {
+      const categoryName = String(article.categorie || "").trim();
+      const parsedPrice = parseKassaPrice(article.prijs);
+      const articleId = String(article.id || article.articleId || `article-${article.articleNumber}`).trim();
+      return {
+        articleId,
+        articleNumber: String(article.articleNumber || "").trim(),
+        categoryId: categoryIdByName[categoryName] || "",
+        categoryName,
+        name: String(article.naam || "").trim(),
+        price: {
+          amount: parsedPrice.amount,
+          cents: parsedPrice.cents,
+          currency: "EUR",
+          display: parsedPrice.display
+        },
+        active: article.actief !== false,
+        sortOrder: Number.isFinite(Number(article.volgorde)) ? Number(article.volgorde) : index,
+        description: String(article.beschrijving || "").trim()
+      };
+    });
+    const categoriesWithArticles = categories.map(category => ({
+      ...category,
+      articles: articles.filter(article => article.categoryId === category.categoryId).map(article => article.articleId)
     }));
     return {
-      schemaName: "be.zomerfeest.hoofdapp-official-start-pricelist",
-      schemaVersion: "1.0.0",
+      schemaName: KASSA_START_PRICE_LIST_SCHEMA_NAME,
+      schemaVersion: KASSA_START_PRICE_LIST_SCHEMA_VERSION,
       source: "hoofdapp.prijslijst",
       target: "kassa-tool",
+      contractStatus: "frozen",
       exportedAt: new Date().toISOString(),
+      exportedByAppVersion: APP_VERSION,
       eventId,
       eventName: event && event.naam || "",
       eventDate: event && event.datum || "",
       immutableStartSnapshot: true,
-      categories,
+      totals: {
+        categories: categoriesWithArticles.length,
+        articles: articles.length,
+        activeArticles: articles.filter(article => article.active).length,
+        inactiveArticles: articles.filter(article => !article.active).length
+      },
+      categories: categoriesWithArticles,
       articles
     };
   };

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.16.1
+- Kassa Tool-beginprijslijstexport technisch verfijnd en duidelijker vastgelegd als frozen contract.
+- Exportbestand bevat nu genormaliseerde prijzen met bedrag, centen, valuta en displaywaarde.
+- Categorieën krijgen stabiele categoryId's en artikelen krijgen een duidelijk exportmodel met categoryId, categoryName, articleId, articleNumber, active en sortOrder.
+- Exportmetadata bevat nu contractStatus, exportedByAppVersion en totalen voor categorieën/artikelen.
+- Prijslijststatus-tekst bijgewerkt: export bestaat nu, maar er is nog geen synchronisatie, import of ledger-logica.
+
 ## 1.16.0
 - Woordenboek uitgebreid met echte boeknavigatie: maximaal 10 woorden per blad en vorige/volgende-pijlen.
 - Nederlandse termen zijn nu ook rechtstreeks bewerkbaar; bij wijzigen wordt de term opnieuw alfabetisch gesorteerd.
