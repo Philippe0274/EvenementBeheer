@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.15.6
+- Winkelbestellingen-PDF toont nu per kasticket/aankoper ook de rekeninginfo van de vrijwilliger.
+- De rekeninginfo wordt gelezen uit het bestaande vrijwilligersveld `opmerking`; er is geen datamodel- of opslagwijziging.
+- Alleen de PDF-weergave van Winkelbestellingen is aangepast; kasticketfoto's, bedragen, kostenbeheer, Event Lifecycle, Kassa Tool-logica, affiche, weerfunctie, backup/restore en Business Continuity blijven ongewijzigd.
+
 ## 1.15.5
 - PDF-export van Winkelbestellingen verbeterd: kasticketfoto's worden veel groter en gecentreerd weergegeven.
 - Nieuwe kasticketfoto-uploads worden op hogere resolutie en met betere JPEG-kwaliteit bewaard.
