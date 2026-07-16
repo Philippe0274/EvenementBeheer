@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.4
+- Woordenboek-tab visueel omgezet naar een open-boekweergave met twee pagina's.
+- Termen worden alfabetisch gegroepeerd op Nederlandse beginletter.
+- Toevoegen, zoeken, inline aanpassen, verwijderen en standaardlijst herstellen blijven behouden.
+- Oud ingebed auto-recover backup-script uitgeschakeld omdat dit de app-start kon blokkeren en nooit actieve data mag overschrijven.
+- Geen wijzigingen aan woordenboekdata, Event Lifecycle, Kassa Tool-logica, weerscontrole, affiche, Excel, PDF, backup/restore of Business Continuity.
+
 ## 1.15.3
 - Woordenboek-tab visueel vernieuwd naar een professionelere terminologiebeheerder.
 - Titelkaart, termteller, zoekbalk, invoerkaart en compacte tabelweergave toegevoegd zonder datamodelwijziging.
