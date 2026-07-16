@@ -249,7 +249,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.15.4";
+const APP_VERSION = "1.15.5";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -11428,7 +11428,7 @@ function WinkelbestellingenTab({
   const handleFoto = async (kKey, file) => {
     if (!file) return;
     try {
-      const dataUrl = await comprimeerAfbeelding(file, 1100, 0.7);
+      const dataUrl = await comprimeerAfbeelding(file, 2200, 0.92);
       updateKasticket(kKey, {
         foto: dataUrl
       });
@@ -11571,17 +11571,21 @@ function WinkelbestellingenTab({
         if (metFotos && foto) {
           try {
             const props = doc.getImageProperties(foto);
-            const maxW = 60,
-              maxH = 75;
+            const maxW = pageW - 2 * marge - 8,
+              maxH = pageH - 2 * marge - 18;
             let iw = maxW,
               ih = props.height / props.width * maxW;
             if (ih > maxH) {
               ih = maxH;
               iw = props.width / props.height * maxH;
             }
-            nieuwePagina(ih + 4);
-            doc.addImage(foto, "JPEG", marge + 4, y, iw, ih);
-            y += ih + 4;
+            nieuwePagina(ih + 8);
+            const ix = (pageW - iw) / 2;
+            doc.setDrawColor(217, 207, 193);
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(ix - 1.5, y - 1.5, iw + 3, ih + 3, 1.5, 1.5, "FD");
+            doc.addImage(foto, "JPEG", ix, y, iw, ih, undefined, "NONE");
+            y += ih + 8;
           } catch (e) {/* foto overslaan bij fout */}
         }
         y += 2;

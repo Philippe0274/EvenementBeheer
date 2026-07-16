@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.15.5
+- PDF-export van Winkelbestellingen verbeterd: kasticketfoto's worden veel groter en gecentreerd weergegeven.
+- Nieuwe kasticketfoto-uploads worden op hogere resolutie en met betere JPEG-kwaliteit bewaard.
+- Alleen de kasticketfoto-weergave in de Winkelbestellingen-PDF is aangepast; bedragen, groepering, WhatsApp-tekst, kostenbeheer, Event Lifecycle, Kassa Tool-logica, affiche, weerfunctie, backup/restore en Business Continuity blijven ongewijzigd.
+
 ## 1.15.4
 - Woordenboek-tab visueel omgezet naar een open-boekweergave met twee pagina's.
 - Termen worden alfabetisch gegroepeerd op Nederlandse beginletter.
