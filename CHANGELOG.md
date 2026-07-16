@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.16.0
+- Woordenboek uitgebreid met echte boeknavigatie: maximaal 10 woorden per blad en vorige/volgende-pijlen.
+- Nederlandse termen zijn nu ook rechtstreeks bewerkbaar; bij wijzigen wordt de term opnieuw alfabetisch gesorteerd.
+- Dubbele of lege Nederlandse termen worden geblokkeerd om woordenboekdata correct te houden.
+- Boekweergave visueel versterkt met paginanummers, subtiele bladanimatie en duidelijkere boekpagina's.
+- Geen wijziging aan opslagstructuur, backup/restore, Event Lifecycle, Kassa Tool-export, affiche, Business Continuity of PDF-functionaliteit.
+
+## 1.15.9
+- Woordenboekweergave verfijnd: alfabetische scheidingsletters staan nu in een subtiele lichtgroene ovaal.
+- Alleen de visuele boekweergave is aangepast; woordenboekdata, toevoegen, zoeken, aanpassen, verwijderen en standaardlijst herstellen blijven ongewijzigd.
+
+## 1.15.8
+- Prijslijst-tab uitgebreid met een gecontroleerde JSON-export "Export voor Kassa Tool".
+- De export bevat uitsluitend de officiële beginprijslijst uit de Hoofdapp met eventgegevens, categorieën, artikelen, prijzen, actief/inactief-status en volgorde.
+- De exportknop is alleen actief wanneer de Kassa Tool-voorbereidingscontrole geen aandachtspunten meldt.
+- EventId en technische schema-informatie blijven intern in het exportbestand, maar worden niet meer zichtbaar als technische velden in de Prijslijst-tab.
+- Geen import, synchronisatie, ledger-posting, opslagwijziging of datamodelwijziging toegevoegd.
+
 ## 1.15.7
 - Prijslijst-tab uitgebreid met een read-only "Kassa Tool voorbereiding"-statuskaart.
 - De statuskaart controleert EventId, categorieën, artikelen, actieve/inactieve artikelen, lege artikelnamen, ontbrekende categorieën, ontbrekende/ongeldige prijzen en dubbele artikelnummers.

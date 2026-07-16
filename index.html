@@ -227,6 +227,24 @@
   .shop-logo-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
   @media (max-width: 1200px) { .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 920px) { .shop-grid { grid-template-columns: 1fr; } .shop-form-grid { grid-template-columns: 1fr; } }
+  .dictionary-letter { margin-bottom: 0.55rem; font-size: 1.08rem; color: #426332; }
+  .dictionary-letter-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 2.35rem; min-height: 1.55rem; padding: 0.12rem 0.62rem; border-radius: 999px; background: #dfead4; border: 1px solid #c2d6af; box-shadow: inset 0 1px 0 rgba(255,255,255,0.62), 0 1px 3px rgba(66, 99, 50, 0.12); color: #426332; }
+  .dictionary-book-wrap { padding: 1.4rem 3.2rem 1.2rem; background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.72), transparent 34%), linear-gradient(135deg, rgba(122, 96, 62, 0.16), rgba(255, 253, 248, 0.28)); }
+  .dictionary-book { min-height: 590px; border: 1px solid rgba(139, 112, 76, 0.28); box-shadow: 0 24px 52px rgba(44, 38, 31, 0.22), inset 0 0 0 1px rgba(255,255,255,0.52); transform-style: preserve-3d; }
+  .dictionary-book::after { content: ""; position: absolute; inset: 0.55rem; border-radius: 7px; border: 1px solid rgba(139, 112, 76, 0.14); pointer-events: none; z-index: 3; }
+  .dictionary-page { display: flex; flex-direction: column; min-height: 590px; padding-bottom: 1rem; transition: transform 0.24s ease, box-shadow 0.24s ease; }
+  .dictionary-page-left { box-shadow: inset -18px 0 28px rgba(86, 61, 33, 0.08); }
+  .dictionary-page-right { box-shadow: inset 18px 0 28px rgba(86, 61, 33, 0.07); }
+  .dictionary-book.turning .dictionary-page-right { animation: dictionaryPageTurn 0.28s ease; transform-origin: left center; }
+  .dictionary-book-fields { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.45rem; min-width: 0; }
+  .dictionary-book-entry { grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; }
+  .dictionary-book-fields .input { width: 100%; }
+  .dictionary-book-page-number { position: relative; z-index: 1; margin-top: auto; padding-top: 0.8rem; color: rgba(92, 76, 52, 0.62); font-size: 0.72rem; text-align: center; }
+  .dictionary-book-nav { position: absolute; inset: 0.8rem 0.55rem auto; top: 50%; transform: translateY(-50%); display: flex; justify-content: space-between; pointer-events: none; z-index: 6; }
+  .dictionary-book-nav .btn { pointer-events: auto; width: 2.35rem; height: 2.35rem; min-width: 2.35rem; padding: 0; border-radius: 999px; box-shadow: 0 8px 18px rgba(44, 38, 31, 0.16); }
+  .dictionary-book-nav .btn:disabled { opacity: 0.32; cursor: default; box-shadow: none; }
+  .dictionary-book-status { margin-top: 0.85rem; text-align: center; color: var(--ink-soft); font-size: 0.78rem; }
+  @keyframes dictionaryPageTurn { 0% { transform: perspective(900px) rotateY(-7deg); opacity: 0.86; } 100% { transform: perspective(900px) rotateY(0deg); opacity: 1; } }
 </style>
 </head>
 <body>
@@ -249,7 +267,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.15.7";
+const APP_VERSION = "1.16.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -481,6 +499,10 @@ const T = {
     pl_kassa_warning_invalid_price: nr => `Artikel ${nr} heeft een ongeldige prijs.`,
     pl_kassa_warning_duplicate_number: nr => `Artikelnummer ${nr} komt meerdere keren voor.`,
     pl_kassa_readonly_note: "Voorbereiding alleen-lezen: de Hoofdapp blijft eigenaar van deze officiële beginprijslijst.",
+    pl_kassa_export: "Export voor Kassa Tool",
+    pl_kassa_export_help: "Downloadt een JSON-bestand met de officiële beginprijslijst. Dit voert nog geen synchronisatie uit.",
+    pl_kassa_export_blocked: "Los eerst de aandachtspunten op voor je exporteert.",
+    pl_kassa_export_ok: "✓ Kassa Tool-prijslijst geëxporteerd",
     vv_intro: "Beheer hier de voorverkoop en de zelfinbreng. Alle bedragen tellen mee in het kostenplaatje.",
     vv_streefdoel: "Streefdoel voorverkoop",
     vv_streefdoel_ph: "bv. 750",
@@ -884,6 +906,10 @@ const T = {
     dictionary_actions: "Acties",
     no_terms: "Geen termen gevonden.",
     fill_both: "Vul beide velden in.",
+    dictionary_duplicate_term: "Deze Nederlandse term bestaat al.",
+    dictionary_prev_page: "Vorige pagina",
+    dictionary_next_page: "Volgende pagina",
+    dictionary_page_status: (page, total) => `Pagina ${page} van ${total}`,
     confirm_remove_term: nl => `Verwijder "${nl}" uit het woordenboek?`,
     confirm_restore_dict: "Woordenboek terugzetten naar de standaardlijst? Eigen toevoegingen gaan verloren.",
     bulk_title: "Bulk verzenden",
@@ -1195,6 +1221,10 @@ const T = {
     pl_kassa_warning_invalid_price: nr => `L'article ${nr} a un prix invalide.`,
     pl_kassa_warning_duplicate_number: nr => `Le numéro d'article ${nr} est utilisé plusieurs fois.`,
     pl_kassa_readonly_note: "Préparation en lecture seule : l'application principale reste propriétaire de cette liste de prix officielle de départ.",
+    pl_kassa_export: "Exporter pour Kassa Tool",
+    pl_kassa_export_help: "Télécharge un fichier JSON avec la liste de prix officielle de départ. Aucune synchronisation n'est effectuée.",
+    pl_kassa_export_blocked: "Corrigez d'abord les points d'attention avant d'exporter.",
+    pl_kassa_export_ok: "✓ Liste de prix Kassa Tool exportée",
     vv_intro: "Gérez ici les préventes et l'apport personnel. Tous les montants comptent dans le bilan des coûts.",
     vv_streefdoel: "Objectif de prévente",
     vv_streefdoel_ph: "p.ex. 750",
@@ -1598,6 +1628,10 @@ const T = {
     dictionary_actions: "Actions",
     no_terms: "Aucun terme trouvé.",
     fill_both: "Remplissez les deux champs.",
+    dictionary_duplicate_term: "Ce terme néerlandais existe déjà.",
+    dictionary_prev_page: "Page précédente",
+    dictionary_next_page: "Page suivante",
+    dictionary_page_status: (page, total) => `Page ${page} sur ${total}`,
     confirm_remove_term: nl => `Supprimer "${nl}" du dictionnaire ?`,
     confirm_restore_dict: "Rétablir le dictionnaire par défaut ? Vos ajouts seront perdus.",
     bulk_title: "Envoi groupé",
@@ -5853,6 +5887,7 @@ function App() {
     update: updatePrijslijstArtikel,
     remove: removePrijslijstArtikel,
     addCategorie: addPrijslijstCategorie,
+    showToast: showToast,
     t: t
   }), tab === "voorverkoop" && /*#__PURE__*/React.createElement(VoorverkoopTab, {
     data: data,
@@ -14398,7 +14433,7 @@ function BusinessContinuityTab({
   })));
 }
 
-function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, t }) {
+function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, showToast, t }) {
   const [bewerk, setBewerk] = React.useState(null);
   const articleNumberFor = (artikel, index) => {
     const bestaand = artikel && (artikel.artikelNummer || artikel.nummer || artikel.code);
@@ -14431,6 +14466,55 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
   const kassaReady = kassaWarnings.length === 0;
   const activeCount = kassaPrepArticles.filter(a => a.actief !== false).length;
   const inactiveCount = kassaPrepArticles.length - activeCount;
+  const buildKassaToolStartPriceListExport = () => {
+    const articles = kassaPrepArticles.map((article, index) => ({
+      articleId: article.id || article.articleId || "",
+      articleNumber: article.articleNumber,
+      categorie: article.categorie || "",
+      naam: article.naam || "",
+      prijs: String(article.prijs == null ? "" : article.prijs).trim(),
+      actief: article.actief !== false,
+      volgorde: Number.isFinite(Number(article.volgorde)) ? Number(article.volgorde) : index,
+      beschrijving: article.beschrijving || ""
+    }));
+    const categories = kassaPrepCategories.map((categorie, index) => ({
+      id: `cat_${String(index + 1).padStart(3, "0")}`,
+      naam: categorie,
+      volgorde: index,
+      articles: articles.filter(article => article.categorie === categorie).map(article => article.articleId)
+    }));
+    return {
+      schemaName: "be.zomerfeest.hoofdapp-official-start-pricelist",
+      schemaVersion: "1.0.0",
+      source: "hoofdapp.prijslijst",
+      target: "kassa-tool",
+      exportedAt: new Date().toISOString(),
+      eventId,
+      eventName: event && event.naam || "",
+      eventDate: event && event.datum || "",
+      immutableStartSnapshot: true,
+      categories,
+      articles
+    };
+  };
+  const exportKassaToolPriceList = () => {
+    if (!kassaReady) {
+      alert(t.pl_kassa_export_blocked);
+      return;
+    }
+    const payload = buildKassaToolStartPriceListExport();
+    const safeEventName = String(event && event.naam || "evenement").trim().replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `kassa_tool_beginprijslijst_${safeEventName}_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    if (typeof showToast === "function") showToast(t.pl_kassa_export_ok);
+  };
   const kassaMetric = (label, value) => /*#__PURE__*/React.createElement("div", {
     style: {
       border: "1px solid var(--line)",
@@ -14489,7 +14573,7 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
         gap: "0.65rem",
         marginTop: "1rem"
       }
-    }, kassaMetric(t.pl_kassa_event_id, eventId), kassaMetric(t.pl_kassa_schema, "hoofdapp-official-start-pricelist 1.0.0"), kassaMetric(t.pl_kassa_categories, kassaPrepCategories.length), kassaMetric(t.pl_kassa_articles, kassaPrepArticles.length), kassaMetric(t.pl_kassa_active_articles, activeCount), kassaMetric(t.pl_kassa_inactive_articles, inactiveCount)), /*#__PURE__*/React.createElement("div", {
+    }, kassaMetric(t.pl_kassa_categories, kassaPrepCategories.length), kassaMetric(t.pl_kassa_articles, kassaPrepArticles.length), kassaMetric(t.pl_kassa_active_articles, activeCount), kassaMetric(t.pl_kassa_inactive_articles, inactiveCount)), /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: "0.9rem",
         paddingTop: "0.8rem",
@@ -14519,7 +14603,24 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
         color: "var(--ink-soft)",
         marginTop: "0.55rem"
       }
-    }, t.pl_kassa_readonly_note))),
+    }, t.pl_kassa_readonly_note), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: "0.65rem",
+        flexWrap: "wrap",
+        marginTop: "0.75rem"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: `btn ${kassaReady ? "btn-primary" : "btn-ghost"} btn-sm`,
+      onClick: exportKassaToolPriceList,
+      disabled: !kassaReady,
+      title: kassaReady ? t.pl_kassa_export_help : t.pl_kassa_export_blocked
+    }, t.pl_kassa_export), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink-soft)"
+      }
+    }, t.pl_kassa_export_help)))),
     /*#__PURE__*/React.createElement("div", { style: { display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" } },
       /*#__PURE__*/React.createElement("button", { className: "btn btn-primary btn-sm", onClick: add }, t.pl_add),
       /*#__PURE__*/React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => { const naam = prompt(t.pl_categorie_nieuw); if (naam?.trim()) addCategorie(naam); } }, t.pl_categorie_nieuw)
@@ -15411,24 +15512,64 @@ function WoordenboekTab({
   const [zoek, setZoek] = useState("");
   const [nieuwNl, setNieuwNl] = useState("");
   const [nieuwFr, setNieuwFr] = useState("");
+  const [bookSpread, setBookSpread] = useState(0);
+  const [turning, setTurning] = useState(false);
+  const TERMS_PER_BOOK_PAGE = 10;
   const entries = Object.entries(dict).sort((a, b) => a[0].localeCompare(b[0]));
   const filtered = entries.filter(([nl, fr]) => {
     const s = zoek.toLowerCase();
     return nl.toLowerCase().includes(s) || fr.toLowerCase().includes(s);
   });
-  const grouped = filtered.reduce((acc, entry) => {
-    const letter = (entry[0] || "#").trim().charAt(0).toUpperCase() || "#";
-    const key = /^[A-ZÀ-ÖØ-Þ]$/.test(letter) ? letter : "#";
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(entry);
-    return acc;
-  }, {});
-  const sections = Object.keys(grouped).sort((a, b) => a.localeCompare(b)).map(letter => ({
-    letter,
-    entries: grouped[letter]
-  }));
-  const splitIndex = Math.ceil(sections.length / 2);
-  const bookPages = [sections.slice(0, splitIndex), sections.slice(splitIndex)];
+  const totalSpreads = Math.max(1, Math.ceil(filtered.length / (TERMS_PER_BOOK_PAGE * 2)));
+  React.useEffect(() => {
+    setBookSpread(0);
+  }, [zoek]);
+  React.useEffect(() => {
+    setBookSpread(current => Math.min(current, totalSpreads - 1));
+  }, [totalSpreads]);
+  const normalizeDictionaryTerm = value => normalizeName(value);
+  const groupEntriesByLetter = pageEntries => {
+    const grouped = pageEntries.reduce((acc, entry) => {
+      const letter = (entry[0] || "#").trim().charAt(0).toUpperCase() || "#";
+      const key = /^[A-ZÀ-ÖØ-Þ]$/.test(letter) ? letter : "#";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(entry);
+      return acc;
+    }, {});
+    return Object.keys(grouped).sort((a, b) => a.localeCompare(b)).map(letter => ({
+      letter,
+      entries: grouped[letter]
+    }));
+  };
+  const pageTitleFor = (pageEntries, fallback) => {
+    if (!pageEntries.length) return fallback;
+    const letters = [...new Set(pageEntries.map(([nl]) => {
+      const letter = (nl || "#").trim().charAt(0).toUpperCase() || "#";
+      return /^[A-ZÀ-ÖØ-Þ]$/.test(letter) ? letter : "#";
+    }))];
+    return letters.length === 1 ? letters[0] : `${letters[0]} - ${letters[letters.length - 1]}`;
+  };
+  const currentSpreadEntries = filtered.slice(bookSpread * TERMS_PER_BOOK_PAGE * 2, (bookSpread + 1) * TERMS_PER_BOOK_PAGE * 2);
+  const leftEntries = currentSpreadEntries.slice(0, TERMS_PER_BOOK_PAGE);
+  const rightEntries = currentSpreadEntries.slice(TERMS_PER_BOOK_PAGE, TERMS_PER_BOOK_PAGE * 2);
+  const bookPages = [{
+    side: "left",
+    title: pageTitleFor(leftEntries, t.dutch),
+    entries: leftEntries,
+    pageNumber: bookSpread * 2 + 1
+  }, {
+    side: "right",
+    title: pageTitleFor(rightEntries, t.french),
+    entries: rightEntries,
+    pageNumber: bookSpread * 2 + 2
+  }];
+  const goToSpread = nextSpread => {
+    const bounded = Math.max(0, Math.min(totalSpreads - 1, nextSpread));
+    if (bounded === bookSpread) return;
+    setTurning(true);
+    setBookSpread(bounded);
+    window.setTimeout(() => setTurning(false), 280);
+  };
   const addEntry = () => {
     if (!nieuwNl.trim() || !nieuwFr.trim()) {
       alert(t.fill_both);
@@ -15450,6 +15591,31 @@ function WoordenboekTab({
     delete newDict[nl];
     update(newDict);
   };
+  const renameEntry = (oldNl, newNl, input) => {
+    const cleanNl = normalizeDictionaryTerm(newNl);
+    if (!cleanNl) {
+      alert(t.fill_both);
+      if (input) input.value = oldNl;
+      return;
+    }
+    if (cleanNl === oldNl) {
+      if (input) input.value = oldNl;
+      return;
+    }
+    if (Object.prototype.hasOwnProperty.call(dict, cleanNl)) {
+      alert(t.dictionary_duplicate_term);
+      if (input) input.value = oldNl;
+      return;
+    }
+    const newDict = {
+      ...dict
+    };
+    const currentFr = newDict[oldNl] || "";
+    delete newDict[oldNl];
+    newDict[cleanNl] = currentFr;
+    update(newDict);
+    showToast("✓");
+  };
   const updateEntry = (nl, newFr) => update({
     ...dict,
     [nl]: (newFr || "").toLowerCase()
@@ -15463,13 +15629,20 @@ function WoordenboekTab({
     key: nl,
     className: "dictionary-book-entry"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "dictionary-book-term",
-    title: nl
-  }, nl), /*#__PURE__*/React.createElement("input", {
+    className: "dictionary-book-fields"
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input dictionary-book-term",
+    defaultValue: nl,
+    title: nl,
+    onBlur: e => renameEntry(nl, e.target.value, e.target),
+    onKeyDown: e => {
+      if (e.key === "Enter") e.currentTarget.blur();
+    }
+  }), /*#__PURE__*/React.createElement("input", {
     className: "input",
     value: fr,
     onChange: e => updateEntry(nl, e.target.value)
-  }), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     className: "dictionary-book-actions"
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-danger btn-sm",
@@ -15481,21 +15654,39 @@ function WoordenboekTab({
     className: "dictionary-letter-section"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "dictionary-letter"
-  }, section.letter), section.entries.map(renderBookEntry));
-  const renderBookPage = (pageSections, pageIndex) => /*#__PURE__*/React.createElement("div", {
-    key: pageIndex,
-    className: `dictionary-page ${pageIndex === 0 ? "dictionary-page-left" : "dictionary-page-right"}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "dictionary-letter-pill"
+  }, section.letter)), section.entries.map(renderBookEntry));
+  const renderBookPage = (page, pageIndex) => /*#__PURE__*/React.createElement("div", {
+    key: page.side,
+    className: `dictionary-page ${page.side === "left" ? "dictionary-page-left" : "dictionary-page-right"}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "dictionary-page-title"
-  }, pageIndex === 0 ? "\uD83C\uDDF3\uD83C\uDDF1 " + t.dutch : "\uD83C\uDDEB\uD83C\uDDF7 " + t.french), pageSections.map(renderBookSection));
+  }, page.title), groupEntriesByLetter(page.entries).map(renderBookSection), /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-book-page-number"
+  }, page.pageNumber));
   const bookContent = filtered.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card dictionary-table"
   }, /*#__PURE__*/React.createElement("p", {
     className: "dictionary-empty"
-  }, t.no_terms)) : /*#__PURE__*/React.createElement("div", {
-    className: "dictionary-book",
+  }, t.no_terms)) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-book-nav"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: () => goToSpread(bookSpread - 1),
+    disabled: bookSpread === 0,
+    title: t.dictionary_prev_page
+  }, "\u2039"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost",
+    onClick: () => goToSpread(bookSpread + 1),
+    disabled: bookSpread >= totalSpreads - 1,
+    title: t.dictionary_next_page
+  }, "\u203a")), /*#__PURE__*/React.createElement("div", {
+    className: `dictionary-book ${turning ? "turning" : ""}`,
     "aria-label": t.woord_title
-  }, bookPages.map(renderBookPage));
+  }, bookPages.map(renderBookPage)), /*#__PURE__*/React.createElement("div", {
+    className: "dictionary-book-status"
+  }, t.dictionary_page_status(bookSpread + 1, totalSpreads)));
   return /*#__PURE__*/React.createElement("div", {
     className: "dictionary-shell"
   }, /*#__PURE__*/React.createElement("section", {
