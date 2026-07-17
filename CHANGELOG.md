@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.18.0
+- Google Drive Sync fase 2A toegevoegd: de Hoofdapp kan de officiële beginprijslijst publiceren naar `EventToolSync`.
+- Nieuwe knop in het tabblad Prijslijst: "Publiceer naar Google Drive".
+- Publicatie gebruikt exact dezelfde gecontroleerde Kassa Tool-beginprijslijst als de bestaande JSON-export.
+- Het vaste Drive-bestand is `kassa-tool-official-start-pricelist.json`, bedoeld als latere bron voor de Kassa Tool op tablet.
+- Geen Kassa Tool-import, transactieverwerking, ledger-posting, rapportering, backup/restore-wijziging of datamodelwijziging toegevoegd.
+
 ## 1.17.1
 - Google Drive-paneel verfijnd: Drive-map-ID en accountnaam worden niet meer zichtbaar getoond op het Dashboard.
 - Verbinden/herverbinden volgt nu dezelfde UX als de Health app: bij een bewaarde koppeling wordt opnieuw verbinden zonder consent-scherm geprobeerd.
