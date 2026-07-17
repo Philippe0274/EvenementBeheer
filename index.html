@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.17.0";
+const APP_VERSION = "1.17.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -415,8 +415,13 @@ function eventToolGDriveConnect() {
     initEventToolGoogleDrive();
     return false;
   }
+  if (eventToolGDriveIsTokenValid()) {
+    eventToolGDriveEmit();
+    return true;
+  }
+  const hasSavedConnection = eventToolGDriveWantsConnection() || !!eventToolGDriveUserName;
   eventToolGDriveTokenClient.requestAccessToken({
-    prompt: eventToolGDriveUserName ? "" : "consent",
+    prompt: hasSavedConnection ? "" : "consent",
     login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
   });
   return true;
@@ -6778,54 +6783,13 @@ function GoogleDrivePanel({
       textTransform: "uppercase",
       fontWeight: 800
     }
-  }, t.gdrive_folder), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: "0.78rem",
-      fontFamily: "monospace",
-      wordBreak: "break-all",
-      marginTop: "0.25rem"
-    }
-  }, drive.folderId)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "0.7rem",
-      borderRadius: 8,
-      background: "rgba(255,255,255,0.74)",
-      border: "1px solid var(--line)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: "0.72rem",
-      color: "var(--ink-soft)",
-      textTransform: "uppercase",
-      fontWeight: 800
-    }
   }, t.gdrive_last_test), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: "0.86rem",
       marginTop: "0.25rem",
       fontWeight: 700
     }
-  }, lastTest)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "0.7rem",
-      borderRadius: 8,
-      background: "rgba(255,255,255,0.74)",
-      border: "1px solid var(--line)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: "0.72rem",
-      color: "var(--ink-soft)",
-      textTransform: "uppercase",
-      fontWeight: 800
-    }
-  }, "Account"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: "0.86rem",
-      marginTop: "0.25rem",
-      fontWeight: 700
-    }
-  }, drive.userName || "—"))), /*#__PURE__*/React.createElement("div", {
+  }, lastTest))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: "0.45rem",

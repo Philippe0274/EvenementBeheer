@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.17.1
+- Google Drive-paneel verfijnd: Drive-map-ID en accountnaam worden niet meer zichtbaar getoond op het Dashboard.
+- Verbinden/herverbinden volgt nu dezelfde UX als de Health app: bij een bewaarde koppeling wordt opnieuw verbinden zonder consent-scherm geprobeerd.
+- Geen wijziging aan Drive-map, sync-testbestand, prijslijstdata, backup/restore, Kassa Tool-export, ledger of datamodel.
+
 ## 1.17.0
 - Google Drive-basislaag toegevoegd aan de Hoofdapp met zichtbaar dashboardpaneel voor EventToolSync.
 - Nieuwe Drive-map ingesteld: `EventToolSync` met folder-ID `1annD2FEIq0uRSDtGAHQ4NiDSIUdN6gzi`.
