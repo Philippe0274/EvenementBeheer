@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.3
+- Gmail-compose voor terugbetalingsmails opent nu via `https://mail.google.com/mail/u/1/`.
+- Deze accountpositie is ingesteld voor Edge op de vaste test-pc, waar `/u/1/` overeenkomt met `jflores2000@gmail.com`.
+- Ontvangers blijven eventgebonden instelbaar; bijlagen blijven losse kasticketbestanden die manueel toegevoegd worden.
+
 ## 1.22.2
 - Gmail-compose voor terugbetalingsmails opent nu via `https://mail.google.com/mail/u/2/`.
 - Deze accountpositie is ingesteld voor de vaste test-pc/browser waar `/u/2/` overeenkomt met `jflores2000@gmail.com`.
