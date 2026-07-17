@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.22.1
+- Terugbetalingsmail-ontvangers zijn nu eventgebonden instelbaar in het tabblad Event.
+- Voor de test staat standaard alleen `philippe.demeersman1970@gmail.com` als ontvanger ingevuld.
+- De knop voor terugbetalingsmails opent nu Gmail Compose in de browser in plaats van het standaard mailprogramma.
+- De app toont een Gmail-controlehint; bijlagen blijven losse kasticketbestanden die manueel aan Gmail worden toegevoegd.
+
 ## 1.22.0
 - Terugbetalingsmails toegevoegd aan Winkelbestellingen.
 - Per aankoper/vrijwilliger wordt nu een mailtekst voorbereid met vaste ontvangers, onderwerp, kopergegevens, rekeningnummer uit de vrijwilligersopmerking, ticketbestandsnamen, bedragen en totaal.
