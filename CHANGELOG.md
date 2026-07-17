@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.1
+- Event-match in de Kassa-exportmonitor verfijnd voor tablets die na een reset een ander eventId hebben.
+- Als eventnaam en datum overeenkomen maar eventId verschilt, wordt dit nu een waarschuwing in plaats van een blokkering.
+- Datums worden genormaliseerd zodat `21-06-2026` en `2026-06-21` als hetzelfde event kunnen worden herkend.
+- Wijziging blijft read-only: geen import, geen ledger-posting en geen verwerking toegevoegd.
+
 ## 1.20.0
 - Pre-import controlelaag toegevoegd aan de read-only Kassa-exportmonitor.
 - Per export wordt nu gecontroleerd: schema, event-match, nieuwste export, kassa-status, gebruiker, kassapunt en aanwezigheid van transacties/tickets.
