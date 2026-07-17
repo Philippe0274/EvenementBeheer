@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.21.1
+- Woordenboek neemt nu ook Franse materiaalnamen automatisch over als vertaling.
+- Als een materiaal `naamNl` en `naamFr` heeft, wordt dit toegevoegd als `naamNl -> naamFr`.
+- Bestaande ingevulde woordenboekvertalingen blijven behouden; alleen lege vertalingen worden aangevuld.
+
 ## 1.21.0
 - Woordenboek groeit nu automatisch mee met de materiaallijst.
 - Bestaande materiaalnamen worden bij het laden automatisch toegevoegd als Nederlandse woordenboekterm als ze nog ontbreken.
