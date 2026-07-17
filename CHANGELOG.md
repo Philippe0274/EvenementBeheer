@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.2
+- Gmail-compose voor terugbetalingsmails opent nu via `https://mail.google.com/mail/u/2/`.
+- Deze accountpositie is ingesteld voor de vaste test-pc/browser waar `/u/2/` overeenkomt met `jflores2000@gmail.com`.
+- Ontvangers blijven eventgebonden instelbaar; bijlagen blijven losse kasticketbestanden die manueel toegevoegd worden.
+
 ## 1.22.1
 - Terugbetalingsmail-ontvangers zijn nu eventgebonden instelbaar in het tabblad Event.
 - Voor de test staat standaard alleen `philippe.demeersman1970@gmail.com` als ontvanger ingevuld.
