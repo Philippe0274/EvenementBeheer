@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.21.0
+- Woordenboek groeit nu automatisch mee met de materiaallijst.
+- Bestaande materiaalnamen worden bij het laden automatisch toegevoegd als Nederlandse woordenboekterm als ze nog ontbreken.
+- Nieuwe en gewijzigde materialen voegen hun Nederlandse materiaalnaam automatisch toe aan het woordenboek.
+- Bestaande woordenboekvertalingen worden niet overschreven en dubbele termen worden vermeden.
+
 ## 1.20.2
 - Event-match in de Kassa-exportmonitor robuuster gemaakt voor gemengde Hoofdapp-eventstructuren.
 - De controle vergelijkt nu actieve eventdata uit meerdere veilige bronnen: `data.event`, `data.events[]`, `eventInfo` en snapshots.
