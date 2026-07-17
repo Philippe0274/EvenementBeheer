@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.19.1
+- Kassa-exportmonitor markeert nu per event/tablet de meest recente export met een rode omlijning.
+- Meest recente export wordt bepaald op basis van `exportedAt`, daarna timestamp in de bestandsnaam en als fallback Google Drive `modifiedTime`.
+- Wijziging is uitsluitend visueel/read-only: geen import, geen ledger-posting en geen verwerking toegevoegd.
+
 ## 1.19.0
 - Read-only Kassa-exportmonitor toegevoegd aan de Hoofdapp.
 - Nieuwe tab "Kassa Exports" leest `kassa-export-*.json` uit de bestaande Google Drive-map EventToolSync.

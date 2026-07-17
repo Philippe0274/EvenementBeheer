@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.19.0";
+const APP_VERSION = "1.19.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -675,6 +675,8 @@ const T = {
     kx_file: "Drive-bestand",
     kx_modified: "Gewijzigd",
     kx_schema_invalid: "Geen geldig Kassa Tool-exportcontract",
+    kx_latest_export: "Meest recent",
+    kx_older_export: "Oudere export",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1446,6 +1448,8 @@ const T = {
     kx_file: "Fichier Drive",
     kx_modified: "Modifié",
     kx_schema_invalid: "Contrat d'export Kassa Tool invalide",
+    kx_latest_export: "Le plus récent",
+    kx_older_export: "Export plus ancien",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -6920,6 +6924,31 @@ function GoogleDrivePanel({
   }, message || drive.lastError || t.gdrive_ready_hint));
 }
 
+function parseKassaExportFileNameTime(fileName) {
+  const match = String(fileName || "").match(/-(\d{14})\.json$/);
+  if (!match) return 0;
+  const raw = match[1];
+  const year = parseInt(raw.slice(0, 4), 10);
+  const month = parseInt(raw.slice(4, 6), 10) - 1;
+  const day = parseInt(raw.slice(6, 8), 10);
+  const hour = parseInt(raw.slice(8, 10), 10);
+  const minute = parseInt(raw.slice(10, 12), 10);
+  const second = parseInt(raw.slice(12, 14), 10);
+  const time = new Date(year, month, day, hour, minute, second).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function getKassaExportSortTime(file, payload) {
+  const exportedAt = payload && payload.export && payload.export.exportedAt || "";
+  const exportedTime = exportedAt ? new Date(exportedAt).getTime() : 0;
+  if (exportedTime && !Number.isNaN(exportedTime)) return exportedTime;
+  const fileNameTime = parseKassaExportFileNameTime(file && file.name);
+  if (fileNameTime) return fileNameTime;
+  const modifiedAt = file && file.modifiedTime || "";
+  const modifiedTime = modifiedAt ? new Date(modifiedAt).getTime() : 0;
+  return modifiedTime && !Number.isNaN(modifiedTime) ? modifiedTime : 0;
+}
+
 function summarizeKassaExportFile(file, payload, t, lang) {
   const schemaOk = payload && payload.schemaName === "be.zomerfeest.kassa-export" && payload.schemaVersion === "1.0.0";
   const integrity = payload && payload.integrity || {};
@@ -6941,8 +6970,11 @@ function summarizeKassaExportFile(file, payload, t, lang) {
     fileName: file.name,
     modifiedTime: modifiedAt,
     modifiedLabel: formatDateTimeSafe(modifiedAt),
+    exportSortTime: getKassaExportSortTime(file, payload),
     schemaOk,
     payload,
+    eventId: payload && payload.event && (payload.event.eventId || payload.event.id) || "",
+    deviceId: payload && payload.device && payload.device.deviceId || "",
     terminal: payload && payload.device && payload.device.friendlyName || payload && payload.device && payload.device.deviceId || t.kx_unknown,
     operator: payload && payload.operator && payload.operator.name || t.kx_unknown,
     eventName: payload && payload.event && payload.event.name || t.kx_unknown,
@@ -7000,7 +7032,10 @@ function KassaExportMonitorTab({
             fileName: file.name,
             modifiedTime: file.modifiedTime,
             modifiedLabel: file.modifiedTime ? new Date(file.modifiedTime).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-",
+            exportSortTime: getKassaExportSortTime(file, null),
             schemaOk: false,
+            eventId: "",
+            deviceId: "",
             terminal: t.kx_unknown,
             operator: t.kx_unknown,
             eventName: t.kx_unknown,
@@ -7025,6 +7060,13 @@ function KassaExportMonitorTab({
     }
   };
   const statusColor = drive.connected ? "var(--green)" : "#8a3b2e";
+  const latestByGroup = new Map();
+  exportsFound.forEach(item => {
+    const groupKey = `${item.eventId || item.eventName || "event"}::${item.deviceId || item.terminal || item.fileName}`;
+    const current = latestByGroup.get(groupKey);
+    if (!current || (item.exportSortTime || 0) > (current.exportSortTime || 0)) latestByGroup.set(groupKey, item);
+  });
+  const latestFileIds = new Set(Array.from(latestByGroup.values()).map(item => item.fileId));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -7092,12 +7134,15 @@ function KassaExportMonitorTab({
     }
   }, exportsFound.map(item => {
     const isOpen = openFileId === item.fileId;
+    const isLatestExport = latestFileIds.has(item.fileId);
     return /*#__PURE__*/React.createElement("div", {
       key: item.fileId,
       className: "card",
       style: {
         display: "grid",
-        gap: "0.8rem"
+        gap: "0.8rem",
+        outline: isLatestExport ? "3px solid #DE3E3E" : "none",
+        boxShadow: isLatestExport ? "0 0 0 4px rgba(222, 62, 62, 0.08), var(--shadow-soft)" : "var(--shadow-soft)"
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -7117,7 +7162,23 @@ function KassaExportMonitorTab({
         fontSize: "0.88rem",
         marginTop: "0.2rem"
       }
-    }, t.kx_operator, ": ", item.operator)), /*#__PURE__*/React.createElement("span", {
+    }, t.kx_operator, ": ", item.operator)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.4rem",
+        flexWrap: "wrap",
+        justifyContent: "flex-end"
+      }
+    }, isLatestExport && /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.28rem 0.6rem",
+        background: "rgba(222,62,62,0.14)",
+        color: "#DE3E3E",
+        fontWeight: 900,
+        fontSize: "0.78rem"
+      }
+    }, t.kx_latest_export), /*#__PURE__*/React.createElement("span", {
       style: {
         borderRadius: 999,
         padding: "0.28rem 0.6rem",
@@ -7126,7 +7187,7 @@ function KassaExportMonitorTab({
         fontWeight: 800,
         fontSize: "0.78rem"
       }
-    }, item.schemaOk ? t.kx_unprocessed : t.kx_schema_invalid)), /*#__PURE__*/React.createElement("div", {
+    }, item.schemaOk ? t.kx_unprocessed : t.kx_schema_invalid))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
