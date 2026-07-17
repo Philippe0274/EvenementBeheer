@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.19.0
+- Read-only Kassa-exportmonitor toegevoegd aan de Hoofdapp.
+- Nieuwe tab "Kassa Exports" leest `kassa-export-*.json` uit de bestaande Google Drive-map EventToolSync.
+- Exports worden als overzichtskaarten getoond met kassapunt, gebruiker, event, exporttijd, transacties en ticketregistraties.
+- Detailweergave blijft strikt alleen-lezen: nog geen import, ledger-posting, rapportboeking of financiële verwerking.
+- Bestaande Google Drive-koppeling en publicatie van de officiële beginprijslijst blijven ongewijzigd.
+
 ## 1.18.0
 - Google Drive Sync fase 2A toegevoegd: de Hoofdapp kan de officiële beginprijslijst publiceren naar `EventToolSync`.
 - Nieuwe knop in het tabblad Prijslijst: "Publiceer naar Google Drive".

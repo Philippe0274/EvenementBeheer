@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.18.0";
+const APP_VERSION = "1.19.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -281,6 +281,7 @@ const EVENT_TOOL_SYNC_FOLDER_ID = "1annD2FEIq0uRSDtGAHQ4NiDSIUdN6gzi";
 const EVENT_TOOL_SYNC_FOLDER_URL = `https://drive.google.com/drive/folders/${EVENT_TOOL_SYNC_FOLDER_ID}`;
 const EVENT_TOOL_DRIVE_TEST_FILE_NAME = "eventtool-connection-test.json";
 const EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME = "kassa-tool-official-start-pricelist.json";
+const EVENT_TOOL_KASSA_EXPORT_PREFIX = "kassa-export-";
 const SYSTEM_ORIGIN_WITHOUT_ID = "origin_without_origin";
 const SYSTEM_ORIGIN_WITHOUT_NAME = "Zonder oorsprong";
 
@@ -453,6 +454,31 @@ async function eventToolGDriveSearchFile(fileName) {
   return data.files || [];
 }
 
+async function eventToolGDriveListFilesByPrefix(prefix) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const q = `name contains '${eventToolGDriveEscapeQueryValue(prefix)}' and '${EVENT_TOOL_SYNC_FOLDER_ID}' in parents and trashed=false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&orderBy=modifiedTime desc&fields=files(id,name,modifiedTime,size)`;
+  const r = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!r.ok) throw new Error(`Drive list failed: ${r.status}`);
+  const data = await r.json();
+  return (data.files || []).filter(file => (file.name || "").startsWith(prefix));
+}
+
+async function eventToolGDriveDownloadJsonById(fileId) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!r.ok) throw new Error(`Drive download failed: ${r.status}`);
+  return await r.json();
+}
+
 async function eventToolGDriveUploadJson(fileName, payload) {
   if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
   const existing = await eventToolGDriveSearchFile(fileName);
@@ -623,7 +649,32 @@ const T = {
     tab_voorverkoop: "Voorverkoop",
     tab_kassabewegingen: "Kassa Bewegingen",
     tab_prijslijst: "Prijslijst",
+    tab_kassa_exports: "Kassa Exports",
     tab_business_continuity: "Business Continuity",
+    kx_title: "Kassa-exportmonitor",
+    kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
+    kx_refresh: "Exports ophalen",
+    kx_refreshing: "Exports ophalen...",
+    kx_not_connected: "Google Drive is niet verbonden. Verbind eerst via het Dashboard.",
+    kx_none: "Geen kassa-exportbestanden gevonden.",
+    kx_found: n => `${n} kassa-exportbestand${n === 1 ? "" : "en"} gevonden.`,
+    kx_error: "Kassa-exports ophalen mislukt",
+    kx_details: "Details bekijken",
+    kx_close_details: "Details sluiten",
+    kx_unknown: "Onbekend",
+    kx_unprocessed: "Nog niet verwerkt",
+    kx_readonly: "Alle gegevens hieronder zijn alleen-lezen. Ledger-posting en financiële import volgen later.",
+    kx_transactions: "Transacties",
+    kx_manifiesta: "ManiFiesta tickets",
+    kx_external: "Externe tickets",
+    kx_export_time: "Exporttijd",
+    kx_cash_status: "Kassa status",
+    kx_operator: "Gebruiker",
+    kx_terminal: "Kassapunt",
+    kx_event: "Event",
+    kx_file: "Drive-bestand",
+    kx_modified: "Gewijzigd",
+    kx_schema_invalid: "Geen geldig Kassa Tool-exportcontract",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1369,7 +1420,32 @@ const T = {
     tab_voorverkoop: "Prévente",
     tab_kassabewegingen: "Mouvements de Caisse",
     tab_prijslijst: "Liste de prix",
+    tab_kassa_exports: "Exports caisse",
     tab_business_continuity: "Business Continuity",
+    kx_title: "Moniteur des exports caisse",
+    kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
+    kx_refresh: "Charger les exports",
+    kx_refreshing: "Chargement...",
+    kx_not_connected: "Google Drive n'est pas connecté. Connectez-le d'abord via le tableau de bord.",
+    kx_none: "Aucun export caisse trouvé.",
+    kx_found: n => `${n} fichier${n === 1 ? "" : "s"} d'export caisse trouvé${n === 1 ? "" : "s"}.`,
+    kx_error: "Échec du chargement des exports caisse",
+    kx_details: "Voir détails",
+    kx_close_details: "Fermer détails",
+    kx_unknown: "Inconnu",
+    kx_unprocessed: "Pas encore traité",
+    kx_readonly: "Toutes les données ci-dessous sont en lecture seule. L'import financier et la comptabilisation suivront plus tard.",
+    kx_transactions: "Transactions",
+    kx_manifiesta: "Tickets ManiFiesta",
+    kx_external: "Tickets externes",
+    kx_export_time: "Heure d'export",
+    kx_cash_status: "Statut caisse",
+    kx_operator: "Utilisateur",
+    kx_terminal: "Point caisse",
+    kx_event: "Événement",
+    kx_file: "Fichier Drive",
+    kx_modified: "Modifié",
+    kx_schema_invalid: "Contrat d'export Kassa Tool invalide",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -6044,7 +6120,7 @@ function App() {
     }
   }, "\u26A0\uFE0F"), t.reset)))), /*#__PURE__*/React.createElement("nav", {
     className: "tab-nav"
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["kassaExports", t.tab_kassa_exports], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -6206,6 +6282,9 @@ function App() {
     deleteSet: deleteBusinessContinuitySheetSet,
     startManualEntry: startBusinessContinuityManualEntry,
     saveManualEntry: saveBusinessContinuityManualEntry,
+    t: t
+  }), tab === "kassaExports" && /*#__PURE__*/React.createElement(KassaExportMonitorTab, {
+    data: data,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6839,6 +6918,296 @@ function GoogleDrivePanel({
       fontSize: "0.82rem"
     }
   }, message || drive.lastError || t.gdrive_ready_hint));
+}
+
+function summarizeKassaExportFile(file, payload, t, lang) {
+  const schemaOk = payload && payload.schemaName === "be.zomerfeest.kassa-export" && payload.schemaVersion === "1.0.0";
+  const integrity = payload && payload.integrity || {};
+  const data = payload && payload.data || {};
+  const transactions = Array.isArray(data.transactions) ? data.transactions : [];
+  const manifestaRegs = Array.isArray(data.manifiestaTicketRegistrations) ? data.manifiestaTicketRegistrations : [];
+  const externalRegs = Array.isArray(data.externalTicketRegistrations) ? data.externalTicketRegistrations : [];
+  const exportedAt = payload && payload.export && payload.export.exportedAt || "";
+  const modifiedAt = file && file.modifiedTime || "";
+  const dateLocale = lang === "fr" ? "fr-BE" : "nl-BE";
+  const formatDateTimeSafe = value => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleString(dateLocale);
+  };
+  return {
+    fileId: file.id,
+    fileName: file.name,
+    modifiedTime: modifiedAt,
+    modifiedLabel: formatDateTimeSafe(modifiedAt),
+    schemaOk,
+    payload,
+    terminal: payload && payload.device && payload.device.friendlyName || payload && payload.device && payload.device.deviceId || t.kx_unknown,
+    operator: payload && payload.operator && payload.operator.name || t.kx_unknown,
+    eventName: payload && payload.event && payload.event.name || t.kx_unknown,
+    eventDate: payload && payload.event && payload.event.date || "",
+    exportedAt,
+    exportedLabel: formatDateTimeSafe(exportedAt),
+    cashStatus: payload && payload.cashSession && payload.cashSession.status || payload && payload.export && payload.export.cashSessionStatus || t.kx_unknown,
+    transactionCount: Number.isFinite(integrity.transactionCount) ? integrity.transactionCount : transactions.length,
+    manifestaTicketCount: Number.isFinite(integrity.manifiestaTicketCount) ? integrity.manifiestaTicketCount : manifestaRegs.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
+    externalTicketCount: Number.isFinite(integrity.externalTicketCount) ? integrity.externalTicketCount : externalRegs.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
+    manifestaRegs,
+    externalRegs,
+    transactions
+  };
+}
+
+function KassaExportMonitorTab({
+  data,
+  t
+}) {
+  const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [exportsFound, setExportsFound] = useState([]);
+  const [openFileId, setOpenFileId] = useState("");
+  useEffect(() => {
+    initEventToolGoogleDrive();
+    const unsub = eventToolGDriveSubscribe(setDrive);
+    const onFocus = () => eventToolGDriveSilentReconnect();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      unsub();
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+  const lang = data.taal === "fr" ? "fr" : "nl";
+  const refreshExports = async () => {
+    setBusy(true);
+    setMessage(t.kx_refreshing);
+    try {
+      if (!eventToolGDriveIsTokenValid()) {
+        eventToolGDriveConnect();
+        setMessage(t.kx_not_connected);
+        return;
+      }
+      const files = await eventToolGDriveListFilesByPrefix(EVENT_TOOL_KASSA_EXPORT_PREFIX);
+      const summaries = [];
+      for (const file of files) {
+        try {
+          const payload = await eventToolGDriveDownloadJsonById(file.id);
+          summaries.push(summarizeKassaExportFile(file, payload, t, lang));
+        } catch (e) {
+          summaries.push({
+            fileId: file.id,
+            fileName: file.name,
+            modifiedTime: file.modifiedTime,
+            modifiedLabel: file.modifiedTime ? new Date(file.modifiedTime).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-",
+            schemaOk: false,
+            terminal: t.kx_unknown,
+            operator: t.kx_unknown,
+            eventName: t.kx_unknown,
+            exportedLabel: "-",
+            cashStatus: t.kx_unknown,
+            transactionCount: 0,
+            manifestaTicketCount: 0,
+            externalTicketCount: 0,
+            error: e && e.message ? e.message : String(e)
+          });
+        }
+      }
+      setExportsFound(summaries);
+      setMessage(summaries.length ? t.kx_found(summaries.length) : t.kx_none);
+    } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      eventToolGDriveEmit();
+      setMessage(`${t.kx_error}: ${msg}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const statusColor = drive.connected ? "var(--green)" : "#8a3b2e";
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      flexWrap: "wrap",
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      marginTop: 0
+    }
+  }, "📥 ", t.kx_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      margin: 0,
+      maxWidth: 760
+    }
+  }, t.kx_intro)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      border: `1px solid ${statusColor}44`,
+      color: statusColor,
+      borderRadius: 999,
+      padding: "0.35rem 0.7rem",
+      fontWeight: 800,
+      background: "rgba(255,255,255,0.75)"
+    }
+  }, drive.connected ? t.gdrive_connected : t.gdrive_not_connected)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: refreshExports,
+    disabled: busy || !drive.ready
+  }, busy ? t.kx_refreshing : t.kx_refresh), !drive.connected && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => eventToolGDriveConnect(),
+    disabled: !drive.ready
+  }, drive.wantsConnection ? t.gdrive_reconnect : t.gdrive_connect)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.8rem 0 0",
+      color: message && message.startsWith("✓") ? "var(--green)" : "var(--ink-soft)"
+    }
+  }, message || t.kx_readonly)), exportsFound.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: "center",
+      color: "var(--ink-soft)"
+    }
+  }, t.kx_none) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+      gap: "1rem"
+    }
+  }, exportsFound.map(item => {
+    const isOpen = openFileId === item.fileId;
+    return /*#__PURE__*/React.createElement("div", {
+      key: item.fileId,
+      className: "card",
+      style: {
+        display: "grid",
+        gap: "0.8rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+      className: "font-display",
+      style: {
+        margin: 0
+      }
+    }, item.terminal), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.88rem",
+        marginTop: "0.2rem"
+      }
+    }, t.kx_operator, ": ", item.operator)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.28rem 0.6rem",
+        background: item.schemaOk ? "rgba(153,173,122,0.22)" : "rgba(222,62,62,0.14)",
+        color: item.schemaOk ? "var(--green)" : "#a33024",
+        fontWeight: 800,
+        fontSize: "0.78rem"
+      }
+    }, item.schemaOk ? t.kx_unprocessed : t.kx_schema_invalid)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: "0.5rem"
+      }
+    }, [[t.kx_event, `${item.eventName}${item.eventDate ? ` · ${formatDate(item.eventDate, lang)}` : ""}`], [t.kx_export_time, item.exportedLabel], [t.kx_transactions, item.transactionCount], [t.kx_cash_status, item.cashStatus], [t.kx_manifiesta, item.manifestaTicketCount], [t.kx_external, item.externalTicketCount]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.55rem",
+        background: "rgba(255,255,255,0.62)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.68rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 800
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 750,
+        marginTop: "0.18rem"
+      }
+    }, value)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.5rem",
+        flexWrap: "wrap",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      onClick: () => setOpenFileId(isOpen ? "" : item.fileId)
+    }, isOpen ? t.kx_close_details : t.kx_details), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.78rem"
+      },
+      title: item.fileName
+    }, t.kx_file, ": ", item.fileName)), isOpen && /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderTop: "1px solid var(--line)",
+        paddingTop: "0.8rem",
+        display: "grid",
+        gap: "0.55rem"
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        color: "var(--ink-soft)"
+      }
+    }, t.kx_readonly), /*#__PURE__*/React.createElement("pre", {
+      style: {
+        maxHeight: 320,
+        overflow: "auto",
+        background: "#fffaf2",
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.75rem",
+        fontSize: "0.75rem",
+        whiteSpace: "pre-wrap"
+      }
+    }, JSON.stringify({
+      fileName: item.fileName,
+      modified: item.modifiedLabel,
+      event: item.payload && item.payload.event || null,
+      device: item.payload && item.payload.device || null,
+      operator: item.payload && item.payload.operator || null,
+      export: item.payload && item.payload.export || null,
+      cashSession: item.payload && item.payload.cashSession || null,
+      integrity: item.payload && item.payload.integrity || null,
+      tickets: {
+        manifestaTicketRegistrations: item.manifestaRegs || [],
+        externalTicketRegistrations: item.externalRegs || []
+      },
+      transactionCount: item.transactionCount,
+      error: item.error || null
+    }, null, 2))));
+  })));
 }
 function Dashboard({
   data,
