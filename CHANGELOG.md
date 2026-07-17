@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.2
+- Event-match in de Kassa-exportmonitor robuuster gemaakt voor gemengde Hoofdapp-eventstructuren.
+- De controle vergelijkt nu actieve eventdata uit meerdere veilige bronnen: `data.event`, `data.events[]`, `eventInfo` en snapshots.
+- Geschreven datums zoals `zondag 21 juni 2026` worden nu ook genormaliseerd voor vergelijking met `21-06-2026`.
+- Wijziging blijft read-only: geen import, geen ledger-posting en geen verwerking toegevoegd.
+
 ## 1.20.1
 - Event-match in de Kassa-exportmonitor verfijnd voor tablets die na een reset een ander eventId hebben.
 - Als eventnaam en datum overeenkomen maar eventId verschilt, wordt dit nu een waarschuwing in plaats van een blokkering.

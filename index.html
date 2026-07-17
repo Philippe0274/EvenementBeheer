@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.20.1";
+const APP_VERSION = "1.20.2";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -6998,6 +6998,37 @@ function normalizeKassaEventDate(value) {
   if (isoLike) return `${isoLike[1]}-${String(isoLike[2]).padStart(2, "0")}-${String(isoLike[3]).padStart(2, "0")}`;
   const euLike = raw.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
   if (euLike) return `${euLike[3]}-${String(euLike[2]).padStart(2, "0")}-${String(euLike[1]).padStart(2, "0")}`;
+  const months = {
+    januari: "01",
+    februari: "02",
+    maart: "03",
+    april: "04",
+    mei: "05",
+    juni: "06",
+    juli: "07",
+    augustus: "08",
+    september: "09",
+    oktober: "10",
+    november: "11",
+    december: "12",
+    janvier: "01",
+    fevrier: "02",
+    février: "02",
+    mars: "03",
+    avril: "04",
+    mai: "05",
+    juin: "06",
+    juillet: "07",
+    aout: "08",
+    août: "08",
+    septembre: "09",
+    octobre: "10",
+    novembre: "11",
+    decembre: "12",
+    décembre: "12"
+  };
+  const written = raw.toLowerCase().match(/(\d{1,2})\s+([a-zà-ÿ]+)\s+(\d{4})/i);
+  if (written && months[written[2]]) return `${written[3]}-${months[written[2]]}-${String(written[1]).padStart(2, "0")}`;
   const parsed = new Date(raw);
   if (!Number.isNaN(parsed.getTime())) {
     const year = parsed.getFullYear();
@@ -7006,6 +7037,14 @@ function normalizeKassaEventDate(value) {
     return `${year}-${month}-${day}`;
   }
   return raw.toLowerCase();
+}
+
+function getKassaEventNameCandidate(event) {
+  return event && (event.naam || event.name || event.eventName || event.title) || "";
+}
+
+function getKassaEventDateCandidate(event) {
+  return event && (event.datum || event.date || event.eventDate) || "";
 }
 
 function summarizeKassaExportFile(file, payload, t, lang) {
@@ -7054,17 +7093,20 @@ function buildKassaPreImportChecks(item, isLatestExport, data, t) {
   const checks = [];
   const add = (level, text) => checks.push({ level, text });
   const activeEventId = data && data.activeEventId || "";
-  const activeEvent = data && (data.events || []).find(event => event && event.id === activeEventId) || data && data.event || {};
+  const activeEventRecord = data && (data.events || []).find(event => event && event.id === activeEventId) || {};
+  const activeEventCandidates = [data && data.event || {}, activeEventRecord, activeEventRecord.eventInfo || {}, activeEventRecord.snapshot && activeEventRecord.snapshot.eventInfo || {}].filter(Boolean);
   const exportEvent = item && item.payload && item.payload.event || {};
   const exportEventId = item && item.eventId || exportEvent.eventId || exportEvent.id || "";
   const sameEventById = !!activeEventId && !!exportEventId && activeEventId === exportEventId;
-  const activeEventName = normalizeKassaEventName(activeEvent.naam || activeEvent.name);
-  const exportEventName = normalizeKassaEventName(exportEvent.naam || exportEvent.name);
-  const activeEventDate = normalizeKassaEventDate(activeEvent.datum || activeEvent.date);
-  const exportEventDate = normalizeKassaEventDate(exportEvent.datum || exportEvent.date);
-  const sameEventByNameDate = !!activeEventName && !!exportEventName && activeEventName === exportEventName && !!activeEventDate && !!exportEventDate && activeEventDate === exportEventDate;
+  const exportEventName = normalizeKassaEventName(getKassaEventNameCandidate(exportEvent) || item.eventName);
+  const exportEventDate = normalizeKassaEventDate(getKassaEventDateCandidate(exportEvent) || item.eventDate);
+  const sameEventByNameDate = activeEventCandidates.some(candidate => {
+    const activeEventName = normalizeKassaEventName(getKassaEventNameCandidate(candidate));
+    const activeEventDate = normalizeKassaEventDate(getKassaEventDateCandidate(candidate));
+    return !!activeEventName && !!exportEventName && activeEventName === exportEventName && !!activeEventDate && !!exportEventDate && activeEventDate === exportEventDate;
+  });
   const hasDifferentEventIds = !!activeEventId && !!exportEventId && activeEventId !== exportEventId;
-  const eventComparable = !!activeEventId || !!activeEventName && !!exportEventName;
+  const eventComparable = !!activeEventId || activeEventCandidates.some(candidate => !!normalizeKassaEventName(getKassaEventNameCandidate(candidate))) && !!exportEventName;
   if (item.schemaOk) add("ok", t.kx_check_schema_ok);else add("error", t.kx_check_schema_bad);
   if (sameEventById) add("ok", t.kx_check_event_ok);else if (sameEventByNameDate && hasDifferentEventIds) add("warn", t.kx_check_event_warn);else if (sameEventByNameDate) add("ok", t.kx_check_event_ok);else if (eventComparable) add("error", t.kx_check_event_bad);else add("warn", t.kx_check_event_warn);
   if (isLatestExport) add("ok", t.kx_check_latest_ok);else add("error", t.kx_check_latest_bad);
