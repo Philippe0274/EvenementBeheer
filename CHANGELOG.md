@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.0
+- Pre-import controlelaag toegevoegd aan de read-only Kassa-exportmonitor.
+- Per export wordt nu gecontroleerd: schema, event-match, nieuwste export, kassa-status, gebruiker, kassapunt en aanwezigheid van transacties/tickets.
+- Exportkaarten tonen nu een status: "Klaar voor latere import", "Waarschuwingen" of "Niet geschikt".
+- Controle blijft volledig read-only: geen import batch, geen ledger-posting, geen rapportering en geen financiële verwerking.
+
 ## 1.19.1
 - Kassa-exportmonitor markeert nu per event/tablet de meest recente export met een rode omlijning.
 - Meest recente export wordt bepaald op basis van `exportedAt`, daarna timestamp in de bestandsnaam en als fallback Google Drive `modifiedTime`.

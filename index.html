@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.19.1";
+const APP_VERSION = "1.20.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -677,6 +677,25 @@ const T = {
     kx_schema_invalid: "Geen geldig Kassa Tool-exportcontract",
     kx_latest_export: "Meest recent",
     kx_older_export: "Oudere export",
+    kx_preimport_title: "Pre-import controle",
+    kx_ready_later_import: "Klaar voor latere import",
+    kx_has_warnings: "Waarschuwingen",
+    kx_not_suitable: "Niet geschikt",
+    kx_check_schema_ok: "Schema geldig",
+    kx_check_schema_bad: "Schema ongeldig",
+    kx_check_event_ok: "Event komt overeen",
+    kx_check_event_warn: "Event niet zeker gekoppeld",
+    kx_check_event_bad: "Event komt niet overeen",
+    kx_check_latest_ok: "Nieuwste export van deze kassa",
+    kx_check_latest_bad: "Oudere export van dezelfde kassa",
+    kx_check_closed_ok: "Kassa afgesloten",
+    kx_check_closed_bad: "Kassa niet afgesloten",
+    kx_check_operator_ok: "Gebruiker ingevuld",
+    kx_check_operator_warn: "Gebruiker onbekend",
+    kx_check_terminal_ok: "Kassapunt ingevuld",
+    kx_check_terminal_warn: "Kassapunt onbekend",
+    kx_check_content_ok: "Transacties/tickets aanwezig",
+    kx_check_content_warn: "Geen transacties of tickets gevonden",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1450,6 +1469,25 @@ const T = {
     kx_schema_invalid: "Contrat d'export Kassa Tool invalide",
     kx_latest_export: "Le plus récent",
     kx_older_export: "Export plus ancien",
+    kx_preimport_title: "Contrôle pré-import",
+    kx_ready_later_import: "Prêt pour import ultérieur",
+    kx_has_warnings: "Avertissements",
+    kx_not_suitable: "Non utilisable",
+    kx_check_schema_ok: "Schéma valide",
+    kx_check_schema_bad: "Schéma invalide",
+    kx_check_event_ok: "Événement correspondant",
+    kx_check_event_warn: "Événement pas certain",
+    kx_check_event_bad: "Événement différent",
+    kx_check_latest_ok: "Export le plus récent de cette caisse",
+    kx_check_latest_bad: "Ancien export de la même caisse",
+    kx_check_closed_ok: "Caisse clôturée",
+    kx_check_closed_bad: "Caisse non clôturée",
+    kx_check_operator_ok: "Utilisateur renseigné",
+    kx_check_operator_warn: "Utilisateur inconnu",
+    kx_check_terminal_ok: "Point caisse renseigné",
+    kx_check_terminal_warn: "Point caisse inconnu",
+    kx_check_content_ok: "Transactions/tickets présents",
+    kx_check_content_warn: "Aucune transaction ni ticket trouvé",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -6991,6 +7029,33 @@ function summarizeKassaExportFile(file, payload, t, lang) {
   };
 }
 
+function buildKassaPreImportChecks(item, isLatestExport, data, t) {
+  const checks = [];
+  const add = (level, text) => checks.push({ level, text });
+  const activeEventId = data && data.activeEventId || "";
+  const activeEvent = data && (data.events || []).find(event => event && event.id === activeEventId) || data && data.event || {};
+  const exportEvent = item && item.payload && item.payload.event || {};
+  const exportEventId = item && item.eventId || exportEvent.eventId || exportEvent.id || "";
+  const sameEventById = !!activeEventId && !!exportEventId && activeEventId === exportEventId;
+  const sameEventByNameDate = !activeEventId && !!activeEvent && !!exportEvent && (activeEvent.naam || activeEvent.name) === (exportEvent.naam || exportEvent.name) && (activeEvent.datum || activeEvent.date) === (exportEvent.datum || exportEvent.date);
+  const eventComparable = !!activeEventId || !!((activeEvent.naam || activeEvent.name) && (exportEvent.naam || exportEvent.name));
+  if (item.schemaOk) add("ok", t.kx_check_schema_ok);else add("error", t.kx_check_schema_bad);
+  if (sameEventById || sameEventByNameDate) add("ok", t.kx_check_event_ok);else if (eventComparable) add("error", t.kx_check_event_bad);else add("warn", t.kx_check_event_warn);
+  if (isLatestExport) add("ok", t.kx_check_latest_ok);else add("error", t.kx_check_latest_bad);
+  if (String(item.cashStatus || "").toLowerCase() === "closed") add("ok", t.kx_check_closed_ok);else add("error", t.kx_check_closed_bad);
+  if (item.operator && item.operator !== t.kx_unknown) add("ok", t.kx_check_operator_ok);else add("warn", t.kx_check_operator_warn);
+  if (item.terminal && item.terminal !== t.kx_unknown) add("ok", t.kx_check_terminal_ok);else add("warn", t.kx_check_terminal_warn);
+  const contentCount = (item.transactionCount || 0) + (item.manifestaTicketCount || 0) + (item.externalTicketCount || 0);
+  if (contentCount > 0) add("ok", t.kx_check_content_ok);else add("warn", t.kx_check_content_warn);
+  const hasErrors = checks.some(check => check.level === "error");
+  const hasWarnings = checks.some(check => check.level === "warn");
+  return {
+    checks,
+    status: hasErrors ? "error" : hasWarnings ? "warn" : "ok",
+    label: hasErrors ? t.kx_not_suitable : hasWarnings ? t.kx_has_warnings : t.kx_ready_later_import
+  };
+}
+
 function KassaExportMonitorTab({
   data,
   t
@@ -7135,6 +7200,8 @@ function KassaExportMonitorTab({
   }, exportsFound.map(item => {
     const isOpen = openFileId === item.fileId;
     const isLatestExport = latestFileIds.has(item.fileId);
+    const preImport = buildKassaPreImportChecks(item, isLatestExport, data, t);
+    const preImportColor = preImport.status === "ok" ? "var(--green)" : preImport.status === "warn" ? "var(--amber)" : "#DE3E3E";
     return /*#__PURE__*/React.createElement("div", {
       key: item.fileId,
       className: "card",
@@ -7215,6 +7282,48 @@ function KassaExportMonitorTab({
       }
     }, value)))), /*#__PURE__*/React.createElement("div", {
       style: {
+        border: `1px solid ${preImportColor}55`,
+        borderRadius: 7,
+        padding: "0.7rem",
+        background: "rgba(255,255,255,0.66)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        alignItems: "center",
+        flexWrap: "wrap",
+        marginBottom: "0.5rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.82rem"
+      }
+    }, t.kx_preimport_title), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.25rem 0.6rem",
+        color: preImportColor,
+        background: preImport.status === "ok" ? "rgba(153,173,122,0.22)" : preImport.status === "warn" ? "rgba(192,138,46,0.16)" : "rgba(222,62,62,0.13)",
+        fontWeight: 900,
+        fontSize: "0.75rem"
+      }
+    }, preImport.label)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gap: "0.35rem"
+      }
+    }, preImport.checks.map((check, checkIndex) => /*#__PURE__*/React.createElement("div", {
+      key: `${check.text}-${checkIndex}`,
+      style: {
+        fontSize: "0.76rem",
+        color: check.level === "ok" ? "var(--green)" : check.level === "warn" ? "var(--amber)" : "#DE3E3E",
+        fontWeight: 750
+      }
+    }, check.level === "ok" ? "✓ " : check.level === "warn" ? "⚠ " : "✕ ", check.text)))), /*#__PURE__*/React.createElement("div", {
+      style: {
         display: "flex",
         gap: "0.5rem",
         flexWrap: "wrap",
@@ -7261,6 +7370,11 @@ function KassaExportMonitorTab({
       export: item.payload && item.payload.export || null,
       cashSession: item.payload && item.payload.cashSession || null,
       integrity: item.payload && item.payload.integrity || null,
+      preImport: {
+        status: preImport.status,
+        label: preImport.label,
+        checks: preImport.checks
+      },
       tickets: {
         manifestaTicketRegistrations: item.manifestaRegs || [],
         externalTicketRegistrations: item.externalRegs || []
