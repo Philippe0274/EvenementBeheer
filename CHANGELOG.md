@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.22.0
+- Terugbetalingsmails toegevoegd aan Winkelbestellingen.
+- Per aankoper/vrijwilliger wordt nu een mailtekst voorbereid met vaste ontvangers, onderwerp, kopergegevens, rekeningnummer uit de vrijwilligersopmerking, ticketbestandsnamen, bedragen en totaal.
+- Kastickets worden niet gezipt: elk ticket blijft als los downloadbaar bestand beschikbaar om handmatig als bijlage toe te voegen.
+- Nieuwe kasticketuploads bewaren voortaan ook de originele bestandsnaam; oude tickets krijgen automatisch een veilige fallbacknaam.
+- Bestaande winkelbestellingen-PDF, WhatsApp-flow, kostenberekening en opslagstructuur blijven ongewijzigd.
+
 ## 1.21.1
 - Woordenboek neemt nu ook Franse materiaalnamen automatisch over als vertaling.
 - Als een materiaal `naamNl` en `naamFr` heeft, wordt dit toegevoegd als `naamNl -> naamFr`.

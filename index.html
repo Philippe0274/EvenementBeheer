@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.21.1";
+const APP_VERSION = "1.22.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1056,6 +1056,20 @@ const T = {
     winkel_pdf_hint: "WhatsApp kan geen bestand automatisch meesturen. De PDF wordt gedownload; sleep ze daarna zelf in het WhatsApp-gesprek met Angela.",
     winkel_geen_angela: "Angela Janett Flores staat niet in de vrijwilligerslijst. Voeg haar toe om het overzicht te kunnen versturen.",
     winkel_angela_geen_gsm: "Angela Janett Flores heeft geen GSM-nummer ingevuld in de vrijwilligerslijst.",
+    winkel_reimburse_title: "Terugbetalingsmails",
+    winkel_reimburse_intro: "Maak per aankoper een mailtekst met de losse kasticketbestanden. De app maakt geen ZIP en verstuurt niets automatisch.",
+    winkel_reimburse_none: "Nog geen kasticketfoto's om terugbetalingsmails voor te maken.",
+    winkel_reimburse_to: "Aan",
+    winkel_reimburse_subject: "Onderwerp",
+    winkel_reimburse_files: "Losse ticketbestanden",
+    winkel_reimburse_open_mail: "E-mail openen",
+    winkel_reimburse_copy: "Mailtekst kopiëren",
+    winkel_reimburse_download: "Download ticket",
+    winkel_reimburse_total: "Totaal voor",
+    winkel_reimburse_missing_account: "Geen rekeningnummer gevonden in de opmerking van deze vrijwilliger.",
+    winkel_reimburse_missing_address: "Geen adres gevonden bij deze vrijwilliger.",
+    winkel_reimburse_external: "Externe koper: controleer adres en rekeningnummer manueel.",
+    winkel_reimburse_copied: "Mailtekst gekopieerd",
     mat_title: "Materiaal",
     mat_intro: "Beheer hier alle materiaal voor het evenement. Lijst blijft beschikbaar voor volgende evenementen.",
     mat_naam: "Materiaal",
@@ -1848,6 +1862,20 @@ const T = {
     winkel_pdf_hint: "WhatsApp ne peut pas joindre un fichier automatiquement. Le PDF est téléchargé ; glissez-le ensuite vous-même dans la conversation WhatsApp avec Angela.",
     winkel_geen_angela: "Angela Janett Flores ne figure pas dans la liste des bénévoles. Ajoutez-la pour pouvoir envoyer l'aperçu.",
     winkel_angela_geen_gsm: "Angela Janett Flores n'a pas de numéro GSM dans la liste des bénévoles.",
+    winkel_reimburse_title: "E-mails de remboursement",
+    winkel_reimburse_intro: "Préparez un texte d'e-mail par acheteur avec les fichiers de tickets séparés. L'application ne crée pas de ZIP et n'envoie rien automatiquement.",
+    winkel_reimburse_none: "Aucune photo de ticket disponible pour préparer des e-mails de remboursement.",
+    winkel_reimburse_to: "À",
+    winkel_reimburse_subject: "Objet",
+    winkel_reimburse_files: "Fichiers de tickets séparés",
+    winkel_reimburse_open_mail: "Ouvrir l'e-mail",
+    winkel_reimburse_copy: "Copier le texte",
+    winkel_reimburse_download: "Télécharger le ticket",
+    winkel_reimburse_total: "Total pour",
+    winkel_reimburse_missing_account: "Aucun numéro de compte trouvé dans la remarque de ce bénévole.",
+    winkel_reimburse_missing_address: "Aucune adresse trouvée pour ce bénévole.",
+    winkel_reimburse_external: "Acheteur externe : vérifiez l'adresse et le numéro de compte manuellement.",
+    winkel_reimburse_copied: "Texte de l'e-mail copié",
     mat_title: "Matériel",
     mat_intro: "Gérez ici tout le matériel pour l'événement. La liste reste disponible pour les événements suivants.",
     mat_naam: "Matériel",
@@ -12583,6 +12611,28 @@ function WinkelbestellingenTab({
     return isNaN(n) ? 0 : n;
   };
   const fmtBedrag = n => `€ ${n.toFixed(2).replace(".", ",")}`;
+  const sanitizeFilePart = value => String(value || "").trim().replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "") || "kasticket";
+  const ticketFileName = (kt, index) => {
+    const kd = kasticketData(kt.key);
+    const original = kd.fileName || "";
+    const base = original ? original.replace(/\.[^.]+$/, "") : [
+      "kasticket",
+      data.event.naam || "evenement",
+      aankoperNaam(kt.best) || "aankoper",
+      kt.best.datum || "datum",
+      index + 1
+    ].join("_");
+    return `${sanitizeFilePart(base)}.jpg`;
+  };
+  const downloadTicketFile = (ticket, fileName) => {
+    if (!ticket || !ticket.foto) return;
+    const a = document.createElement("a");
+    a.href = ticket.foto;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
   const pdfClip = (doc, text, maxWidth) => {
     const value = String(text || "");
     if (doc.getTextWidth(value) <= maxWidth) return value;
@@ -12609,7 +12659,8 @@ function WinkelbestellingenTab({
     try {
       const dataUrl = await comprimeerAfbeelding(file, 2200, 0.92);
       updateKasticket(kKey, {
-        foto: dataUrl
+        foto: dataUrl,
+        fileName: file.name || ""
       });
       showToast(t.winkel_foto_geladen);
     } catch (e) {
@@ -12663,6 +12714,90 @@ function WinkelbestellingenTab({
       try {
         document.execCommand("copy");
         showToast(t.winkel_overzicht_gekopieerd);
+      } catch (e2) {
+        alert(t.cant_copy);
+      }
+      document.body.removeChild(ta);
+    }
+  };
+  const reimburseRecipients = "vlaams-brabant@pvda.be;jflores@gmail.com";
+  const reimbursementGroups = (() => {
+    const groups = new Map();
+    winkelKeys.forEach(wKey => {
+      Object.values(perWinkel[wKey]).forEach(kt => {
+        const kd = kasticketData(kt.key);
+        if (!kd.foto) return;
+        const buyerKey = kt.best.aankoperId === "__extern__" ? `extern:${kt.best.aankoperVrij || ""}` : kt.best.aankoperId || "onbekend";
+        const vrijwilliger = aankoperVrijwilliger(kt.best);
+        const name = aankoperNaam(kt.best) || "Onbekende koper";
+        if (!groups.has(buyerKey)) {
+          groups.set(buyerKey, {
+            key: buyerKey,
+            name,
+            vrijwilliger,
+            isExternal: kt.best.aankoperId === "__extern__",
+            tickets: []
+          });
+        }
+        const group = groups.get(buyerKey);
+        const amount = parseBedrag(kd.bedrag);
+        const fileName = ticketFileName(kt, group.tickets.length);
+        const w = wKey === "__geen__" ? null : winkelById(wKey);
+        group.tickets.push({
+          key: kt.key,
+          ticket: kd,
+          fileName,
+          amount,
+          date: kt.best.datum ? formatDate(kt.best.datum, lang) : "",
+          winkel: w ? w.naam : t.winkel_geen_winkel,
+          items: kt.items.map(m => `${m.aantal ? `${m.aantal}x ` : ""}${matNaam(m)}`)
+        });
+      });
+    });
+    return Array.from(groups.values()).sort((a, b) => a.name.localeCompare(b.name));
+  })();
+  const buildReimbursementSubject = () => `Terugbetalingen ${data.event.naam ? `(${data.event.naam})` : ""}`.trim();
+  const buildReimbursementBody = group => {
+    const vrijwilliger = group.vrijwilliger;
+    const adres = vrijwilliger ? buildVrijwilligerAdres(vrijwilliger) : "";
+    const rekening = vrijwilliger ? (vrijwilliger.opmerking || "").trim() : "";
+    const total = group.tickets.reduce((acc, item) => acc + item.amount, 0);
+    const lines = [];
+    lines.push("Gelieve hierbij tickets te willen vinden ter terugbetaling.");
+    lines.push("");
+    lines.push(`Het betreft uitgaven die gedaan werden voor het ${data.event.naam || "evenement"}${data.event.gemeente ? ` in ${data.event.gemeente}` : ""}.`);
+    lines.push("");
+    lines.push("Deze tickets dienen te worden terug betaald aan");
+    lines.push("");
+    lines.push(group.name);
+    lines.push(adres || "[Adres van de koper invullen]");
+    lines.push("");
+    lines.push(`Op het rekeningnummer ${rekening || "[rekeningnummer invullen]"}`);
+    lines.push("");
+    lines.push("Tickets:");
+    group.tickets.forEach(item => {
+      const extra = [item.winkel, item.date].filter(Boolean).join(" · ");
+      lines.push(`- ${item.fileName} — ${fmtBedrag(item.amount)}${extra ? ` (${extra})` : ""}`);
+    });
+    lines.push("");
+    lines.push(`Het totaal bedrag voor ${group.name} is dus ${fmtBedrag(total)}.`);
+    lines.push("");
+    lines.push("Alvast bedankt");
+    return lines.join("\n");
+  };
+  const copyReimbursementBody = async group => {
+    const text = buildReimbursementBody(group);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t.winkel_reimburse_copied);
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast(t.winkel_reimburse_copied);
       } catch (e2) {
         alert(t.cant_copy);
       }
@@ -13124,6 +13259,138 @@ function WinkelbestellingenTab({
     },
     className: "font-display"
   }, t.winkel_eindtotaal, ": ", fmtBedrag(eindtotaal))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      marginTop: 0,
+      fontSize: "1.15rem"
+    }
+  }, t.winkel_reimburse_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.82rem",
+      color: "var(--ink-soft)",
+      marginTop: 0
+    }
+  }, t.winkel_reimburse_intro), reimbursementGroups.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.85rem",
+      color: "var(--ink-soft)",
+      marginBottom: 0
+    }
+  }, t.winkel_reimburse_none) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "0.75rem"
+    }
+  }, reimbursementGroups.map(group => {
+    const subject = buildReimbursementSubject();
+    const body = buildReimbursementBody(group);
+    const mailto = `mailto:${reimburseRecipients.replace(/;/g, ",")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const rekening = group.vrijwilliger ? (group.vrijwilliger.opmerking || "").trim() : "";
+    const adres = group.vrijwilliger ? buildVrijwilligerAdres(group.vrijwilliger) : "";
+    const totaal = group.tickets.reduce((acc, item) => acc + item.amount, 0);
+    return /*#__PURE__*/React.createElement("div", {
+      key: group.key,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 4,
+        padding: "0.8rem",
+        background: "white"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "1rem",
+        flexWrap: "wrap",
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+      className: "font-display",
+      style: {
+        fontSize: "1rem"
+      }
+    }, group.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.78rem",
+        color: "var(--ink-soft)",
+        marginTop: "0.2rem"
+      }
+    }, t.winkel_reimburse_total, " ", group.name, ": ", /*#__PURE__*/React.createElement("strong", null, fmtBedrag(totaal)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.35rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      className: "btn btn-primary btn-sm",
+      href: mailto,
+      style: {
+        textDecoration: "none"
+      }
+    }, t.winkel_reimburse_open_mail), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      onClick: () => copyReimbursementBody(group)
+    }, t.winkel_reimburse_copy))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+        gap: "0.45rem",
+        marginTop: "0.7rem",
+        fontSize: "0.8rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink-soft)",
+        fontWeight: 700,
+        textTransform: "uppercase",
+        fontSize: "0.68rem"
+      }
+    }, t.winkel_reimburse_to), /*#__PURE__*/React.createElement("br", null), reimburseRecipients.replace(";", ", ")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink-soft)",
+        fontWeight: 700,
+        textTransform: "uppercase",
+        fontSize: "0.68rem"
+      }
+    }, t.winkel_reimburse_subject), /*#__PURE__*/React.createElement("br", null), subject)), (group.isExternal || !rekening || !adres) && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.55rem",
+        color: "var(--accent)",
+        fontSize: "0.78rem"
+      }
+    }, group.isExternal && /*#__PURE__*/React.createElement("div", null, t.winkel_reimburse_external), !group.isExternal && !rekening && /*#__PURE__*/React.createElement("div", null, t.winkel_reimburse_missing_account), !group.isExternal && !adres && /*#__PURE__*/React.createElement("div", null, t.winkel_reimburse_missing_address)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.7rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.82rem"
+      }
+    }, t.winkel_reimburse_files), /*#__PURE__*/React.createElement("ul", {
+      style: {
+        margin: "0.4rem 0 0",
+        paddingLeft: "1.1rem",
+        fontSize: "0.8rem"
+      }
+    }, group.tickets.map(item => /*#__PURE__*/React.createElement("li", {
+      key: item.key,
+      style: {
+        marginBottom: "0.35rem"
+      }
+    }, /*#__PURE__*/React.createElement("code", null, item.fileName), " — ", fmtBedrag(item.amount), " ", /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      style: {
+        marginLeft: "0.35rem",
+        padding: "0.2rem 0.45rem"
+      },
+      onClick: () => downloadTicketFile(item.ticket, item.fileName)
+    }, t.winkel_reimburse_download))))));
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-display",
