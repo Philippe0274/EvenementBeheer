@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.24.1";
+const APP_VERSION = "1.24.2";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -677,6 +677,9 @@ const T = {
     kx_schema_invalid: "Geen geldig Kassa Tool-exportcontract",
     kx_latest_export: "Meest recent",
     kx_older_export: "Oudere export",
+    kx_show_old_exports: "Oude exports tonen",
+    kx_hide_old_exports: "Oude exports verbergen",
+    kx_latest_only_note: "Standaard worden alleen de meest recente exports per kassa getoond.",
     kx_preimport_title: "Pre-import controle",
     kx_ready_later_import: "Klaar voor latere import",
     kx_has_warnings: "Waarschuwingen",
@@ -1517,6 +1520,9 @@ const T = {
     kx_schema_invalid: "Contrat d'export Kassa Tool invalide",
     kx_latest_export: "Le plus récent",
     kx_older_export: "Export plus ancien",
+    kx_show_old_exports: "Afficher anciens exports",
+    kx_hide_old_exports: "Masquer anciens exports",
+    kx_latest_only_note: "Par défaut, seuls les exports les plus récents par caisse sont affichés.",
     kx_preimport_title: "Contrôle pré-import",
     kx_ready_later_import: "Prêt pour import ultérieur",
     kx_has_warnings: "Avertissements",
@@ -7479,6 +7485,7 @@ function KassaExportMonitorTab({
   const [message, setMessage] = useState("");
   const [exportsFound, setExportsFound] = useState([]);
   const [openFileId, setOpenFileId] = useState("");
+  const [showOldExports, setShowOldExports] = useState(false);
   useEffect(() => {
     initEventToolGoogleDrive();
     const unsub = eventToolGDriveSubscribe(setDrive);
@@ -7547,6 +7554,7 @@ function KassaExportMonitorTab({
   });
   const latestFileIds = new Set(Array.from(latestByGroup.values()).map(item => item.fileId));
   const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -7595,7 +7603,16 @@ function KassaExportMonitorTab({
     className: "btn btn-ghost btn-sm",
     onClick: () => eventToolGDriveConnect(),
     disabled: !drive.ready
-  }, drive.wantsConnection ? t.gdrive_reconnect : t.gdrive_connect)), /*#__PURE__*/React.createElement("p", {
+  }, drive.wantsConnection ? t.gdrive_reconnect : t.gdrive_connect), exportsFound.length > 0 && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => setShowOldExports(value => !value)
+  }, showOldExports ? t.kx_hide_old_exports : t.kx_show_old_exports), exportsFound.length > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--ink-soft)",
+      alignSelf: "center",
+      fontSize: "0.84rem"
+    }
+  }, visibleExports.length, "/", exportsFound.length, " · ", t.kx_latest_only_note)), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0.8rem 0 0",
       color: message && message.startsWith("✓") ? "var(--green)" : "var(--ink-soft)"
@@ -7685,7 +7702,7 @@ function KassaExportMonitorTab({
       margin: 0,
       color: "var(--ink-soft)"
     }
-  }, t.kx_import_batch_none)), exportsFound.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, t.kx_import_batch_none)), visibleExports.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
@@ -7697,7 +7714,7 @@ function KassaExportMonitorTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
       gap: "1rem"
     }
-  }, exportsFound.map(item => {
+  }, visibleExports.map(item => {
     const isOpen = openFileId === item.fileId;
     const isLatestExport = latestFileIds.has(item.fileId);
     const preImport = buildKassaPreImportChecks(item, isLatestExport, data, t);
@@ -7749,7 +7766,16 @@ function KassaExportMonitorTab({
         fontWeight: 900,
         fontSize: "0.78rem"
       }
-    }, t.kx_latest_export), /*#__PURE__*/React.createElement("span", {
+    }, t.kx_latest_export), !isLatestExport && /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.28rem 0.6rem",
+        background: "rgba(192,138,46,0.14)",
+        color: "var(--amber)",
+        fontWeight: 900,
+        fontSize: "0.78rem"
+      }
+    }, t.kx_older_export), /*#__PURE__*/React.createElement("span", {
       style: {
         borderRadius: 999,
         padding: "0.28rem 0.6rem",

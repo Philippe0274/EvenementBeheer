@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.24.2
+- Kassa Exports toont standaard alleen nog de meest recente export per event/kassa.
+- Oude exports blijven opgehaald en beschikbaar via de nieuwe knop "Oude exports tonen".
+- Oude exports worden bij zichtbaar maken duidelijk gemarkeerd als "Oudere export".
+- Deze wijziging is uitsluitend een UI-filter; Google Drive-data, importbatches, ledger, rapportering en actieve eventdata blijven ongewijzigd.
+
 ## 1.24.1
 - Regressieherstel Kassa Exports: `Import voorbereiden` is nu actief bij exports met waarschuwingen.
 - Alleen exports met rode pre-import fouten blijven geblokkeerd.
