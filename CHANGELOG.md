@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.24.0
+- Kassa Exports uitgebreid met een veilige voorbereidende importbatch-stap.
+- Een geschikte export kan nu als immutable batch worden vastgelegd onder `kassaImports.batches` en `kassaImports.files`.
+- De originele Kassa Tool-exportpayload wordt gekloond bewaard voor audit en latere validatie.
+- Duplicaatbescherming toegevoegd op import-sleutel en exportId; dezelfde export kan niet opnieuw voorbereid worden.
+- Voorbereide batches worden read-only zichtbaar in het tabblad Kassa Exports.
+- Geen ledger-posting, rapportering, financiële verwerking, transactiemutatie of actieve eventdata-overschrijving toegevoegd.
+
 ## 1.23.0
 - Kassa Exports-detailweergave uitgebreid met een read-only Import Preview.
 - De preview toont verwachte transacties, verkopen, giften, cash/kaart/payconiq/mix, ticketregistraties en prijslijstmutaties uit het bestaande Kassa Tool-exportcontract.

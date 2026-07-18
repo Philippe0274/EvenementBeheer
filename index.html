@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.23.0";
+const APP_VERSION = "1.24.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -715,6 +715,16 @@ const T = {
     kx_preview_lines: "regels",
     kx_preview_external_event: "Extern event",
     kx_preview_quantity: "Aantal",
+    kx_prepare_import: "Import voorbereiden",
+    kx_preparing_import: "Import voorbereiden...",
+    kx_import_prepared: "✓ Importbatch aangemaakt. Nog niet gevalideerd en niet geboekt.",
+    kx_import_duplicate: "Deze export is al als importbatch vastgelegd.",
+    kx_import_blocked: "Alleen exports zonder fouten kunnen voorbereid worden.",
+    kx_imported_batches: "Voorbereide importbatches",
+    kx_import_batch_status: "Status",
+    kx_import_batch_ready: "Klaar voor validatie",
+    kx_import_batch_readonly: "Immutable bewaard",
+    kx_import_batch_none: "Nog geen Kassa-export als importbatch vastgelegd.",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1545,6 +1555,16 @@ const T = {
     kx_preview_lines: "lignes",
     kx_preview_external_event: "Événement externe",
     kx_preview_quantity: "Quantité",
+    kx_prepare_import: "Préparer l'import",
+    kx_preparing_import: "Préparation de l'import...",
+    kx_import_prepared: "✓ Lot d'import créé. Pas encore validé ni comptabilisé.",
+    kx_import_duplicate: "Cet export est déjà enregistré comme lot d'import.",
+    kx_import_blocked: "Seuls les exports sans erreur peuvent être préparés.",
+    kx_imported_batches: "Lots d'import préparés",
+    kx_import_batch_status: "Statut",
+    kx_import_batch_ready: "Prêt pour validation",
+    kx_import_batch_readonly: "Conservé immuable",
+    kx_import_batch_none: "Aucun export caisse n'est encore enregistré comme lot d'import.",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -2532,6 +2552,10 @@ const defaultData = {
     sheetAttachments: [],
     priceListChanges: []
   },
+  kassaImports: {
+    batches: [],
+    files: []
+  },
   finance: {
     ledgerTransactions: [],
     corrections: [],
@@ -3337,6 +3361,13 @@ const normalizeData = raw => {
       purchaseCosts: Array.isArray(raw.finance.purchaseCosts) ? raw.finance.purchaseCosts : [],
       budgets: Array.isArray(raw.finance.budgets) ? raw.finance.budgets : [],
       projections: Array.isArray(raw.finance.projections) ? raw.finance.projections : []
+    };
+  }
+  if (raw.kassaImports && typeof raw.kassaImports === "object" && !Array.isArray(raw.kassaImports)) {
+    safe.kassaImports = {
+      ...defaultData.kassaImports,
+      batches: Array.isArray(raw.kassaImports.batches) ? raw.kassaImports.batches : [],
+      files: Array.isArray(raw.kassaImports.files) ? raw.kassaImports.files : []
     };
   }
   if (Array.isArray(raw.auditTrail)) {
@@ -5473,6 +5504,90 @@ function App() {
     });
     showToast(t.bc_entry_saved);
   };
+  const prepareKassaExportImport = (item, preImport, importPreview) => {
+    if (!item || !item.payload || !importPreview || !importPreview.importKey) {
+      showToast(t.kx_import_blocked);
+      return;
+    }
+    if (!preImport || preImport.status !== "ok") {
+      showToast(t.kx_import_blocked);
+      return;
+    }
+    const now = new Date().toISOString();
+    const exportId = item.payload && item.payload.export && item.payload.export.exportId || "";
+    let created = false;
+    setData(d => {
+      const currentImports = d.kassaImports || defaultData.kassaImports;
+      const existing = (currentImports.batches || []).some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
+      if (existing) return d;
+      created = true;
+      const batchId = `kib_${uid()}`;
+      const fileRecordId = `kif_${uid()}`;
+      const batch = {
+        id: batchId,
+        eventId: item.eventId || "",
+        eventName: item.eventName || "",
+        eventDate: item.eventDate || "",
+        exportId,
+        deviceId: item.deviceId || "",
+        terminal: item.terminal || "",
+        operator: item.operator || "",
+        sourceFileId: item.fileId || "",
+        sourceFileName: item.fileName || "",
+        sourceModifiedTime: item.modifiedTime || "",
+        importedAt: now,
+        importedByAppVersion: APP_VERSION,
+        status: "ready_for_validation",
+        validationStatus: "not_validated",
+        ledgerStatus: "not_posted",
+        immutable: true,
+        importKey: importPreview.importKey,
+        schemaName: item.payload.schemaName || "",
+        schemaVersion: item.payload.schemaVersion || "",
+        preImport: deepClone(preImport),
+        preview: {
+          transactionCount: importPreview.rows.length,
+          ticketCount: importPreview.ticketRows.length,
+          priceChangeCount: importPreview.priceChangeRows.length,
+          totals: deepClone(importPreview.totals)
+        },
+        fileRecordId
+      };
+      const fileRecord = {
+        id: fileRecordId,
+        batchId,
+        importKey: importPreview.importKey,
+        source: "google-drive",
+        sourceFileId: item.fileId || "",
+        sourceFileName: item.fileName || "",
+        storedAt: now,
+        immutable: true,
+        payload: deepClone(item.payload)
+      };
+      return {
+        ...d,
+        kassaImports: {
+          ...defaultData.kassaImports,
+          ...currentImports,
+          batches: [...(currentImports.batches || []), batch],
+          files: [...(currentImports.files || []), fileRecord]
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_import_prepared",
+          createdAt: now,
+          appVersion: APP_VERSION,
+          eventId: item.eventId || "",
+          batchId,
+          exportId,
+          sourceFileName: item.fileName || "",
+          immutable: true,
+          ledgerStatus: "not_posted"
+        }]
+      };
+    });
+    showToast(created ? t.kx_import_prepared : t.kx_import_duplicate);
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -6437,6 +6552,7 @@ function App() {
     t: t
   }), tab === "kassaExports" && /*#__PURE__*/React.createElement(KassaExportMonitorTab, {
     data: data,
+    onPrepareImport: prepareKassaExportImport,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7355,6 +7471,7 @@ function buildKassaImportPreview(item, t) {
 
 function KassaExportMonitorTab({
   data,
+  onPrepareImport,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -7429,6 +7546,7 @@ function KassaExportMonitorTab({
     if (!current || (item.exportSortTime || 0) > (current.exportSortTime || 0)) latestByGroup.set(groupKey, item);
   });
   const latestFileIds = new Set(Array.from(latestByGroup.values()).map(item => item.fileId));
+  const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -7482,7 +7600,92 @@ function KassaExportMonitorTab({
       margin: "0.8rem 0 0",
       color: message && message.startsWith("✓") ? "var(--green)" : "var(--ink-soft)"
     }
-  }, message || t.kx_readonly)), exportsFound.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, message || t.kx_readonly)), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1rem",
+      display: "grid",
+      gap: "0.65rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: 0
+    }
+  }, t.kx_imported_batches), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.25rem 0.65rem",
+      background: "rgba(153,173,122,0.22)",
+      color: "var(--green)",
+      fontWeight: 900,
+      fontSize: "0.75rem"
+    }
+  }, importBatches.length)), importBatches.length ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "0.5rem"
+    }
+  }, importBatches.slice().reverse().map(batch => /*#__PURE__*/React.createElement("div", {
+    key: batch.id,
+    style: {
+      border: "1px solid var(--line)",
+      borderRadius: 8,
+      padding: "0.65rem",
+      background: "#fffaf2",
+      display: "grid",
+      gap: "0.35rem"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, batch.terminal || batch.deviceId || t.kx_unknown), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.78rem"
+    }
+  }, batch.eventName || t.kx_unknown, batch.eventDate ? ` · ${formatDate(batch.eventDate, lang)}` : ""), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.35rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.2rem 0.55rem",
+      background: "rgba(153,173,122,0.22)",
+      color: "var(--green)",
+      fontWeight: 850,
+      fontSize: "0.72rem"
+    }
+  }, t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.2rem 0.55rem",
+      background: "rgba(222,62,62,0.1)",
+      color: "#DE3E3E",
+      fontWeight: 850,
+      fontSize: "0.72rem"
+    }
+  }, t.kx_import_batch_readonly)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.76rem",
+      overflowWrap: "anywhere"
+    }
+  }, batch.sourceFileName || "-", " · ", batch.importedAt ? new Date(batch.importedAt).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-")))) : /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: "var(--ink-soft)"
+    }
+  }, t.kx_import_batch_none)), exportsFound.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
@@ -7500,6 +7703,9 @@ function KassaExportMonitorTab({
     const preImport = buildKassaPreImportChecks(item, isLatestExport, data, t);
     const preImportColor = preImport.status === "ok" ? "var(--green)" : preImport.status === "warn" ? "var(--amber)" : "#DE3E3E";
     const importPreview = buildKassaImportPreview(item, t);
+    const exportId = item && item.payload && item.payload.export && item.payload.export.exportId || "";
+    const alreadyImported = importBatches.some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
+    const canPrepareImport = preImport.status === "ok" && !alreadyImported && typeof onPrepareImport === "function";
     return /*#__PURE__*/React.createElement("div", {
       key: item.fileId,
       className: "card",
@@ -7628,6 +7834,11 @@ function KassaExportMonitorTab({
         alignItems: "center"
       }
     }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
+      onClick: () => onPrepareImport(item, preImport, importPreview),
+      disabled: !canPrepareImport,
+      title: alreadyImported ? t.kx_import_duplicate : preImport.status !== "ok" ? t.kx_import_blocked : t.kx_prepare_import
+    }, alreadyImported ? t.kx_import_duplicate : t.kx_prepare_import), /*#__PURE__*/React.createElement("button", {
       className: "btn btn-ghost btn-sm",
       onClick: () => setOpenFileId(isOpen ? "" : item.fileId)
     }, isOpen ? t.kx_close_details : t.kx_details), /*#__PURE__*/React.createElement("span", {
