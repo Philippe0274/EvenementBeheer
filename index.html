@@ -269,7 +269,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.24.3";
+const APP_VERSION = "1.25.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -729,6 +729,39 @@ const T = {
     kx_import_batch_ready: "Klaar voor validatie",
     kx_import_batch_readonly: "Immutable bewaard",
     kx_import_batch_none: "Nog geen Kassa-export als importbatch vastgelegd.",
+    kx_validate_import: "Valideer import",
+    kx_validation_ok: "✓ Importbatch gevalideerd. Nog niet geboekt.",
+    kx_validation_failed: "Importvalidatie bevat fouten. Niet geboekt.",
+    kx_validation_report: "Validatierapport",
+    kx_validation_not_run: "Nog niet gevalideerd",
+    kx_validation_validated: "Gevalideerd",
+    kx_validation_warnings: "Gevalideerd met waarschuwingen",
+    kx_validation_errors: "Validatie mislukt",
+    kx_validation_errors_count: "Fouten",
+    kx_validation_warnings_count: "Waarschuwingen",
+    kx_validation_checks_count: "Controles",
+    kx_validation_no_file: "Originele exportpayload ontbreekt",
+    kx_validation_schema_ok: "Schema en versie geldig",
+    kx_validation_schema_bad: "Schema of versie ongeldig",
+    kx_validation_event_ok: "Event komt overeen",
+    kx_validation_event_warn: "Event lijkt overeen te komen, maar eventId verschilt",
+    kx_validation_event_bad: "Event komt niet overeen",
+    kx_validation_duplicate_ok: "Geen dubbele importbatch gevonden",
+    kx_validation_duplicate_bad: "Dubbele importbatch/exportId gevonden",
+    kx_validation_cash_closed_ok: "Kassa is afgesloten",
+    kx_validation_cash_closed_bad: "Kassa is niet afgesloten",
+    kx_validation_transactions_ok: "Transactiestructuur geldig",
+    kx_validation_transactions_empty: "Geen transacties gevonden",
+    kx_validation_tx_missing_id: "Transactie zonder uniek transactionId",
+    kx_validation_tx_duplicate_id: "Dubbel transactionId",
+    kx_validation_line_missing_article: "Verkoopregel zonder artikelnummer",
+    kx_validation_line_unknown_article: "Nieuw/onbekend artikel tegenover Hoofdapp-prijslijst",
+    kx_validation_line_price_diff: "Prijsverschil tegenover beginprijslijst",
+    kx_validation_tickets_ok: "Ticketregistraties geldig",
+    kx_validation_tickets_warn: "Ticketregistratie met ontbrekende naam/datum/aantal",
+    kx_validation_price_changes: "Prijslijstmutaties in export",
+    kx_validation_no_price_list: "Hoofdapp-prijslijst is leeg of niet bruikbaar",
+    kx_validation_ledger_safe: "Geen ledger-posting uitgevoerd",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1572,6 +1605,39 @@ const T = {
     kx_import_batch_ready: "Prêt pour validation",
     kx_import_batch_readonly: "Conservé immuable",
     kx_import_batch_none: "Aucun export caisse n'est encore enregistré comme lot d'import.",
+    kx_validate_import: "Valider l'import",
+    kx_validation_ok: "✓ Lot d'import validé. Pas encore comptabilisé.",
+    kx_validation_failed: "La validation contient des erreurs. Rien n'est comptabilisé.",
+    kx_validation_report: "Rapport de validation",
+    kx_validation_not_run: "Pas encore validé",
+    kx_validation_validated: "Validé",
+    kx_validation_warnings: "Validé avec avertissements",
+    kx_validation_errors: "Validation échouée",
+    kx_validation_errors_count: "Erreurs",
+    kx_validation_warnings_count: "Avertissements",
+    kx_validation_checks_count: "Contrôles",
+    kx_validation_no_file: "Payload d'export original manquant",
+    kx_validation_schema_ok: "Schéma et version valides",
+    kx_validation_schema_bad: "Schéma ou version invalide",
+    kx_validation_event_ok: "Événement correspondant",
+    kx_validation_event_warn: "L'événement semble correspondre, mais l'eventId diffère",
+    kx_validation_event_bad: "Événement différent",
+    kx_validation_duplicate_ok: "Aucun lot d'import en double trouvé",
+    kx_validation_duplicate_bad: "Lot/exportId en double trouvé",
+    kx_validation_cash_closed_ok: "Caisse clôturée",
+    kx_validation_cash_closed_bad: "Caisse non clôturée",
+    kx_validation_transactions_ok: "Structure des transactions valide",
+    kx_validation_transactions_empty: "Aucune transaction trouvée",
+    kx_validation_tx_missing_id: "Transaction sans transactionId unique",
+    kx_validation_tx_duplicate_id: "TransactionId en double",
+    kx_validation_line_missing_article: "Ligne de vente sans numéro d'article",
+    kx_validation_line_unknown_article: "Article nouveau/inconnu par rapport à la liste de prix",
+    kx_validation_line_price_diff: "Différence de prix avec la liste de départ",
+    kx_validation_tickets_ok: "Enregistrements tickets valides",
+    kx_validation_tickets_warn: "Enregistrement ticket avec nom/date/quantité manquant",
+    kx_validation_price_changes: "Mutations de liste de prix dans l'export",
+    kx_validation_no_price_list: "La liste de prix Hoofdapp est vide ou inutilisable",
+    kx_validation_ledger_safe: "Aucune comptabilisation ledger effectuée",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -5595,6 +5661,54 @@ function App() {
     });
     showToast(created ? t.kx_import_prepared : t.kx_import_duplicate);
   };
+  const validatePreparedKassaImport = batchId => {
+    let validationReport = null;
+    setData(d => {
+      const currentImports = d.kassaImports || defaultData.kassaImports;
+      const batch = (currentImports.batches || []).find(item => item && item.id === batchId);
+      if (!batch) return d;
+      const fileRecord = (currentImports.files || []).find(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+      const report = buildKassaImportValidationReport(batch, fileRecord, d, t);
+      validationReport = report;
+      const batchStatus = report.status === "validation_failed" ? "validation_failed" : "validated";
+      const validationStatus = report.status;
+      return {
+        ...d,
+        kassaImports: {
+          ...defaultData.kassaImports,
+          ...currentImports,
+          batches: (currentImports.batches || []).map(item => item && item.id === batchId ? {
+            ...item,
+            status: batchStatus,
+            validationStatus,
+            validationReport: report,
+            validationValidatedAt: report.createdAt,
+            ledgerStatus: "not_posted",
+            immutable: true
+          } : item),
+          files: currentImports.files || []
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_import_validated",
+          createdAt: report.createdAt,
+          appVersion: APP_VERSION,
+          eventId: batch.eventId || "",
+          batchId: batch.id,
+          exportId: batch.exportId || "",
+          sourceFileName: batch.sourceFileName || "",
+          validationStatus,
+          errors: report.errors,
+          warnings: report.warnings,
+          immutable: true,
+          ledgerStatus: "not_posted"
+        }]
+      };
+    });
+    if (validationReport) {
+      showToast(validationReport.errors ? t.kx_validation_failed : t.kx_validation_ok);
+    }
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -6560,6 +6674,7 @@ function App() {
   }), tab === "kassaExports" && /*#__PURE__*/React.createElement(KassaExportMonitorTab, {
     data: data,
     onPrepareImport: prepareKassaExportImport,
+    onValidateImport: validatePreparedKassaImport,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7476,9 +7591,168 @@ function buildKassaImportPreview(item, t) {
   };
 }
 
+function getHoofdappPricelistArticleNumber(article, index) {
+  const existing = article && (article.artikelNummer || article.nummer || article.code || article.articleNumber);
+  return existing ? String(existing).trim().padStart(3, "0") : String(index + 1).padStart(3, "0");
+}
+
+function parseHoofdappPriceCents(value) {
+  if (Number.isFinite(value)) return Math.round(value * 100);
+  const raw = String(value == null ? "" : value).trim().replace(/\s/g, "").replace(",", ".");
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) : null;
+}
+
+function buildHoofdappPricelistMap(data) {
+  const map = new Map();
+  (data && data.prijslijst || []).forEach((article, index) => {
+    const articleNumber = getHoofdappPricelistArticleNumber(article, index);
+    if (!articleNumber) return;
+    map.set(articleNumber, {
+      articleNumber,
+      name: String(article.naam || article.name || "").trim(),
+      category: String(article.categorie || article.category || "").trim(),
+      priceCents: parseHoofdappPriceCents(article.prijs ?? article.price),
+      active: article.actief !== false,
+      raw: article
+    });
+  });
+  return map;
+}
+
+function buildKassaItemFromBatch(batch, fileRecord, t) {
+  const payload = fileRecord && fileRecord.payload || {};
+  const file = {
+    id: batch.sourceFileId || fileRecord && fileRecord.sourceFileId || "",
+    name: batch.sourceFileName || fileRecord && fileRecord.sourceFileName || "",
+    modifiedTime: batch.sourceModifiedTime || ""
+  };
+  return summarizeKassaExportFile(file, payload, t, "nl");
+}
+
+function buildKassaImportValidationReport(batch, fileRecord, data, t) {
+  const now = new Date().toISOString();
+  const checks = [];
+  const add = (level, text, meta = {}) => checks.push({
+    level,
+    text,
+    ...meta
+  });
+  const payload = fileRecord && fileRecord.payload;
+  if (!payload) {
+    add("error", t.kx_validation_no_file);
+  }
+  const schemaOk = payload && payload.schemaName === "be.zomerfeest.kassa-export" && payload.schemaVersion === "1.0.0";
+  add(schemaOk ? "ok" : "error", schemaOk ? t.kx_validation_schema_ok : t.kx_validation_schema_bad, {
+    schemaName: payload && payload.schemaName || "",
+    schemaVersion: payload && payload.schemaVersion || ""
+  });
+  const validationItem = payload ? buildKassaItemFromBatch(batch, fileRecord, t) : null;
+  if (validationItem) {
+    const preImport = buildKassaPreImportChecks(validationItem, true, data, t);
+    const eventCheck = preImport.checks.find(check => [t.kx_check_event_ok, t.kx_check_event_warn, t.kx_check_event_bad].includes(check.text));
+    if (eventCheck) {
+      add(eventCheck.level, eventCheck.level === "ok" ? t.kx_validation_event_ok : eventCheck.level === "warn" ? t.kx_validation_event_warn : t.kx_validation_event_bad);
+    }
+    const cashClosed = String(validationItem.cashStatus || "").toLowerCase() === "closed";
+    add(cashClosed ? "ok" : "error", cashClosed ? t.kx_validation_cash_closed_ok : t.kx_validation_cash_closed_bad, {
+      cashStatus: validationItem.cashStatus || ""
+    });
+  }
+  const duplicateMatches = (data && data.kassaImports && data.kassaImports.batches || []).filter(other => other && other.id !== batch.id && (batch.importKey && other.importKey === batch.importKey || batch.exportId && other.exportId === batch.exportId));
+  add(duplicateMatches.length ? "error" : "ok", duplicateMatches.length ? t.kx_validation_duplicate_bad : t.kx_validation_duplicate_ok, {
+    duplicateBatchIds: duplicateMatches.map(item => item.id)
+  });
+  const officialArticles = buildHoofdappPricelistMap(data);
+  if (!officialArticles.size) add("warn", t.kx_validation_no_price_list);
+  const transactions = payload && payload.data && Array.isArray(payload.data.transactions) ? payload.data.transactions : [];
+  if (!transactions.length) add("warn", t.kx_validation_transactions_empty);
+  const txIds = new Set();
+  let transactionStructureOk = true;
+  transactions.forEach((transaction, txIndex) => {
+    const txId = String(transaction && transaction.transactionId || "").trim();
+    if (!txId) {
+      transactionStructureOk = false;
+      add("error", `${t.kx_validation_tx_missing_id} #${txIndex + 1}`);
+    } else if (txIds.has(txId)) {
+      transactionStructureOk = false;
+      add("error", `${t.kx_validation_tx_duplicate_id}: ${txId}`);
+    } else {
+      txIds.add(txId);
+    }
+    const lines = Array.isArray(transaction && transaction.lineItems) ? transaction.lineItems : [];
+    if (transaction && transaction.transactionType !== "donation" && !lines.length) {
+      transactionStructureOk = false;
+      add("warn", `${t.kx_validation_transactions_empty}: ${txId || `#${txIndex + 1}`}`);
+    }
+    lines.forEach((line, lineIndex) => {
+      const articleNumber = String(line && (line.articleNumber || line.number || line.code) || "").trim().padStart(3, "0");
+      if (!articleNumber || articleNumber === "000") {
+        transactionStructureOk = false;
+        add("error", `${t.kx_validation_line_missing_article}: ${txId || `#${txIndex + 1}`}/${lineIndex + 1}`);
+        return;
+      }
+      const official = officialArticles.get(articleNumber);
+      if (!official) {
+        add("warn", `${t.kx_validation_line_unknown_article}: ${articleNumber}`, {
+          transactionId: txId,
+          articleNumber
+        });
+        return;
+      }
+      const exportedUnitPrice = getKassaPreviewCents(line && (line.unitPriceCents ?? line.priceCents));
+      if (official.priceCents != null && exportedUnitPrice && official.priceCents !== exportedUnitPrice) {
+        add("warn", `${t.kx_validation_line_price_diff}: ${articleNumber} ${formatKassaPreviewMoney(official.priceCents)} → ${formatKassaPreviewMoney(exportedUnitPrice)}`, {
+          transactionId: txId,
+          articleNumber,
+          officialPriceCents: official.priceCents,
+          exportedUnitPriceCents: exportedUnitPrice
+        });
+      }
+    });
+  });
+  if (transactions.length && transactionStructureOk) add("ok", t.kx_validation_transactions_ok, {
+    transactionCount: transactions.length
+  });
+  const masterArticles = payload && payload.data && payload.data.masterData && Array.isArray(payload.data.masterData.articles) ? payload.data.masterData.articles : [];
+  const changedArticles = masterArticles.filter(article => article && (article.createdOnTablet || article.priceChangedOnTablet || article.statusChangedOnTablet || article.nameChangedOnTablet));
+  if (changedArticles.length) add("warn", `${t.kx_validation_price_changes}: ${changedArticles.length}`);
+  const ticketRows = [...(payload && payload.data && Array.isArray(payload.data.manifiestaTicketRegistrations) ? payload.data.manifiestaTicketRegistrations : []), ...(payload && payload.data && Array.isArray(payload.data.externalTicketRegistrations) ? payload.data.externalTicketRegistrations : [])];
+  const badTickets = ticketRows.filter(ticket => {
+    const quantity = parseInt(ticket && ticket.quantity, 10) || 0;
+    const isExternal = !!(ticket && (ticket.externalEventName || ticket.externalEventDate));
+    return quantity <= 0 || isExternal && (!String(ticket.externalEventName || "").trim() || !String(ticket.externalEventDate || "").trim());
+  });
+  if (badTickets.length) add("warn", `${t.kx_validation_tickets_warn}: ${badTickets.length}`);else add("ok", t.kx_validation_tickets_ok, {
+    ticketRegistrationCount: ticketRows.length
+  });
+  add("ok", t.kx_validation_ledger_safe);
+  const errors = checks.filter(check => check.level === "error").length;
+  const warnings = checks.filter(check => check.level === "warn").length;
+  return {
+    id: `kvr_${uid()}`,
+    createdAt: now,
+    appVersion: APP_VERSION,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    sourceFileName: batch.sourceFileName || "",
+    status: errors ? "validation_failed" : warnings ? "validated_with_warnings" : "validated",
+    errors,
+    warnings,
+    checkCount: checks.length,
+    transactionCount: transactions.length,
+    ticketRegistrationCount: ticketRows.length,
+    priceChangeCount: changedArticles.length,
+    checks,
+    immutablePayloadPreserved: true,
+    ledgerStatus: "not_posted"
+  };
+}
+
 function KassaExportMonitorTab({
   data,
   onPrepareImport,
+  onValidateImport,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -7555,6 +7829,30 @@ function KassaExportMonitorTab({
   });
   const latestFileIds = new Set(Array.from(latestByGroup.values()).map(item => item.fileId));
   const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const importFiles = data && data.kassaImports && Array.isArray(data.kassaImports.files) ? data.kassaImports.files : [];
+  const validationBadgeFor = batch => {
+    const report = batch && batch.validationReport;
+    if (!report) return {
+      label: t.kx_validation_not_run,
+      color: "var(--amber)",
+      background: "rgba(192,138,46,0.14)"
+    };
+    if (report.status === "validation_failed") return {
+      label: t.kx_validation_errors,
+      color: "#DE3E3E",
+      background: "rgba(222,62,62,0.13)"
+    };
+    if (report.status === "validated_with_warnings") return {
+      label: t.kx_validation_warnings,
+      color: "var(--amber)",
+      background: "rgba(192,138,46,0.16)"
+    };
+    return {
+      label: t.kx_validation_validated,
+      color: "var(--green)",
+      background: "rgba(153,173,122,0.22)"
+    };
+  };
   const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -7653,52 +7951,144 @@ function KassaExportMonitorTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
       gap: "0.5rem"
     }
-  }, importBatches.slice().reverse().map(batch => /*#__PURE__*/React.createElement("div", {
-    key: batch.id,
-    style: {
-      border: "1px solid var(--line)",
-      borderRadius: 8,
-      padding: "0.65rem",
-      background: "#fffaf2",
-      display: "grid",
-      gap: "0.35rem"
-    }
-  }, /*#__PURE__*/React.createElement("strong", null, batch.terminal || batch.deviceId || t.kx_unknown), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.78rem"
-    }
-  }, batch.eventName || t.kx_unknown, batch.eventDate ? ` · ${formatDate(batch.eventDate, lang)}` : ""), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "0.35rem",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.2rem 0.55rem",
-      background: "rgba(153,173,122,0.22)",
-      color: "var(--green)",
-      fontWeight: 850,
-      fontSize: "0.72rem"
-    }
-  }, t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.2rem 0.55rem",
-      background: "rgba(222,62,62,0.1)",
-      color: "#DE3E3E",
-      fontWeight: 850,
-      fontSize: "0.72rem"
-    }
-  }, t.kx_import_batch_readonly)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "0.76rem",
-      overflowWrap: "anywhere"
-    }
-  }, batch.sourceFileName || "-", " · ", batch.importedAt ? new Date(batch.importedAt).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-")))) : /*#__PURE__*/React.createElement("p", {
+  }, importBatches.slice().reverse().map(batch => {
+    const validationBadge = validationBadgeFor(batch);
+    const report = batch.validationReport;
+    const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+    return /*#__PURE__*/React.createElement("div", {
+      key: batch.id,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 8,
+        padding: "0.65rem",
+        background: "#fffaf2",
+        display: "grid",
+        gap: "0.5rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.5rem",
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, batch.terminal || batch.deviceId || t.kx_unknown), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.2rem 0.55rem",
+        background: validationBadge.background,
+        color: validationBadge.color,
+        fontWeight: 900,
+        fontSize: "0.72rem"
+      }
+    }, validationBadge.label)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.78rem"
+      }
+    }, batch.eventName || t.kx_unknown, batch.eventDate ? ` · ${formatDate(batch.eventDate, lang)}` : ""), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.35rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.2rem 0.55rem",
+        background: "rgba(153,173,122,0.22)",
+        color: "var(--green)",
+        fontWeight: 850,
+        fontSize: "0.72rem"
+      }
+    }, batch.status === "validated" ? t.kx_validation_validated : batch.status === "validation_failed" ? t.kx_validation_errors : t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.2rem 0.55rem",
+        background: "rgba(222,62,62,0.1)",
+        color: "#DE3E3E",
+        fontWeight: 850,
+        fontSize: "0.72rem"
+      }
+    }, t.kx_import_batch_readonly), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.2rem 0.55rem",
+        background: hasPayload ? "rgba(153,173,122,0.18)" : "rgba(222,62,62,0.12)",
+        color: hasPayload ? "var(--green)" : "#DE3E3E",
+        fontWeight: 850,
+        fontSize: "0.72rem"
+      }
+    }, hasPayload ? t.kx_validation_ledger_safe : t.kx_validation_no_file)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem",
+        overflowWrap: "anywhere"
+      }
+    }, batch.sourceFileName || "-", " · ", batch.importedAt ? new Date(batch.importedAt).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
+      onClick: () => onValidateImport && onValidateImport(batch.id),
+      disabled: !hasPayload || typeof onValidateImport !== "function"
+    }, t.kx_validate_import)), report && /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: `1px solid ${report.errors ? "#DE3E3E55" : report.warnings ? "rgba(192,138,46,0.35)" : "rgba(153,173,122,0.35)"}`,
+        borderRadius: 7,
+        padding: "0.55rem",
+        background: "rgba(255,255,255,0.72)",
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.82rem"
+      }
+    }, t.kx_validation_report), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: "0.35rem"
+      }
+    }, [[t.kx_validation_errors_count, report.errors], [t.kx_validation_warnings_count, report.warnings], [t.kx_validation_checks_count, report.checkCount]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 6,
+        padding: "0.35rem",
+        background: "#fffaf2"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.62rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900
+      }
+    }, value)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.25rem",
+        maxHeight: 180,
+        overflow: "auto"
+      }
+    }, (report.checks || []).slice(0, 20).map((check, index) => /*#__PURE__*/React.createElement("div", {
+      key: `${check.text}-${index}`,
+      style: {
+        color: check.level === "ok" ? "var(--green)" : check.level === "warn" ? "var(--amber)" : "#DE3E3E",
+        fontSize: "0.74rem",
+        fontWeight: 750
+      }
+    }, check.level === "ok" ? "✓ " : check.level === "warn" ? "⚠ " : "✕ ", check.text)))));
+  })) : /*#__PURE__*/React.createElement("p", {
     style: {
       margin: 0,
       color: "var(--ink-soft)"

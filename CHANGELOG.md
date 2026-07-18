@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.0
+- Kassa Exports uitgebreid met validatie van voorbereide importbatches.
+- Voorbereide batches krijgen nu een knop "Valideer import" en een read-only validatierapport.
+- Validatie controleert schemaVersion 1.0.0, eventmatch, dubbele imports/exportIds, kassa-afsluiting, transactiestructuur, transactionId-dubbels, artikelmatch met de officiële Hoofdapp-prijslijst, prijsverschillen, nieuwe/onbekende artikelen en ticketregistraties.
+- De originele Kassa Tool-exportpayload blijft immutable bewaard onder `kassaImports.files`.
+- Validatie schrijft alleen status en validatierapport op de importbatch plus audittrail; er gebeurt nog geen ledger-posting, rapportering of financiële verwerking.
+- Business Continuity, vrijwilligers, materiaal, prijslijstexport, Google Drive-monitor en bestaande imports blijven ongewijzigd.
+
 ## 1.24.3
 - Vrijwilligerskaarten tonen nu automatisch een standaardicoon wanneer er geen echte profielfoto is.
 - Bij geslacht `M` wordt het man-icoon getoond, bij `V` het vrouw-icoon en bij ontbrekend/onbekend geslacht het vraagteken-icoon.
