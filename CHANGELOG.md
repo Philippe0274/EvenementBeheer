@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.24.1
+- Regressieherstel Kassa Exports: `Import voorbereiden` is nu actief bij exports met waarschuwingen.
+- Alleen exports met rode pre-import fouten blijven geblokkeerd.
+- Waarschuwingen zoals onbekende gebruiker of afwijkende maar herkenbare eventId blokkeren de voorbereidende importbatch niet meer.
+- Geen wijziging aan ledger, rapportering, financiële verwerking of actieve eventdata.
+
 ## 1.24.0
 - Kassa Exports uitgebreid met een veilige voorbereidende importbatch-stap.
 - Een geschikte export kan nu als immutable batch worden vastgelegd onder `kassaImports.batches` en `kassaImports.files`.

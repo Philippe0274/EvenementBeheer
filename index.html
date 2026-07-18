@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.24.0";
+const APP_VERSION = "1.24.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -5509,7 +5509,7 @@ function App() {
       showToast(t.kx_import_blocked);
       return;
     }
-    if (!preImport || preImport.status !== "ok") {
+    if (!preImport || preImport.status === "error") {
       showToast(t.kx_import_blocked);
       return;
     }
@@ -7705,7 +7705,7 @@ function KassaExportMonitorTab({
     const importPreview = buildKassaImportPreview(item, t);
     const exportId = item && item.payload && item.payload.export && item.payload.export.exportId || "";
     const alreadyImported = importBatches.some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
-    const canPrepareImport = preImport.status === "ok" && !alreadyImported && typeof onPrepareImport === "function";
+    const canPrepareImport = preImport.status !== "error" && !alreadyImported && typeof onPrepareImport === "function";
     return /*#__PURE__*/React.createElement("div", {
       key: item.fileId,
       className: "card",
@@ -7837,7 +7837,7 @@ function KassaExportMonitorTab({
       className: "btn btn-primary btn-sm",
       onClick: () => onPrepareImport(item, preImport, importPreview),
       disabled: !canPrepareImport,
-      title: alreadyImported ? t.kx_import_duplicate : preImport.status !== "ok" ? t.kx_import_blocked : t.kx_prepare_import
+      title: alreadyImported ? t.kx_import_duplicate : preImport.status === "error" ? t.kx_import_blocked : t.kx_prepare_import
     }, alreadyImported ? t.kx_import_duplicate : t.kx_prepare_import), /*#__PURE__*/React.createElement("button", {
       className: "btn btn-ghost btn-sm",
       onClick: () => setOpenFileId(isOpen ? "" : item.fileId)
