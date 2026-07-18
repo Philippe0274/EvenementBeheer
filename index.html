@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.22.3";
+const APP_VERSION = "1.22.4";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1064,6 +1064,7 @@ const T = {
     winkel_reimburse_files: "Losse ticketbestanden",
     winkel_reimburse_open_mail: "Open in Gmail",
     winkel_reimburse_copy: "Mailtekst kopiëren",
+    winkel_reimburse_copy_rich: "Opgemaakte mail kopiëren",
     winkel_reimburse_download: "Download ticket",
     winkel_reimburse_total: "Totaal voor",
     winkel_reimburse_gmail_hint: "Gmail opent via accountpositie /u/1/ voor jflores2000@gmail.com in Edge op deze pc. Controleer vóór verzenden nog even dat het juiste account actief is.",
@@ -1071,6 +1072,7 @@ const T = {
     winkel_reimburse_missing_address: "Geen adres gevonden bij deze vrijwilliger.",
     winkel_reimburse_external: "Externe koper: controleer adres en rekeningnummer manueel.",
     winkel_reimburse_copied: "Mailtekst gekopieerd",
+    winkel_reimburse_rich_copied: "Opgemaakte mail gekopieerd — plak ze nu in Gmail.",
     event_reimburse_emails: "Ontvangers terugbetalingsmails",
     event_reimburse_emails_help: "Eén of meerdere e-mailadressen, gescheiden met komma, puntkomma of nieuwe regel. Voor de test staat standaard alleen Philippe ingevuld.",
     mat_title: "Materiaal",
@@ -1873,6 +1875,7 @@ const T = {
     winkel_reimburse_files: "Fichiers de tickets séparés",
     winkel_reimburse_open_mail: "Ouvrir dans Gmail",
     winkel_reimburse_copy: "Copier le texte",
+    winkel_reimburse_copy_rich: "Copier l'e-mail formaté",
     winkel_reimburse_download: "Télécharger le ticket",
     winkel_reimburse_total: "Total pour",
     winkel_reimburse_gmail_hint: "Gmail s'ouvre via la position de compte /u/1/ pour jflores2000@gmail.com dans Edge sur ce PC. Vérifiez encore avant l'envoi que le bon compte est actif.",
@@ -1880,6 +1883,7 @@ const T = {
     winkel_reimburse_missing_address: "Aucune adresse trouvée pour ce bénévole.",
     winkel_reimburse_external: "Acheteur externe : vérifiez l'adresse et le numéro de compte manuellement.",
     winkel_reimburse_copied: "Texte de l'e-mail copié",
+    winkel_reimburse_rich_copied: "E-mail formaté copié — collez-le maintenant dans Gmail.",
     event_reimburse_emails: "Destinataires des e-mails de remboursement",
     event_reimburse_emails_help: "Une ou plusieurs adresses e-mail, séparées par une virgule, un point-virgule ou une nouvelle ligne. Pour le test, seule l'adresse de Philippe est remplie par défaut.",
     mat_title: "Matériel",
@@ -12783,12 +12787,21 @@ function WinkelbestellingenTab({
     return Array.from(groups.values()).sort((a, b) => a.name.localeCompare(b.name));
   })();
   const buildReimbursementSubject = () => `Terugbetalingen ${data.event.naam ? `(${data.event.naam})` : ""}`.trim();
+  const reimbursementGreeting = () => {
+    const uur = new Date().getHours();
+    if (uur < 12) return "Goede morgen";
+    if (uur < 18) return "Goede middag";
+    return "Goede avond";
+  };
+  const escapeHtml = value => String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   const buildReimbursementBody = group => {
     const vrijwilliger = group.vrijwilliger;
     const adres = vrijwilliger ? buildVrijwilligerAdres(vrijwilliger) : "";
     const rekening = vrijwilliger ? (vrijwilliger.opmerking || "").trim() : "";
     const total = group.tickets.reduce((acc, item) => acc + item.amount, 0);
     const lines = [];
+    lines.push(reimbursementGreeting());
+    lines.push("");
     lines.push("Gelieve hierbij tickets te willen vinden ter terugbetaling.");
     lines.push("");
     lines.push(`Het betreft uitgaven die gedaan werden voor het ${data.event.naam || "evenement"}${data.event.gemeente ? ` in ${data.event.gemeente}` : ""}.`);
@@ -12811,9 +12824,66 @@ function WinkelbestellingenTab({
     lines.push("Alvast bedankt");
     return lines.join("\n");
   };
+  const buildReimbursementHtml = group => {
+    const vrijwilliger = group.vrijwilliger;
+    const adres = vrijwilliger ? buildVrijwilligerAdres(vrijwilliger) : "";
+    const rekening = vrijwilliger ? (vrijwilliger.opmerking || "").trim() : "";
+    const total = group.tickets.reduce((acc, item) => acc + item.amount, 0);
+    const eventNaam = data.event.naam || "evenement";
+    const eventGemeente = data.event.gemeente || "";
+    const ticketRows = group.tickets.map(item => {
+      const extra = [item.winkel, item.date].filter(Boolean).join(" · ");
+      return `<li style="margin:0 0 10px 0;padding-left:4px;"><span>${escapeHtml(item.fileName)}</span> — <span>${escapeHtml(fmtBedrag(item.amount))}</span>${extra ? ` <span>(${escapeHtml(extra)})</span>` : ""}</li>`;
+    }).join("");
+    return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45;color:#111;">
+<p style="margin:0 0 16px 0;">${escapeHtml(reimbursementGreeting())}</p>
+<p style="margin:0 0 14px 0;"><u>Gelieve hierbij tickets te willen vinden ter terugbetaling.</u></p>
+<p style="margin:0 0 14px 0;">Het <u>betreft uitgaven</u> die <u>gedaan werden voor</u> het <span>${escapeHtml(eventNaam)}</span>${eventGemeente ? ` in<br>${escapeHtml(eventGemeente)}.` : "."}</p>
+<p style="margin:0 0 10px 0;"><u>Deze tickets dienen te worden terug betaald aan</u></p>
+<p style="margin:0 0 14px 0;"><strong><em>${escapeHtml(group.name)}</em></strong></p>
+<p style="margin:0 0 14px 0;"><strong><em>${escapeHtml(adres || "[Adres van de koper invullen]")}</em></strong></p>
+<p style="margin:0 0 36px 0;">Op het rekeningnummer <strong style="color:#d60000;">${escapeHtml(rekening || "[rekeningnummer invullen]")}</strong></p>
+<p style="margin:0 0 12px 0;"><u>Ticketoverzicht:</u></p>
+<ul style="margin:0 0 14px 18px;padding-left:18px;">${ticketRows}</ul>
+<p style="margin:0 0 44px 0;">Het <strong style="color:#d60000;"><u>totaal bedrag</u></strong> voor ${escapeHtml(group.name)} is dus <strong style="background:#fff200;color:#000;padding:1px 3px;">${escapeHtml(fmtBedrag(total).replace("€ ", "€"))}</strong>.</p>
+<p style="margin:0;">Alvast bedankt</p>
+</div>`;
+  };
   const copyReimbursementBody = async group => {
     const text = buildReimbursementBody(group);
     try {
+      await navigator.clipboard.writeText(text);
+      showToast(t.winkel_reimburse_copied);
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast(t.winkel_reimburse_copied);
+      } catch (e2) {
+        alert(t.cant_copy);
+      }
+      document.body.removeChild(ta);
+    }
+  };
+  const copyReimbursementRich = async group => {
+    const html = buildReimbursementHtml(group);
+    const text = buildReimbursementBody(group);
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([html], {
+            type: "text/html"
+          }),
+          "text/plain": new Blob([text], {
+            type: "text/plain"
+          })
+        })]);
+        showToast(t.winkel_reimburse_rich_copied);
+        return;
+      }
       await navigator.clipboard.writeText(text);
       showToast(t.winkel_reimburse_copied);
     } catch (e) {
@@ -13361,6 +13431,9 @@ function WinkelbestellingenTab({
         textDecoration: "none"
       }
     }, t.winkel_reimburse_open_mail), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      onClick: () => copyReimbursementRich(group)
+    }, t.winkel_reimburse_copy_rich), /*#__PURE__*/React.createElement("button", {
       className: "btn btn-ghost btn-sm",
       onClick: () => copyReimbursementBody(group)
     }, t.winkel_reimburse_copy))), /*#__PURE__*/React.createElement("div", {

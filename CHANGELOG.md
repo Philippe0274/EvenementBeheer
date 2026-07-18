@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.22.4
+- Terugbetalingsmails kregen een professionele opgemaakte HTML-versie met begroeting op basis van het actuele uur.
+- Nieuwe knop "Opgemaakte mail kopiëren" kopieert vet, cursief, rood rekeningnummer, gemarkeerd totaalbedrag en nette ticketlijst naar het klembord.
+- "Open in Gmail" blijft de compose openen via Edge `/u/1/`; de opgemaakte mail kan daarna in Gmail geplakt worden.
+- De platte tekstmail blijft beschikbaar als fallback.
+
 ## 1.22.3
 - Gmail-compose voor terugbetalingsmails opent nu via `https://mail.google.com/mail/u/1/`.
 - Deze accountpositie is ingesteld voor Edge op de vaste test-pc, waar `/u/1/` overeenkomt met `jflores2000@gmail.com`.
