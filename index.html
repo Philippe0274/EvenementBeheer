@@ -157,8 +157,10 @@
   .volunteer-card:hover { box-shadow: 0 8px 22px rgba(44, 38, 31, 0.12); transform: translateY(-1px); border-color: #cdbfaa; }
   .volunteer-card-main { padding: 1rem 3.45rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.85rem; flex: 1; min-height: 0; }
   .volunteer-card-head { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 0.85rem; align-items: start; }
+  .volunteer-photo-stack { position: relative; width: 60px; height: 60px; flex: 0 0 auto; }
   .volunteer-photo { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: var(--bg); border: 1px solid var(--line); flex: 0 0 auto; }
   .volunteer-photo-default { object-fit: contain; background: white; }
+  .volunteer-partner-photo { position: absolute; right: -5px; bottom: -5px; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid white; box-shadow: 0 2px 8px rgba(44,38,31,0.22); }
   .volunteer-avatar { width: 60px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); border: 1px solid #e6c8bd; font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; }
   .volunteer-name { font-family: 'Fraunces', serif; font-size: 1.12rem; font-weight: 600; color: var(--ink); line-height: 1.15; overflow-wrap: anywhere; }
   .volunteer-alias { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.18rem; }
@@ -269,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.2";
+const APP_VERSION = "1.25.3";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1235,6 +1237,11 @@ const T = {
     volunteer_photo_help: "JPG, PNG of WEBP. Wordt automatisch vierkant verkleind.",
     volunteer_photo_error: "De foto kon niet verwerkt worden. Kies een JPG, PNG of WEBP.",
     volunteer_initials: "Initialen",
+    volunteer_partner: "Partner / gekoppelde persoon",
+    volunteer_no_partner: "Geen partner",
+    volunteer_partner_badge: "Partner",
+    volunteer_partner_address: "Adres via partner",
+    volunteer_partner_help: "Als deze vrijwilliger geen adres heeft, gebruikt de kaart automatisch het adres van de gekoppelde partner. De adresvelden worden niet overschreven.",
     volunteer_save: "Opslaan",
     no_volunteers: "Nog geen vrijwilligers. Voeg er één toe of importeer een Excel.",
     no_results: "Geen resultaten.",
@@ -2111,6 +2118,11 @@ const T = {
     volunteer_photo_help: "JPG, PNG ou WEBP. L'image est recadrée en carré automatiquement.",
     volunteer_photo_error: "La photo n'a pas pu être traitée. Choisissez un JPG, PNG ou WEBP.",
     volunteer_initials: "Initiales",
+    volunteer_partner: "Partenaire / personne liée",
+    volunteer_no_partner: "Pas de partenaire",
+    volunteer_partner_badge: "Partenaire",
+    volunteer_partner_address: "Adresse via partenaire",
+    volunteer_partner_help: "Si ce bénévole n'a pas d'adresse, la carte utilise automatiquement l'adresse du partenaire lié. Les champs d'adresse ne sont pas écrasés.",
     volunteer_save: "Enregistrer",
     no_volunteers: "Pas encore de bénévoles. Ajoutez-en un ou importez un fichier Excel.",
     no_results: "Aucun résultat.",
@@ -3108,6 +3120,7 @@ const normalizeData = raw => {
       beschikbaarVan: v.beschikbaarVan || "",
       beschikbaarTot: v.beschikbaarTot || "",
       opmerking: v.opmerking || "",
+      partnerId: v.partnerId || "",
       profilePhoto: v.profilePhoto || v.profielfoto || ""
     }));
   }
@@ -3734,7 +3747,7 @@ const helpContentNl = [{
     uitleg: "Vul eventnaam, datum, locatie, verantwoordelijke, terugbetalingsmailadressen en eventueel affiche/flyer in. De affiche blijft bij het event bewaard en wordt als watermerk gebruikt in rapport-PDF's."
   }, {
     naam: "Vrijwilligers",
-    uitleg: "Beheer vrijwilligers in CRM-kaarten met contactinfo, taal, beschikbaarheid, adres, opmerkingen/rekeningnummer en profielfoto. Zonder foto toont de kaart automatisch man/vrouw/vraagteken op basis van geslacht."
+    uitleg: "Beheer vrijwilligers in CRM-kaarten met contactinfo, taal, beschikbaarheid, adres, opmerkingen/rekeningnummer, partnerkoppeling en profielfoto. Zonder foto toont de kaart automatisch man/vrouw/vraagteken op basis van geslacht. Gekoppelde partners tonen een tweede mini-foto; ontbreekt het adres bij één van beiden, dan gebruikt de kaart automatisch het adres van de partner zonder de adresvelden te overschrijven."
   }, {
     naam: "Taken",
     uitleg: "Maak taken en subtaken, wijs mensen toe en controleer shiftoverlap. Namen kunnen via het woordenboek automatisch vertaald worden."
@@ -3838,7 +3851,7 @@ const helpContentFr = [{
     uitleg: "Remplissez nom, date, lieu, responsable, adresses e-mail de remboursement et éventuellement affiche/flyer. L'affiche reste liée à l'événement et sert de filigrane dans les PDF de rapport."
   }, {
     naam: "Bénévoles",
-    uitleg: "Gérez les bénévoles en cartes CRM avec coordonnées, langue, disponibilité, adresse, remarques/numéro de compte et photo. Sans photo, la carte affiche automatiquement homme/femme/point d'interrogation selon le sexe."
+    uitleg: "Gérez les bénévoles en cartes CRM avec coordonnées, langue, disponibilité, adresse, remarques/numéro de compte, lien partenaire et photo. Sans photo, la carte affiche automatiquement homme/femme/point d'interrogation selon le sexe. Les partenaires liés affichent une deuxième mini-photo; si l'adresse manque chez l'un des deux, la carte utilise automatiquement l'adresse du partenaire sans écraser les champs d'adresse."
   }, {
     naam: "Tâches",
     uitleg: "Créez tâches et sous-tâches, assignez les personnes et contrôlez les chevauchements. Les noms peuvent être traduits automatiquement via le dictionnaire."
@@ -4602,21 +4615,43 @@ function App() {
         beschikbaarVan: "",
         beschikbaarTot: "",
         opmerking: "",
+        partnerId: "",
         profilePhoto: ""
       }]
     }));
     return id;
   };
-  const updateVrijwilliger = (id, patch) => setData(d => ({
-    ...d,
-    vrijwilligers: d.vrijwilligers.map(v => v.id === id ? {
-      ...v,
-      ...patch
-    } : v)
-  }));
+  const updateVrijwilliger = (id, patch) => setData(d => {
+    const hasPartnerPatch = Object.prototype.hasOwnProperty.call(patch || {}, "partnerId");
+    const newPartnerId = hasPartnerPatch ? String(patch.partnerId || "") : "";
+    const current = (d.vrijwilligers || []).find(v => v.id === id);
+    const oldPartnerId = current && current.partnerId || "";
+    return {
+      ...d,
+      vrijwilligers: (d.vrijwilligers || []).map(v => {
+        if (v.id === id) return {
+          ...v,
+          ...patch,
+          partnerId: hasPartnerPatch ? newPartnerId : v.partnerId || ""
+        };
+        if (hasPartnerPatch && oldPartnerId && v.id === oldPartnerId && v.partnerId === id) return {
+          ...v,
+          partnerId: ""
+        };
+        if (hasPartnerPatch && newPartnerId && v.id === newPartnerId && (!v.partnerId || v.partnerId === id)) return {
+          ...v,
+          partnerId: id
+        };
+        return v;
+      })
+    };
+  });
   const removeVrijwilliger = id => setData(d => ({
     ...d,
-    vrijwilligers: d.vrijwilligers.filter(v => v.id !== id),
+    vrijwilligers: d.vrijwilligers.filter(v => v.id !== id).map(v => v.partnerId === id ? {
+      ...v,
+      partnerId: ""
+    } : v),
     taken: d.taken.map(t => ({
       ...t,
       toegewezen: (t.toegewezen || []).filter(vid => vid !== id),
@@ -6022,6 +6057,7 @@ function App() {
         beschikbaarTot: r.beschikbaarTot || "",
         opmerking: r.opmerking || "",
         roepnaam: r.roepnaam || "",
+        partnerId: r.partnerId || "",
         profilePhoto: r.profilePhoto || r.profielfoto || ""
       });
     });
@@ -9362,6 +9398,31 @@ const volunteerPhotoSource = v => {
   return VOLUNTEER_DEFAULT_PHOTOS.UNKNOWN;
 };
 
+const volunteerDisplayName = v => `${v && v.voornaam || ""} ${v && v.naam || ""}`.trim() || "?";
+
+const findVolunteerPartner = (v, vrijwilligers) => {
+  if (!v || !v.partnerId) return null;
+  return (vrijwilligers || []).find(item => item && item.id === v.partnerId) || null;
+};
+
+const volunteerHasOwnAddress = v => !!(v && (String(v.straat || "").trim() || String(v.postcode || "").trim() || String(v.gemeente || "").trim()));
+
+const buildVrijwilligerAdresMetPartner = (v, vrijwilligers) => {
+  const ownAddress = buildVrijwilligerAdres(v);
+  if (ownAddress) return {
+    adres: ownAddress,
+    source: "own",
+    partner: null
+  };
+  const partner = findVolunteerPartner(v, vrijwilligers);
+  const partnerAddress = partner ? buildVrijwilligerAdres(partner) : "";
+  return {
+    adres: partnerAddress,
+    source: partnerAddress ? "partner" : "none",
+    partner
+  };
+};
+
 const volunteerAvailabilityLabel = (v, t) => {
   if (v.beschikbaarheid === "hele_dag") return t.avail_full;
   if (v.beschikbaarheid === "voormiddag") return t.daypart_morning;
@@ -9464,6 +9525,7 @@ function VrijwilligersTabV2({
   }, filtered.map(v => /*#__PURE__*/React.createElement(VrijwilligerKaartV2, {
     key: v.id,
     v: v,
+    vrijwilligers: normalized,
     update: update,
     remove: remove,
     t: t,
@@ -9477,13 +9539,21 @@ function VrijwilligersTabV2({
 
 function VolunteerPhoto({
   v,
+  partner,
   t
 }) {
-  return /*#__PURE__*/React.createElement("img", {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "volunteer-photo-stack",
+    title: partner ? `${t.volunteer_partner_badge}: ${volunteerDisplayName(partner)}` : t.volunteer_profile_photo
+  }, /*#__PURE__*/React.createElement("img", {
     className: `volunteer-photo ${v.profilePhoto ? "" : "volunteer-photo-default"}`,
     src: volunteerPhotoSource(v),
     alt: t.volunteer_profile_photo
-  });
+  }), partner && /*#__PURE__*/React.createElement("img", {
+    className: `volunteer-partner-photo ${partner.profilePhoto ? "" : "volunteer-photo-default"}`,
+    src: volunteerPhotoSource(partner),
+    alt: `${t.volunteer_partner_badge}: ${volunteerDisplayName(partner)}`
+  }));
 }
 
 function VolunteerInfoRow({
@@ -9574,6 +9644,7 @@ function VolunteerPhotoEditor({
 
 function VrijwilligerKaartV2({
   v,
+  vrijwilligers,
   update,
   remove,
   t,
@@ -9583,10 +9654,13 @@ function VrijwilligerKaartV2({
   onSave,
   onPlanning
 }) {
-  const adres = buildVrijwilligerAdres(v);
+  const partner = findVolunteerPartner(v, vrijwilligers);
+  const adresInfo = buildVrijwilligerAdresMetPartner(v, vrijwilligers);
+  const adres = adresInfo.adres;
   const adresLink = adres ? buildMapsSearchLink(adres) : "";
-  const fullName = `${v.voornaam || ""} ${v.naam || ""}`.trim() || "?";
+  const fullName = volunteerDisplayName(v);
   const badgeClass = isVolunteerUnavailable(v) ? "badge badge-pasok" : "badge badge-ok";
+  const partnerOptions = (vrijwilligers || []).filter(item => item && item.id !== v.id && (!item.partnerId || item.partnerId === v.id || v.partnerId === item.id)).sort((a, b) => volunteerDisplayName(a).localeCompare(volunteerDisplayName(b)));
   const stop = e => e.stopPropagation();
   const openEdit = e => {
     e.stopPropagation();
@@ -9606,6 +9680,7 @@ function VrijwilligerKaartV2({
     className: "volunteer-card-head"
   }, /*#__PURE__*/React.createElement(VolunteerPhoto, {
     v: v,
+    partner: partner,
     t: t
   }), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -9621,7 +9696,14 @@ function VrijwilligerKaartV2({
     }
   }, /*#__PURE__*/React.createElement("span", {
     className: badgeClass
-  }, volunteerAvailabilityLabel(v, t))))), /*#__PURE__*/React.createElement("div", {
+  }, volunteerAvailabilityLabel(v, t)), partner && /*#__PURE__*/React.createElement("span", {
+    className: "badge",
+    style: {
+      marginLeft: "0.35rem",
+      background: "rgba(153,173,122,0.18)",
+      color: "var(--green)"
+    }
+  }, t.volunteer_partner_badge, ": ", volunteerDisplayName(partner))))), /*#__PURE__*/React.createElement("div", {
     className: "volunteer-info"
   }, /*#__PURE__*/React.createElement(VolunteerInfoRow, {
     label: t.gender,
@@ -9641,14 +9723,17 @@ function VrijwilligerKaartV2({
     link: v.email ? `mailto:${v.email}` : ""
   }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
     label: t.street_nr,
-    value: v.straat,
+    value: adresInfo.source === "partner" ? adres : v.straat,
     link: adresLink
   }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
     label: t.postcode,
-    value: v.postcode
+    value: adresInfo.source === "partner" ? "" : v.postcode
   }), /*#__PURE__*/React.createElement(VolunteerInfoRow, {
     label: t.city,
-    value: v.gemeente
+    value: adresInfo.source === "partner" ? t.volunteer_partner_address : v.gemeente
+  }), partner && /*#__PURE__*/React.createElement(VolunteerInfoRow, {
+    label: t.volunteer_partner_badge,
+    value: volunteerDisplayName(partner)
   })), /*#__PURE__*/React.createElement("div", {
     className: "volunteer-note"
   }, v.opmerking || "")), /*#__PURE__*/React.createElement("div", {
@@ -9740,6 +9825,19 @@ function VrijwilligerKaartV2({
   }, "Nederlands"), /*#__PURE__*/React.createElement("option", {
     value: "fr"
   }, "Francais"))), /*#__PURE__*/React.createElement(Field, {
+    label: t.volunteer_partner
+  }, /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: v.partnerId || "",
+    onChange: e => update(v.id, {
+      partnerId: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, t.volunteer_no_partner), partnerOptions.map(item => /*#__PURE__*/React.createElement("option", {
+    key: item.id,
+    value: item.id
+  }, volunteerDisplayName(item))))), /*#__PURE__*/React.createElement(Field, {
     label: t.gsm1
   }, /*#__PURE__*/React.createElement("input", {
     className: "input",

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.3
+- Vrijwilligers kunnen nu expliciet aan een partner/gekoppelde persoon worden gekoppeld via `partnerId`.
+- De vrijwilligerskaart toont bij gekoppelde personen een tweede mini-profielfoto bovenop de bestaande foto.
+- Als een vrijwilliger geen eigen adres heeft maar de gekoppelde partner wel, gebruikt de kaart automatisch het partneradres voor weergave en Google Maps-link zonder de adresvelden te overschrijven.
+- Partnerkoppeling wordt tweerichtings bijgehouden wanneer mogelijk en wordt opgeruimd bij verwijderen van een vrijwilliger.
+- Backward compatible: bestaande vrijwilligers krijgen standaard geen partnerkoppeling; bestaande adressen en profielfoto's blijven ongewijzigd.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.2
 - Het hulpvenster "Werking/Fonctionnement" volledig geactualiseerd volgens de huidige Hoofdapp en Kassa Tool-architectuur.
 - De uitleg beschrijft nu voorbereiding, eventbeheer, vrijwilligers, materiaal, officiële beginprijslijst, Business Continuity, Google Drive/EventToolSync, Kassa-export ophalen, import voorbereiden en importvalidatie.
