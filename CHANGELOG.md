@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.0
+- Kassa Exports-detailweergave uitgebreid met een read-only Import Preview.
+- De preview toont verwachte transacties, verkopen, giften, cash/kaart/payconiq/mix, ticketregistraties en prijslijstmutaties uit het bestaande Kassa Tool-exportcontract.
+- Ruwe exportdata blijft beschikbaar onder een uitklapbare auditsectie.
+- Geen import, ledger-posting, rapportering, opslagwijziging of datamodelwijziging toegevoegd.
+
 ## 1.22.5
 - Gmail-compose voor terugbetalingsmails opent nu zonder vooraf ingevulde platte-tekst body.
 - De Gmail-knop vult alleen ontvanger en onderwerp in, zodat de opgemaakte mail proper met `Ctrl+V` in het lege berichtvak geplakt kan worden.

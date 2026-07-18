@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.22.5";
+const APP_VERSION = "1.23.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -696,6 +696,25 @@ const T = {
     kx_check_terminal_warn: "Kassapunt onbekend",
     kx_check_content_ok: "Transacties/tickets aanwezig",
     kx_check_content_warn: "Geen transacties of tickets gevonden",
+    kx_import_preview: "Import preview",
+    kx_preview_readonly: "Preview alleen-lezen: er wordt niets geïmporteerd, geboekt of opgeslagen.",
+    kx_preview_financial_facts: "Verwachte financiële feiten",
+    kx_preview_sales: "Verkopen",
+    kx_preview_donations: "Giften",
+    kx_preview_cash: "Cash",
+    kx_preview_card: "Kaart",
+    kx_preview_payconiq: "Payconiq",
+    kx_preview_mixed: "Gemengd/onbekend",
+    kx_preview_total: "Preview totaal",
+    kx_preview_transactions: "Transactiepreview",
+    kx_preview_tickets: "Ticketregistraties",
+    kx_preview_price_changes: "Prijslijstmutaties",
+    kx_preview_duplicate_key: "Import-sleutel",
+    kx_preview_no_rows: "Geen previewregels gevonden.",
+    kx_preview_raw: "Ruwe exportdata",
+    kx_preview_lines: "regels",
+    kx_preview_external_event: "Extern event",
+    kx_preview_quantity: "Aantal",
     bc_title: "Business Continuity kassabladen",
     bc_intro: "Genereer en beheer hier de officiële papieren kassabladen voor dit evenement. De bladen zijn registratieformulieren: vrijwilligers noteren feiten, de Hoofdapp berekent later.",
     bc_generate: "Genereer nieuwe kassabladen",
@@ -1507,6 +1526,25 @@ const T = {
     kx_check_terminal_warn: "Point caisse inconnu",
     kx_check_content_ok: "Transactions/tickets présents",
     kx_check_content_warn: "Aucune transaction ni ticket trouvé",
+    kx_import_preview: "Aperçu d'import",
+    kx_preview_readonly: "Aperçu en lecture seule : rien n'est importé, comptabilisé ou enregistré.",
+    kx_preview_financial_facts: "Faits financiers attendus",
+    kx_preview_sales: "Ventes",
+    kx_preview_donations: "Dons",
+    kx_preview_cash: "Cash",
+    kx_preview_card: "Carte",
+    kx_preview_payconiq: "Payconiq",
+    kx_preview_mixed: "Mixte/inconnu",
+    kx_preview_total: "Total aperçu",
+    kx_preview_transactions: "Aperçu transactions",
+    kx_preview_tickets: "Enregistrements tickets",
+    kx_preview_price_changes: "Mutations liste de prix",
+    kx_preview_duplicate_key: "Clé d'import",
+    kx_preview_no_rows: "Aucune ligne d'aperçu trouvée.",
+    kx_preview_raw: "Données brutes d'export",
+    kx_preview_lines: "lignes",
+    kx_preview_external_event: "Événement externe",
+    kx_preview_quantity: "Quantité",
     bc_title: "Feuilles de caisse Business Continuity",
     bc_intro: "Générez et gérez ici les feuilles de caisse papier officielles pour cet événement. Ces feuilles sont des formulaires d'enregistrement: les bénévoles notent les faits, l'application calcule ensuite.",
     bc_generate: "Générer de nouvelles feuilles",
@@ -7196,6 +7234,125 @@ function buildKassaPreImportChecks(item, isLatestExport, data, t) {
   };
 }
 
+function getKassaPreviewCents(value) {
+  if (Number.isFinite(value)) return Math.round(value);
+  if (typeof value === "string") {
+    const normalized = value.trim().replace(/\s/g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? Math.round(parsed) : 0;
+  }
+  return 0;
+}
+
+function formatKassaPreviewMoney(cents) {
+  const value = getKassaPreviewCents(cents) / 100;
+  return `€ ${value.toFixed(2).replace(".", ",")}`;
+}
+
+function getKassaPreviewLineCount(transaction) {
+  return Array.isArray(transaction && transaction.lineItems) ? transaction.lineItems.length : 0;
+}
+
+function getKassaPreviewSaleCents(transaction) {
+  if (!transaction || typeof transaction !== "object") return 0;
+  if (transaction.payment && Number.isFinite(transaction.payment.subtotalCents)) return transaction.payment.subtotalCents;
+  if (Array.isArray(transaction.lineItems)) {
+    return transaction.lineItems.reduce((sum, line) => sum + getKassaPreviewCents(line && line.lineTotalCents), 0);
+  }
+  return 0;
+}
+
+function getKassaPreviewPaymentMethod(payment) {
+  const method = String(payment && payment.method || "").toLowerCase();
+  if (method.includes("payconiq")) return "payconiq";
+  if (method.includes("card") || method.includes("kaart") || method.includes("bancontact")) return "card";
+  if (method.includes("cash") || method.includes("contant")) return "cash";
+  return "mixed";
+}
+
+function getKassaPreviewPaymentLabel(method, t) {
+  if (method === "cash") return t.kx_preview_cash;
+  if (method === "card") return t.kx_preview_card;
+  if (method === "payconiq") return t.kx_preview_payconiq;
+  return t.kx_preview_mixed;
+}
+
+function buildKassaImportPreview(item, t) {
+  const transactions = Array.isArray(item && item.transactions) ? item.transactions : [];
+  const priceArticles = item && item.payload && item.payload.data && item.payload.data.masterData && Array.isArray(item.payload.data.masterData.articles) ? item.payload.data.masterData.articles : [];
+  const changedArticles = priceArticles.filter(article => article && (article.createdOnTablet || article.priceChangedOnTablet || article.statusChangedOnTablet || article.nameChangedOnTablet));
+  const rows = transactions.map((transaction, index) => {
+    const payment = transaction && transaction.payment || {};
+    const method = getKassaPreviewPaymentMethod(payment);
+    const saleCents = transaction && transaction.transactionType === "donation" ? 0 : getKassaPreviewSaleCents(transaction);
+    const donationCents = getKassaPreviewCents(payment.donationCents);
+    const cashNetCents = getKassaPreviewCents(payment.cashReceivedCents) - getKassaPreviewCents(payment.cashChangeGivenCents);
+    const cardCents = getKassaPreviewCents(payment.cardReceivedCents);
+    return {
+      key: transaction && transaction.transactionId || `tx-${index}`,
+      label: transaction && transaction.transactionId || `#${index + 1}`,
+      time: transaction && (transaction.transactionTime || transaction.createdAt) || "-",
+      type: transaction && transaction.transactionType || "sale",
+      method,
+      saleCents,
+      donationCents,
+      cashNetCents,
+      cardCents,
+      lineCount: getKassaPreviewLineCount(transaction)
+    };
+  });
+  const totals = rows.reduce((acc, row) => {
+    acc.salesCents += row.saleCents;
+    acc.donationCents += row.donationCents;
+    acc.cashCents += row.cashNetCents;
+    acc.cardCents += row.cardCents;
+    if (row.method === "payconiq") acc.payconiqCents += row.cardCents || row.saleCents + row.donationCents;
+    if (!["cash", "card", "payconiq"].includes(row.method)) acc.mixedCents += row.saleCents + row.donationCents;
+    return acc;
+  }, {
+    salesCents: 0,
+    donationCents: 0,
+    cashCents: 0,
+    cardCents: 0,
+    payconiqCents: 0,
+    mixedCents: 0
+  });
+  const manifestaRows = (item && item.manifestaRegs || []).map(ticket => ({
+    key: ticket.registrationId || `mf-${ticket.time || ""}-${ticket.quantity || 0}`,
+    label: "ManiFiesta",
+    date: ticket.eventDate || "",
+    time: ticket.time || "",
+    quantity: parseInt(ticket.quantity, 10) || 0,
+    note: ticket.note || ""
+  }));
+  const externalRows = (item && item.externalRegs || []).map(ticket => ({
+    key: ticket.registrationId || `xt-${ticket.externalEventName || ""}-${ticket.quantity || 0}`,
+    label: ticket.externalEventName || t.kx_preview_external_event,
+    date: ticket.externalEventDate || ticket.sourceEventDate || "",
+    time: ticket.time || "",
+    quantity: parseInt(ticket.quantity, 10) || 0,
+    note: ticket.note || ""
+  }));
+  return {
+    importKey: [item && item.payload && item.payload.schemaVersion || "", item && item.eventId || "", item && item.deviceId || item && item.terminal || "", item && item.exportedAt || "", item && item.fileName || ""].filter(Boolean).join(" | "),
+    rows,
+    totals,
+    ticketRows: [...manifestaRows, ...externalRows],
+    priceChangeRows: changedArticles.map(article => ({
+      key: article.articleId || article.articleNumber || article.name,
+      articleNumber: article.articleNumber || "",
+      name: article.name || "",
+      category: article.categoryName || "",
+      priceCents: getKassaPreviewCents(article.priceCents),
+      active: article.active !== false,
+      createdOnTablet: !!article.createdOnTablet,
+      priceChangedOnTablet: !!article.priceChangedOnTablet,
+      statusChangedOnTablet: !!article.statusChangedOnTablet,
+      nameChangedOnTablet: !!article.nameChangedOnTablet
+    }))
+  };
+}
+
 function KassaExportMonitorTab({
   data,
   t
@@ -7342,6 +7499,7 @@ function KassaExportMonitorTab({
     const isLatestExport = latestFileIds.has(item.fileId);
     const preImport = buildKassaPreImportChecks(item, isLatestExport, data, t);
     const preImportColor = preImport.status === "ok" ? "var(--green)" : preImport.status === "warn" ? "var(--amber)" : "#DE3E3E";
+    const importPreview = buildKassaImportPreview(item, t);
     return /*#__PURE__*/React.createElement("div", {
       key: item.fileId,
       className: "card",
@@ -7483,14 +7641,178 @@ function KassaExportMonitorTab({
         borderTop: "1px solid var(--line)",
         paddingTop: "0.8rem",
         display: "grid",
-        gap: "0.55rem"
+        gap: "0.75rem"
       }
     }, /*#__PURE__*/React.createElement("p", {
       style: {
         margin: 0,
         color: "var(--ink-soft)"
       }
-    }, t.kx_readonly), /*#__PURE__*/React.createElement("pre", {
+    }, t.kx_preview_readonly), /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 8,
+        padding: "0.8rem",
+        background: "rgba(255,255,255,0.72)",
+        display: "grid",
+        gap: "0.7rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        alignItems: "center",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "font-display",
+      style: {
+        margin: 0
+      }
+    }, t.kx_import_preview), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.25rem 0.65rem",
+        background: "rgba(153,173,122,0.22)",
+        color: "var(--green)",
+        fontWeight: 900,
+        fontSize: "0.75rem"
+      }
+    }, t.kx_preview_financial_facts)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+        gap: "0.45rem"
+      }
+    }, [[t.kx_preview_sales, formatKassaPreviewMoney(importPreview.totals.salesCents)], [t.kx_preview_donations, formatKassaPreviewMoney(importPreview.totals.donationCents)], [t.kx_preview_cash, formatKassaPreviewMoney(importPreview.totals.cashCents)], [t.kx_preview_card, formatKassaPreviewMoney(importPreview.totals.cardCents)], [t.kx_preview_payconiq, formatKassaPreviewMoney(importPreview.totals.payconiqCents)], [t.kx_preview_mixed, formatKassaPreviewMoney(importPreview.totals.mixedCents)]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.55rem",
+        background: "#fffaf2"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.65rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900,
+        marginTop: "0.15rem"
+      }
+    }, value)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem",
+        overflowWrap: "anywhere"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, t.kx_preview_duplicate_key, ": "), importPreview.importKey || "-")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, t.kx_preview_transactions, " · ", importPreview.rows.length), importPreview.rows.length ? importPreview.rows.slice(0, 10).map(row => /*#__PURE__*/React.createElement("div", {
+      key: row.key,
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1fr auto auto",
+        gap: "0.5rem",
+        alignItems: "center",
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.5rem",
+        background: "rgba(255,255,255,0.78)"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, row.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem"
+      }
+    }, row.time, " · ", getKassaPreviewPaymentLabel(row.method, t), " · ", row.lineCount, " ", t.kx_preview_lines)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, formatKassaPreviewMoney(row.saleCents)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: row.donationCents > 0 ? "#DE3E3E" : "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, row.donationCents > 0 ? formatKassaPreviewMoney(row.donationCents) : "-"))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)"
+      }
+    }, t.kx_preview_no_rows), importPreview.rows.length > 10 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.78rem"
+      }
+    }, "+ ", importPreview.rows.length - 10, " ", t.kx_preview_lines)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, t.kx_preview_tickets, " · ", importPreview.ticketRows.length), importPreview.ticketRows.length ? importPreview.ticketRows.map(row => /*#__PURE__*/React.createElement("div", {
+      key: row.key,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.5rem",
+        background: "rgba(255,255,255,0.78)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, row.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem"
+      }
+    }, t.kx_preview_quantity, ": ", row.quantity, row.date ? ` · ${row.date}` : "", row.time ? ` · ${row.time}` : "", row.note ? ` · ${row.note}` : ""))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)"
+      }
+    }, t.kx_preview_no_rows)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, t.kx_preview_price_changes, " · ", importPreview.priceChangeRows.length), importPreview.priceChangeRows.length ? importPreview.priceChangeRows.map(row => /*#__PURE__*/React.createElement("div", {
+      key: row.key,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.5rem",
+        background: "rgba(255,255,255,0.78)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, row.articleNumber ? `${row.articleNumber} · ` : "", row.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem"
+      }
+    }, row.category || "-", " · ", formatKassaPreviewMoney(row.priceCents), " · ", row.active ? "active" : "inactive"))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)"
+      }
+    }, t.kx_preview_no_rows))), /*#__PURE__*/React.createElement("details", null, /*#__PURE__*/React.createElement("summary", {
+      style: {
+        cursor: "pointer",
+        fontWeight: 850
+      }
+    }, t.kx_preview_raw), /*#__PURE__*/React.createElement("pre", {
       style: {
         maxHeight: 320,
         overflow: "auto",
@@ -7519,6 +7841,7 @@ function KassaExportMonitorTab({
         manifestaTicketRegistrations: item.manifestaRegs || [],
         externalTicketRegistrations: item.externalRegs || []
       },
+      importPreview,
       transactionCount: item.transactionCount,
       error: item.error || null
     }, null, 2))));
