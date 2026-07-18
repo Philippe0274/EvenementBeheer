@@ -268,7 +268,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.22.4";
+const APP_VERSION = "1.22.5";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1067,7 +1067,7 @@ const T = {
     winkel_reimburse_copy_rich: "Opgemaakte mail kopiëren",
     winkel_reimburse_download: "Download ticket",
     winkel_reimburse_total: "Totaal voor",
-    winkel_reimburse_gmail_hint: "Gmail opent via accountpositie /u/1/ voor jflores2000@gmail.com in Edge op deze pc. Controleer vóór verzenden nog even dat het juiste account actief is.",
+    winkel_reimburse_gmail_hint: "Gmail opent via accountpositie /u/1/ met ontvanger en onderwerp. Het berichtvak blijft bewust leeg: plak daar de opgemaakte mail met Ctrl+V.",
     winkel_reimburse_missing_account: "Geen rekeningnummer gevonden in de opmerking van deze vrijwilliger.",
     winkel_reimburse_missing_address: "Geen adres gevonden bij deze vrijwilliger.",
     winkel_reimburse_external: "Externe koper: controleer adres en rekeningnummer manueel.",
@@ -1878,7 +1878,7 @@ const T = {
     winkel_reimburse_copy_rich: "Copier l'e-mail formaté",
     winkel_reimburse_download: "Télécharger le ticket",
     winkel_reimburse_total: "Total pour",
-    winkel_reimburse_gmail_hint: "Gmail s'ouvre via la position de compte /u/1/ pour jflores2000@gmail.com dans Edge sur ce PC. Vérifiez encore avant l'envoi que le bon compte est actif.",
+    winkel_reimburse_gmail_hint: "Gmail s'ouvre via la position de compte /u/1/ avec destinataire et objet. Le corps du message reste volontairement vide : collez-y l'e-mail formaté avec Ctrl+V.",
     winkel_reimburse_missing_account: "Aucun numéro de compte trouvé dans la remarque de ce bénévole.",
     winkel_reimburse_missing_address: "Aucune adresse trouvée pour ce bénévole.",
     winkel_reimburse_external: "Acheteur externe : vérifiez l'adresse et le numéro de compte manuellement.",
@@ -13384,8 +13384,7 @@ function WinkelbestellingenTab({
     }
   }, reimbursementGroups.map(group => {
     const subject = buildReimbursementSubject();
-    const body = buildReimbursementBody(group);
-    const gmailLink = `https://mail.google.com/mail/u/1/?view=cm&fs=1&to=${encodeURIComponent(reimburseRecipients)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const gmailLink = `https://mail.google.com/mail/u/1/?view=cm&fs=1&to=${encodeURIComponent(reimburseRecipients)}&su=${encodeURIComponent(subject)}`;
     const rekening = group.vrijwilliger ? (group.vrijwilliger.opmerking || "").trim() : "";
     const adres = group.vrijwilliger ? buildVrijwilligerAdres(group.vrijwilliger) : "";
     const totaal = group.tickets.reduce((acc, item) => acc + item.amount, 0);

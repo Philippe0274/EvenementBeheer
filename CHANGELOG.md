@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.5
+- Gmail-compose voor terugbetalingsmails opent nu zonder vooraf ingevulde platte-tekst body.
+- De Gmail-knop vult alleen ontvanger en onderwerp in, zodat de opgemaakte mail proper met `Ctrl+V` in het lege berichtvak geplakt kan worden.
+- Platte-tekst kopiëren blijft beschikbaar als fallback.
+
 ## 1.22.4
 - Terugbetalingsmails kregen een professionele opgemaakte HTML-versie met begroeting op basis van het actuele uur.
 - Nieuwe knop "Opgemaakte mail kopiëren" kopieert vet, cursief, rood rekeningnummer, gemarkeerd totaalbedrag en nette ticketlijst naar het klembord.
