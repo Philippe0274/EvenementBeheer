@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.1
+- Regressieherstel Kassa-importvalidatie: verkoopregels uit de Kassa Tool worden nu correct gematcht op `officialArticleId`/`articleId` en pas daarna op artikelnummer.
+- De validator meldt niet langer foutief "Verkoopregel zonder artikelnummer" wanneer de exportregel wel een geldige artikelreferentie bevat.
+- Artikelmatch blijft backward compatible met exports die wel `articleNumber` bevatten.
+- Geen wijziging aan Kassa-exportcontract, importbatches, ledger, rapportering of financiële verwerking.
+
 ## 1.25.0
 - Kassa Exports uitgebreid met validatie van voorbereide importbatches.
 - Voorbereide batches krijgen nu een knop "Valideer import" en een read-only validatierapport.

@@ -269,7 +269,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.0";
+const APP_VERSION = "1.25.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -7607,15 +7607,15 @@ function buildHoofdappPricelistMap(data) {
   const map = new Map();
   (data && data.prijslijst || []).forEach((article, index) => {
     const articleNumber = getHoofdappPricelistArticleNumber(article, index);
-    if (!articleNumber) return;
-    map.set(articleNumber, {
+    const normalized = {
       articleNumber,
       name: String(article.naam || article.name || "").trim(),
       category: String(article.categorie || article.category || "").trim(),
       priceCents: parseHoofdappPriceCents(article.prijs ?? article.price),
       active: article.actief !== false,
       raw: article
-    });
+    };
+    [articleNumber, article && article.id, article && article.articleId, article && article.officialArticleId].map(value => String(value || "").trim()).filter(Boolean).forEach(key => map.set(key, normalized));
   });
   return map;
 }
@@ -7686,25 +7686,33 @@ function buildKassaImportValidationReport(batch, fileRecord, data, t) {
       add("warn", `${t.kx_validation_transactions_empty}: ${txId || `#${txIndex + 1}`}`);
     }
     lines.forEach((line, lineIndex) => {
-      const articleNumber = String(line && (line.articleNumber || line.number || line.code) || "").trim().padStart(3, "0");
-      if (!articleNumber || articleNumber === "000") {
+      const rawArticleNumber = String(line && (line.articleNumber || line.number || line.code) || "").trim();
+      const articleNumber = rawArticleNumber ? rawArticleNumber.padStart(3, "0") : "";
+      const officialArticleId = String(line && line.officialArticleId || "").trim();
+      const articleId = String(line && line.articleId || "").trim();
+      const articleLabel = articleNumber || String(line && line.articleName || "").trim() || officialArticleId || articleId || `${txId || `#${txIndex + 1}`}/${lineIndex + 1}`;
+      if (!articleNumber && !officialArticleId && !articleId) {
         transactionStructureOk = false;
         add("error", `${t.kx_validation_line_missing_article}: ${txId || `#${txIndex + 1}`}/${lineIndex + 1}`);
         return;
       }
-      const official = officialArticles.get(articleNumber);
+      const official = officialArticles.get(officialArticleId) || officialArticles.get(articleId) || officialArticles.get(articleNumber);
       if (!official) {
-        add("warn", `${t.kx_validation_line_unknown_article}: ${articleNumber}`, {
+        add("warn", `${t.kx_validation_line_unknown_article}: ${articleLabel}`, {
           transactionId: txId,
-          articleNumber
+          articleNumber,
+          officialArticleId,
+          articleId
         });
         return;
       }
       const exportedUnitPrice = getKassaPreviewCents(line && (line.unitPriceCents ?? line.priceCents));
       if (official.priceCents != null && exportedUnitPrice && official.priceCents !== exportedUnitPrice) {
-        add("warn", `${t.kx_validation_line_price_diff}: ${articleNumber} ${formatKassaPreviewMoney(official.priceCents)} → ${formatKassaPreviewMoney(exportedUnitPrice)}`, {
+        add("warn", `${t.kx_validation_line_price_diff}: ${articleLabel} ${formatKassaPreviewMoney(official.priceCents)} → ${formatKassaPreviewMoney(exportedUnitPrice)}`, {
           transactionId: txId,
-          articleNumber,
+          articleNumber: official.articleNumber || articleNumber,
+          officialArticleId,
+          articleId,
           officialPriceCents: official.priceCents,
           exportedUnitPriceCents: exportedUnitPrice
         });
