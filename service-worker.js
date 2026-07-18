@@ -1,4 +1,4 @@
-const APP_VERSION = "1.24.2";
+const APP_VERSION = "1.24.3";
 const CACHE_NAME = `hoofdapp-${APP_VERSION}`;
 const CACHE_PREFIXES = ['hoofdapp-', 'kassa-tool-'];
 const FALLBACK_DOCUMENTS = [
@@ -10,7 +10,13 @@ const FALLBACK_DOCUMENTS = [
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
         const cache = await caches.open(CACHE_NAME);
-        await cache.addAll(['./index.html', './index_EvenementBeheer.html']);
+        await cache.addAll([
+            './index.html',
+            './index_EvenementBeheer.html',
+            './assets/volunteer-man.png',
+            './assets/volunteer-woman.png',
+            './assets/volunteer-question.png'
+        ]);
         await self.skipWaiting();
     })());
 });

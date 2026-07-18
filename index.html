@@ -158,6 +158,7 @@
   .volunteer-card-main { padding: 1rem 3.45rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.85rem; flex: 1; min-height: 0; }
   .volunteer-card-head { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 0.85rem; align-items: start; }
   .volunteer-photo { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: var(--bg); border: 1px solid var(--line); flex: 0 0 auto; }
+  .volunteer-photo-default { object-fit: contain; background: white; }
   .volunteer-avatar { width: 60px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); border: 1px solid #e6c8bd; font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; }
   .volunteer-name { font-family: 'Fraunces', serif; font-size: 1.12rem; font-weight: 600; color: var(--ink); line-height: 1.15; overflow-wrap: anywhere; }
   .volunteer-alias { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.18rem; }
@@ -268,7 +269,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.24.2";
+const APP_VERSION = "1.24.3";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -8968,6 +8969,27 @@ const volunteerInitials = v => {
   return initials || "?";
 };
 
+const VOLUNTEER_DEFAULT_PHOTOS = {
+  M: "./assets/volunteer-man.png",
+  V: "./assets/volunteer-woman.png",
+  UNKNOWN: "./assets/volunteer-question.png"
+};
+
+const normalizeVolunteerGender = value => {
+  const gender = String(value || "").trim().toLowerCase();
+  if (["m", "man", "male", "homme", "h"].includes(gender)) return "M";
+  if (["v", "vrouw", "female", "femme", "f"].includes(gender)) return "V";
+  return "";
+};
+
+const volunteerPhotoSource = v => {
+  if (v && v.profilePhoto) return v.profilePhoto;
+  const gender = normalizeVolunteerGender(v && v.geslacht);
+  if (gender === "M") return VOLUNTEER_DEFAULT_PHOTOS.M;
+  if (gender === "V") return VOLUNTEER_DEFAULT_PHOTOS.V;
+  return VOLUNTEER_DEFAULT_PHOTOS.UNKNOWN;
+};
+
 const volunteerAvailabilityLabel = (v, t) => {
   if (v.beschikbaarheid === "hele_dag") return t.avail_full;
   if (v.beschikbaarheid === "voormiddag") return t.daypart_morning;
@@ -9085,14 +9107,11 @@ function VolunteerPhoto({
   v,
   t
 }) {
-  return v.profilePhoto ? /*#__PURE__*/React.createElement("img", {
-    className: "volunteer-photo",
-    src: v.profilePhoto,
+  return /*#__PURE__*/React.createElement("img", {
+    className: `volunteer-photo ${v.profilePhoto ? "" : "volunteer-photo-default"}`,
+    src: volunteerPhotoSource(v),
     alt: t.volunteer_profile_photo
-  }) : /*#__PURE__*/React.createElement("div", {
-    className: "volunteer-avatar",
-    title: t.volunteer_initials
-  }, volunteerInitials(v));
+  });
 }
 
 function VolunteerInfoRow({
@@ -9142,18 +9161,11 @@ function VolunteerPhotoEditor({
   };
   return /*#__PURE__*/React.createElement("div", {
     className: "volunteer-photo-panel"
-  }, v.profilePhoto ? /*#__PURE__*/React.createElement("img", {
-    className: "volunteer-photo-preview",
-    src: v.profilePhoto,
+  }, /*#__PURE__*/React.createElement("img", {
+    className: `volunteer-photo-preview ${v.profilePhoto ? "" : "volunteer-photo-default"}`,
+    src: volunteerPhotoSource(v),
     alt: t.volunteer_profile_photo
-  }) : /*#__PURE__*/React.createElement("div", {
-    className: "volunteer-avatar",
-    style: {
-      width: 96,
-      height: 96,
-      fontSize: "1.7rem"
-    }
-  }, volunteerInitials(v)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "label"
   }, t.volunteer_profile_photo), /*#__PURE__*/React.createElement("input", {
     ref: inputRef,

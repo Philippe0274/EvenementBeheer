@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.24.3
+- Vrijwilligerskaarten tonen nu automatisch een standaardicoon wanneer er geen echte profielfoto is.
+- Bij geslacht `M` wordt het man-icoon getoond, bij `V` het vrouw-icoon en bij ontbrekend/onbekend geslacht het vraagteken-icoon.
+- Echte geüploade profielfoto's blijven altijd voorrang krijgen.
+- De standaardiconen zijn als app-assets toegevoegd en worden offline mee gecachet.
+- Geen wijziging aan vrijwilligersopslag, formulierlogica, filters, planning, backup/restore of andere modules.
+
 ## 1.24.2
 - Kassa Exports toont standaard alleen nog de meest recente export per event/kassa.
 - Oude exports blijven opgehaald en beschikbaar via de nieuwe knop "Oude exports tonen".
