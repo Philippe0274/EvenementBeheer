@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.4
+- Kassa Import Engine fase 1 afgerond: een geschikte Kassa-export kan veilig als immutable importbatch worden voorbereid zonder ledger-posting.
+- De importbatch bewaart nu expliciet gebruiker, kassapunt, bronbestand, schema, eventinfo, exportId, aantallen transacties, ticketregistraties en prijslijstmutaties.
+- De originele Kassa-exportpayload blijft read-only bewaard onder `kassaImports.files`, zodat latere validatie/verwerking altijd naar de oorspronkelijke feiten kan teruggrijpen.
+- De Kassa Exports-interface toont op de batchkaart nu duidelijk bron, aantallen en `Ledger: Niet geboekt`.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.3
 - Vrijwilligers kunnen nu expliciet aan een partner/gekoppelde persoon worden gekoppeld via `partnerId`.
 - De vrijwilligerskaart toont bij gekoppelde personen een tweede mini-profielfoto bovenop de bestaande foto.

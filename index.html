@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.3";
+const APP_VERSION = "1.25.4";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -676,6 +676,13 @@ const T = {
     kx_terminal: "Kassapunt",
     kx_event: "Event",
     kx_file: "Drive-bestand",
+    kx_batch_source: "Bron",
+    kx_batch_transactions: "Transacties",
+    kx_batch_tickets: "Tickets",
+    kx_batch_price_changes: "Prijslijstmutaties",
+    kx_batch_ledger_status: "Ledger",
+    kx_batch_not_posted: "Niet geboekt",
+    kx_batch_original_payload: "Originele exportpayload bewaard",
     kx_modified: "Gewijzigd",
     kx_schema_invalid: "Geen geldig Kassa Tool-exportcontract",
     kx_latest_export: "Meest recent",
@@ -1557,6 +1564,13 @@ const T = {
     kx_terminal: "Point caisse",
     kx_event: "Événement",
     kx_file: "Fichier Drive",
+    kx_batch_source: "Source",
+    kx_batch_transactions: "Transactions",
+    kx_batch_tickets: "Tickets",
+    kx_batch_price_changes: "Mutations liste de prix",
+    kx_batch_ledger_status: "Ledger",
+    kx_batch_not_posted: "Non comptabilisé",
+    kx_batch_original_payload: "Payload d'export original conservé",
     kx_modified: "Modifié",
     kx_schema_invalid: "Contrat d'export Kassa Tool invalide",
     kx_latest_export: "Le plus récent",
@@ -3786,7 +3800,7 @@ const helpContentNl = [{
     uitleg: "Ga in de Hoofdapp naar Kassa Exports en haal de bestanden uit EventToolSync op. Standaard toont de app alleen de meest recente export per event/kassa; oude exports kan je apart tonen."
   }, {
     naam: "Import voorbereiden",
-    uitleg: "Een geschikte export kan als immutable importbatch worden vastgelegd. De originele payload blijft bewaard onder kassaImports.files. Dit boekt nog niets."
+    uitleg: "Een geschikte export kan als immutable importbatch worden vastgelegd. De batch bewaart gebruiker, kassapunt, bronbestand, aantallen transacties/tickets/prijslijstmutaties en de originele payload onder kassaImports.files. Dit boekt nog niets."
   }, {
     naam: "Import valideren",
     uitleg: "Klik Valideer import op een voorbereide batch. De Hoofdapp controleert schemaVersion 1.0.0, eventmatch, kassa-afsluiting, duplicaten, transacties, artikels, prijsverschillen, prijslijstmutaties en ticketregistraties."
@@ -3890,7 +3904,7 @@ const helpContentFr = [{
     uitleg: "Dans la Hoofdapp, allez vers Exports caisse et chargez les fichiers depuis EventToolSync. Par défaut, seuls les exports les plus récents par événement/caisse sont affichés; les anciens exports peuvent être affichés séparément."
   }, {
     naam: "Préparer l'import",
-    uitleg: "Un export utilisable peut être enregistré comme lot d'import immuable. Le payload original reste conservé sous kassaImports.files. Rien n'est comptabilisé."
+    uitleg: "Un export utilisable peut être enregistré comme lot d'import immuable. Le lot conserve utilisateur, point caisse, fichier source, nombres de transactions/tickets/mutations de prix et le payload original sous kassaImports.files. Rien n'est comptabilisé."
   }, {
     naam: "Valider l'import",
     uitleg: "Cliquez Valider l'import sur un lot préparé. La Hoofdapp contrôle schemaVersion 1.0.0, correspondance événement, clôture caisse, doublons, transactions, articles, différences de prix, mutations de liste de prix et enregistrements de tickets."
@@ -5626,6 +5640,10 @@ function App() {
         importKey: importPreview.importKey,
         schemaName: item.payload.schemaName || "",
         schemaVersion: item.payload.schemaVersion || "",
+        source: "google-drive",
+        transactionCount: importPreview.rows.length,
+        ticketCount: importPreview.ticketRows.length,
+        priceChangeCount: importPreview.priceChangeRows.length,
         preImport: deepClone(preImport),
         preview: {
           transactionCount: importPreview.rows.length,
@@ -8044,6 +8062,38 @@ function KassaExportMonitorTab({
         overflowWrap: "anywhere"
       }
     }, batch.sourceFileName || "-", " · ", batch.importedAt ? new Date(batch.importedAt).toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE") : "-"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: "0.35rem"
+      }
+    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 6,
+        padding: "0.4rem",
+        background: "rgba(255,255,255,0.72)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.62rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900,
+        overflowWrap: "anywhere"
+      }
+    }, value)))), hasPayload && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--green)",
+        fontSize: "0.75rem",
+        fontWeight: 850
+      }
+    }, "✓ ", t.kx_batch_original_payload), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
         gap: "0.45rem",
