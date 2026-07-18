@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.2
+- Het hulpvenster "Werking/Fonctionnement" volledig geactualiseerd volgens de huidige Hoofdapp en Kassa Tool-architectuur.
+- De uitleg beschrijft nu voorbereiding, eventbeheer, vrijwilligers, materiaal, officiële beginprijslijst, Business Continuity, Google Drive/EventToolSync, Kassa-export ophalen, import voorbereiden en importvalidatie.
+- Expliciet vermeld dat validatie nog geen ledger-posting, financiële verwerking of definitieve rapportering uitvoert.
+- Tekst bijgewerkt in Nederlands en Frans.
+- Geen wijziging aan data, opslag, importlogica, Google Drive-logica, Kassa-contract of rapportering.
+
 ## 1.25.1
 - Regressieherstel Kassa-importvalidatie: verkoopregels uit de Kassa Tool worden nu correct gematcht op `officialArticleId`/`articleId` en pas daarna op artikelnummer.
 - De validator meldt niet langer foutief "Verkoopregel zonder artikelnummer" wanneer de exportregel wel een geldige artikelreferentie bevat.
