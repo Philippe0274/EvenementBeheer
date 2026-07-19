@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.8";
+const APP_VERSION = "1.25.9";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -676,6 +676,15 @@ const T = {
     kb_audit_only: "Audit-only",
     kb_immutable: "Immutable",
     kb_financial_truth: "Definitieve ledgergegevens",
+    kb_details: "Details",
+    kb_hide_details: "Details verbergen",
+    kb_type_sales: "Verkopen",
+    kb_type_donations: "Giften",
+    kb_type_cash: "Cash",
+    kb_type_card: "Kaart",
+    kb_type_payconiq: "Payconiq",
+    kb_type_ticket_audit: "Ticketfeiten",
+    kb_type_price_change_audit: "Prijslijstmutaties",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1019,7 +1028,7 @@ const T = {
     vv_cash_aanwie: "Aan wie",
     vv_cash_kassabeheerder: "Kassabeheerder",
     vv_cash_naam_ph: "Naam (aanpasbaar)",
-    kb_intro: "Beheer hier het budget en alle kosten van het evenement. Winkelkosten komen automatisch uit de kastickets.",
+    kb_intro: "Read-only controle van definitief geboekte ledgerregels. Dit wijzigt geen rapporten en boekt niets extra.",
     kb_budget: "Budget evenement",
     kb_zaal: "Zaal / locatie (huurprijs)",
     kb_winkelkosten: "Winkelkosten",
@@ -1621,6 +1630,15 @@ const T = {
     kb_audit_only: "Audit-only",
     kb_immutable: "Immuable",
     kb_financial_truth: "Données ledger définitives",
+    kb_details: "Détails",
+    kb_hide_details: "Masquer détails",
+    kb_type_sales: "Ventes",
+    kb_type_donations: "Dons",
+    kb_type_cash: "Cash",
+    kb_type_card: "Carte",
+    kb_type_payconiq: "Payconiq",
+    kb_type_ticket_audit: "Faits tickets",
+    kb_type_price_change_audit: "Mutations liste de prix",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -1964,7 +1982,7 @@ const T = {
     vv_cash_aanwie: "À qui",
     vv_cash_kassabeheerder: "Gestionnaire de caisse",
     vv_cash_naam_ph: "Nom (modifiable)",
-    kb_intro: "Gérez ici le budget et tous les coûts de l'événement. Les coûts en magasin proviennent automatiquement des tickets.",
+    kb_intro: "Contrôle en lecture seule des lignes ledger définitivement comptabilisées. Cela ne modifie pas les rapports et ne comptabilise rien de plus.",
     kb_budget: "Budget de l'événement",
     kb_zaal: "Salle / lieu (prix de location)",
     kb_winkelkosten: "Coûts en magasin",
@@ -3933,7 +3951,7 @@ const helpContentNl = [{
     uitleg: "Na controle van de ledger-preview kan de batch eenmalig definitief geboekt worden. De Hoofdapp schrijft dan immutable regels naar finance.ledgerTransactions en blokkeert dubbele posting. Fouten worden later uitsluitend via correctieboekingen rechtgezet."
   }, {
     naam: "Kassa Bewegingen controleren",
-    uitleg: "Ga naar Kassa Bewegingen om de definitieve ledgerregels read-only te controleren. Je ziet totalen voor verkopen, giften, cash, kaart, Payconiq, auditregels en de bronverwijzingen per regel."
+    uitleg: "Ga naar Kassa Bewegingen om de definitieve ledgerregels read-only te controleren. Standaard zie je een compacte lijst met totalen, bedrag, batch en boekingsdatum; technische bronverwijzingen staan onder Details."
   }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
@@ -4049,7 +4067,7 @@ const helpContentFr = [{
     uitleg: "Après contrôle de l'aperçu ledger, le lot peut être comptabilisé définitivement une seule fois. La Hoofdapp écrit alors des lignes immuables dans finance.ledgerTransactions et bloque les doublons. Les erreurs seront corrigées plus tard uniquement via écritures de correction."
   }, {
     naam: "Contrôler les mouvements caisse",
-    uitleg: "Allez dans Mouvements de Caisse pour contrôler les lignes ledger définitives en lecture seule. Vous voyez les totaux ventes, dons, cash, carte, Payconiq, lignes audit et références source par ligne."
+    uitleg: "Allez dans Mouvements de Caisse pour contrôler les lignes ledger définitives en lecture seule. Par défaut, la liste est compacte avec totaux, montant, lot et date; les références techniques sont sous Détails."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -8331,6 +8349,7 @@ function KassaBewegingenTab({
   t
 }) {
   const [batchFilter, setBatchFilter] = useState("");
+  const [openLedgerRowId, setOpenLedgerRowId] = useState("");
   const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(row => row && row.source === "kassa-import") : [];
   const visibleRows = batchFilter ? ledgerRows.filter(row => row.sourceBatchId === batchFilter) : ledgerRows;
   const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
@@ -8355,6 +8374,18 @@ function KassaBewegingenTab({
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
     return date.toLocaleString(data.taal === "fr" ? "fr-BE" : "nl-BE");
+  };
+  const ledgerTypeLabel = row => {
+    const labels = {
+      sales: t.kb_type_sales,
+      donations: t.kb_type_donations,
+      cash: t.kb_type_cash,
+      card: t.kb_type_card,
+      payconiq: t.kb_type_payconiq,
+      ticket_audit: t.kb_type_ticket_audit,
+      price_change_audit: t.kb_type_price_change_audit
+    };
+    return labels[row && row.type] || row && row.label || row && row.type || "-";
   };
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8471,12 +8502,40 @@ function KassaBewegingenTab({
       gap: "0.75rem",
       flexWrap: "wrap"
     }
-  }, /*#__PURE__*/React.createElement("strong", null, row.label || row.type), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, ledgerTypeLabel(row)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.18rem 0.5rem",
+      background: row.auditOnly ? "rgba(192,138,46,0.14)" : "rgba(153,173,122,0.2)",
+      color: row.auditOnly ? "var(--amber)" : "var(--green)",
+      fontSize: "0.7rem",
+      fontWeight: 900
+    }
+  }, row.auditOnly ? t.kb_audit_only : t.kb_immutable)), /*#__PURE__*/React.createElement("span", {
     style: {
       fontWeight: 950,
       color: row.auditOnly ? "var(--ink-soft)" : "var(--green)"
     }
   }, formatKassaPreviewMoney(row.amountCents))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      flexWrap: "wrap",
+      color: "var(--ink-soft)",
+      fontSize: "0.76rem"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_batch, ": "), batchLabel(row.sourceBatchId)), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_posted_at, ": "), formatPostedAt(row.postedAt)), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => setOpenLedgerRowId(openLedgerRowId === row.id ? "" : row.id)
+  }, openLedgerRowId === row.id ? t.kb_hide_details : t.kb_details)), openLedgerRowId === row.id && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",

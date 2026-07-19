@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.9
+- `Kassa Bewegingen` is compacter gemaakt: de standaardweergave toont alleen de belangrijkste ledgerinformatie.
+- Technische broninformatie zoals source file, bron, immutable en audit-only staat nu achter een `Details`-knop per ledgerregel.
+- Ledgerregel-labels worden nu dynamisch vertaald op basis van `type`, zodat bestaande geboekte regels correct Nederlands/Frans tonen zonder dat de opgeslagen auditdata wordt aangepast.
+- Een dubbele oude `kb_intro`-vertaling is gecorrigeerd zodat het tabblad niet langer de oude Kostenbeheer-uitleg toont.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.8
 - Het tabblad `Kassa Bewegingen` is vervangen door een read-only ledgercontrole op `finance.ledgerTransactions`.
 - De controlepagina toont definitieve totalen voor verkopen, giften, cash, kaart, Payconiq, auditregels en aantal ledgerregels.
