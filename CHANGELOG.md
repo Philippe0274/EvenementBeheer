@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.25.7
+- Kassa Import Engine stap 4 toegevoegd: een gecontroleerde ledger-preview kan nu eenmalig definitief geboekt worden.
+- Definitieve boeking schrijft immutable regels naar `finance.ledgerTransactions` met bronverwijzingen naar importbatch, ledger-preview, exportId, source file en source entry.
+- Dubbele posting wordt geblokkeerd op basis van `sourceBatchId` en batch `ledgerStatus`.
+- Batch en ledger-preview krijgen na posting status `ledger_posted` / `posted`; de UI toont `Definitief geboekt`.
+- Audittrail registreert `kassa_ledger_posted` met aantal ledgerregels.
+- Rapportering blijft nog ongewijzigd; bestaande rapporten worden nog niet op de nieuwe ledger gebaseerd.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.6
 - Kassa Import Engine stap 3 toegevoegd: vanuit uitgepakte importfeiten kan nu een read-only ledger-preview worden gemaakt.
 - Nieuwe opslaglaag `kassaImports.ledgerPreviews` bewaart het boekingsvoorstel apart van de echte immutable ledger.

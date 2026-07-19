@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.6";
+const APP_VERSION = "1.25.7";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -767,6 +767,13 @@ const T = {
     kx_ledger_preview_audit: "Auditinfo",
     kx_ledger_preview_amount: "Bedrag",
     kx_ledger_preview_no_posting: "Geen definitieve boeking uitgevoerd",
+    kx_post_ledger: "Definitief boeken",
+    kx_post_ledger_confirm: "Deze importbatch definitief boeken in het immutable ledger? Dit kan niet ongedaan gemaakt worden; latere wijzigingen gebeuren via correctieboekingen.",
+    kx_post_ledger_done: "✓ Importbatch definitief geboekt in het ledger.",
+    kx_post_ledger_duplicate: "Deze importbatch is al definitief geboekt.",
+    kx_post_ledger_blocked: "Maak eerst een geldige ledger-preview voor je definitief boekt.",
+    kx_ledger_posted: "Definitief geboekt",
+    kx_ledger_transactions: "Ledgerregels",
     kx_validation_ok: "✓ Importbatch gevalideerd. Nog niet geboekt.",
     kx_validation_failed: "Importvalidatie bevat fouten. Niet geboekt.",
     kx_validation_report: "Validatierapport",
@@ -1683,6 +1690,13 @@ const T = {
     kx_ledger_preview_audit: "Info audit",
     kx_ledger_preview_amount: "Montant",
     kx_ledger_preview_no_posting: "Aucune comptabilisation définitive effectuée",
+    kx_post_ledger: "Comptabiliser définitivement",
+    kx_post_ledger_confirm: "Comptabiliser définitivement ce lot d'import dans le ledger immuable ? Cette action ne peut pas être annulée; les changements ultérieurs se feront via écritures de correction.",
+    kx_post_ledger_done: "✓ Lot d'import définitivement comptabilisé dans le ledger.",
+    kx_post_ledger_duplicate: "Ce lot d'import est déjà définitivement comptabilisé.",
+    kx_post_ledger_blocked: "Créez d'abord un aperçu ledger valide avant la comptabilisation définitive.",
+    kx_ledger_posted: "Définitivement comptabilisé",
+    kx_ledger_transactions: "Lignes ledger",
     kx_validation_ok: "✓ Lot d'import validé. Pas encore comptabilisé.",
     kx_validation_failed: "La validation contient des erreurs. Rien n'est comptabilisé.",
     kx_validation_report: "Rapport de validation",
@@ -3871,6 +3885,9 @@ const helpContentNl = [{
     naam: "Ledger-preview",
     uitleg: "Vanuit de uitgepakte feiten kan de Hoofdapp een boekingsvoorstel tonen. Dit laat verkoop, giften, cash, kaart, Payconiq en auditinfo zien, maar schrijft nog niets naar finance.ledgerTransactions."
   }, {
+    naam: "Definitief boeken",
+    uitleg: "Na controle van de ledger-preview kan de batch eenmalig definitief geboekt worden. De Hoofdapp schrijft dan immutable regels naar finance.ledgerTransactions en blokkeert dubbele posting. Fouten worden later uitsluitend via correctieboekingen rechtgezet."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -3980,6 +3997,9 @@ const helpContentFr = [{
   }, {
     naam: "Aperçu ledger",
     uitleg: "À partir des faits extraits, la Hoofdapp peut afficher une proposition de comptabilisation. Elle montre ventes, dons, cash, carte, Payconiq et informations d'audit, mais n'écrit encore rien dans finance.ledgerTransactions."
+  }, {
+    naam: "Comptabiliser définitivement",
+    uitleg: "Après contrôle de l'aperçu ledger, le lot peut être comptabilisé définitivement une seule fois. La Hoofdapp écrit alors des lignes immuables dans finance.ledgerTransactions et bloque les doublons. Les erreurs seront corrigées plus tard uniquement via écritures de correction."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -5912,6 +5932,74 @@ function App() {
     });
     showToast(created ? t.kx_ledger_preview_created : blocked ? t.kx_ledger_preview_blocked : t.kx_ledger_preview_duplicate);
   };
+  const postKassaLedgerPreview = batchId => {
+    if (!window.confirm(t.kx_post_ledger_confirm)) return;
+    let posted = false;
+    let blocked = false;
+    setData(d => {
+      const currentImports = d.kassaImports || defaultData.kassaImports;
+      const currentFinance = d.finance || defaultData.finance;
+      const batch = (currentImports.batches || []).find(item => item && item.id === batchId);
+      const ledgerPreview = (currentImports.ledgerPreviews || []).find(item => item && item.batchId === batchId);
+      if (!batch || !ledgerPreview) {
+        blocked = true;
+        return d;
+      }
+      const alreadyPostedByBatch = (currentFinance.ledgerTransactions || []).some(item => item && item.source === "kassa-import" && item.sourceBatchId === batchId);
+      if (alreadyPostedByBatch || batch.ledgerStatus === "posted") return d;
+      const ledgerTransactions = buildKassaLedgerTransactionsFromPreview(batch, ledgerPreview);
+      if (!ledgerTransactions.length) {
+        blocked = true;
+        return d;
+      }
+      const postedAt = ledgerTransactions[0].postedAt;
+      posted = true;
+      return {
+        ...d,
+        kassaImports: {
+          ...defaultData.kassaImports,
+          ...currentImports,
+          batches: (currentImports.batches || []).map(item => item && item.id === batchId ? {
+            ...item,
+            status: "ledger_posted",
+            ledgerStatus: "posted",
+            ledgerPostedAt: postedAt,
+            ledgerTransactionCount: ledgerTransactions.length,
+            immutable: true
+          } : item),
+          files: currentImports.files || [],
+          importedFacts: currentImports.importedFacts || [],
+          ledgerPreviews: (currentImports.ledgerPreviews || []).map(item => item && item.batchId === batchId ? {
+            ...item,
+            status: "posted",
+            ledgerStatus: "posted",
+            postedAt,
+            ledgerTransactionCount: ledgerTransactions.length,
+            immutable: true
+          } : item)
+        },
+        finance: {
+          ...defaultData.finance,
+          ...currentFinance,
+          ledgerTransactions: [...(currentFinance.ledgerTransactions || []), ...ledgerTransactions]
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_ledger_posted",
+          createdAt: postedAt,
+          appVersion: APP_VERSION,
+          eventId: batch.eventId || "",
+          batchId: batch.id,
+          exportId: batch.exportId || "",
+          sourceFileName: batch.sourceFileName || "",
+          ledgerTransactionCount: ledgerTransactions.length,
+          immutable: true,
+          ledgerStatus: "posted"
+        }]
+      };
+    });
+    showToast(posted ? t.kx_post_ledger_done : blocked ? t.kx_post_ledger_blocked : t.kx_post_ledger_duplicate);
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -6881,6 +6969,7 @@ function App() {
     onValidateImport: validatePreparedKassaImport,
     onExtractFacts: extractPreparedKassaImportFacts,
     onCreateLedgerPreview: createKassaLedgerPreview,
+    onPostLedger: postKassaLedgerPreview,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8175,12 +8264,42 @@ function buildKassaLedgerPreview(batch, facts, t) {
   };
 }
 
+function buildKassaLedgerTransactionsFromPreview(batch, ledgerPreview) {
+  const now = new Date().toISOString();
+  return (ledgerPreview.entries || []).map((entry, index) => ({
+    id: `flt_${uid()}`,
+    ledgerSchema: "be.zomerfeest.hoofdapp-ledger",
+    ledgerSchemaVersion: "1.0.0",
+    createdAt: now,
+    postedAt: now,
+    postedByAppVersion: APP_VERSION,
+    eventId: batch.eventId || ledgerPreview.eventId || "",
+    source: "kassa-import",
+    sourceBatchId: batch.id,
+    sourcePreviewId: ledgerPreview.id,
+    sourceExportId: batch.exportId || ledgerPreview.exportId || "",
+    sourceFileName: batch.sourceFileName || ledgerPreview.sourceFileName || "",
+    sourceEntryId: entry.id,
+    sequence: index + 1,
+    type: entry.type,
+    label: entry.label,
+    amountCents: getKassaPreviewCents(entry.amountCents),
+    paymentMethod: entry.paymentMethod || "",
+    sourceCount: entry.sourceCount || 0,
+    auditOnly: !!entry.auditOnly,
+    immutable: true,
+    correctionOf: "",
+    status: "posted"
+  }));
+}
+
 function KassaExportMonitorTab({
   data,
   onPrepareImport,
   onValidateImport,
   onExtractFacts,
   onCreateLedgerPreview,
+  onPostLedger,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -8387,8 +8506,11 @@ function KassaExportMonitorTab({
     const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
     const facts = importedFacts.find(item => item && item.batchId === batch.id);
     const ledgerPreview = ledgerPreviews.find(item => item && item.batchId === batch.id);
+    const ledgerTransactionsForBatch = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(item => item && item.source === "kassa-import" && item.sourceBatchId === batch.id) : [];
+    const isLedgerPosted = batch.ledgerStatus === "posted" || ledgerTransactionsForBatch.length > 0;
     const canExtractFacts = hasPayload && report && !report.errors && !facts && typeof onExtractFacts === "function";
     const canCreateLedgerPreview = !!facts && !ledgerPreview && typeof onCreateLedgerPreview === "function";
+    const canPostLedger = !!ledgerPreview && !isLedgerPosted && typeof onPostLedger === "function";
     return /*#__PURE__*/React.createElement("div", {
       key: batch.id,
       style: {
@@ -8435,7 +8557,7 @@ function KassaExportMonitorTab({
         fontWeight: 850,
         fontSize: "0.72rem"
       }
-    }, batch.status === "ledger_preview_ready" ? t.kx_ledger_preview_title : batch.status === "facts_extracted" ? t.kx_facts_extracted_badge : batch.status === "validated" ? t.kx_validation_validated : batch.status === "validation_failed" ? t.kx_validation_errors : t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
+    }, isLedgerPosted ? t.kx_ledger_posted : batch.status === "ledger_preview_ready" ? t.kx_ledger_preview_title : batch.status === "facts_extracted" ? t.kx_facts_extracted_badge : batch.status === "validated" ? t.kx_validation_validated : batch.status === "validation_failed" ? t.kx_validation_errors : t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
       style: {
         borderRadius: 999,
         padding: "0.2rem 0.55rem",
@@ -8465,7 +8587,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: "0.35rem"
       }
-    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_facts_status, facts ? t.kx_facts_extracted_badge : t.kx_facts_not_extracted], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_facts_status, facts ? t.kx_facts_extracted_badge : t.kx_facts_not_extracted], [t.kx_batch_ledger_status, isLedgerPosted ? t.kx_ledger_posted : t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -8511,7 +8633,12 @@ function KassaExportMonitorTab({
       onClick: () => onCreateLedgerPreview && onCreateLedgerPreview(batch.id),
       disabled: !canCreateLedgerPreview,
       title: ledgerPreview ? t.kx_ledger_preview_duplicate : !facts ? t.kx_ledger_preview_blocked : t.kx_create_ledger_preview
-    }, ledgerPreview ? t.kx_ledger_preview_title : t.kx_create_ledger_preview)), facts && /*#__PURE__*/React.createElement("div", {
+    }, ledgerPreview ? t.kx_ledger_preview_title : t.kx_create_ledger_preview), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
+      onClick: () => onPostLedger && onPostLedger(batch.id),
+      disabled: !canPostLedger,
+      title: isLedgerPosted ? t.kx_post_ledger_duplicate : !ledgerPreview ? t.kx_post_ledger_blocked : t.kx_post_ledger
+    }, isLedgerPosted ? t.kx_ledger_posted : t.kx_post_ledger)), facts && /*#__PURE__*/React.createElement("div", {
       style: {
         border: "1px solid rgba(153,173,122,0.35)",
         borderRadius: 7,
@@ -8585,7 +8712,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
         gap: "0.35rem"
       }
-    }, [[t.kx_ledger_preview_sales, ledgerPreview.totals && ledgerPreview.totals.salesCents || 0], [t.kx_ledger_preview_donations, ledgerPreview.totals && ledgerPreview.totals.donationCents || 0], [t.kx_ledger_preview_cash, ledgerPreview.totals && ledgerPreview.totals.cashCents || 0], [t.kx_ledger_preview_card, ledgerPreview.totals && ledgerPreview.totals.cardCents || 0], [t.kx_ledger_preview_payconiq, ledgerPreview.totals && ledgerPreview.totals.payconiqCents || 0], [t.kx_ledger_preview_entries, ledgerPreview.counts && ledgerPreview.counts.entries || 0]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_ledger_preview_sales, ledgerPreview.totals && ledgerPreview.totals.salesCents || 0], [t.kx_ledger_preview_donations, ledgerPreview.totals && ledgerPreview.totals.donationCents || 0], [t.kx_ledger_preview_cash, ledgerPreview.totals && ledgerPreview.totals.cashCents || 0], [t.kx_ledger_preview_card, ledgerPreview.totals && ledgerPreview.totals.cardCents || 0], [t.kx_ledger_preview_payconiq, ledgerPreview.totals && ledgerPreview.totals.payconiqCents || 0], [isLedgerPosted ? t.kx_ledger_transactions : t.kx_ledger_preview_entries, isLedgerPosted ? ledgerTransactionsForBatch.length : ledgerPreview.counts && ledgerPreview.counts.entries || 0]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
