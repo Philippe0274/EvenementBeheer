@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.10
+- Correctieboekingen toegevoegd aan `Kassa Bewegingen` voor definitief geboekte financiële Kassa-ledgerregels.
+- Correcties worden append-only opgeslagen onder `finance.corrections` met bedrag, reden, optionele opmerking en bronverwijzing naar de originele ledgerregel.
+- Originele `finance.ledgerTransactions` blijven immutable; auditregels kunnen bewust niet gecorrigeerd worden.
+- De ledgerweergave toont correcties en nettobedrag per regel, plus correctietotalen in het overzicht.
+- Audittrail registreert `kassa_ledger_correction_added`.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.9
 - `Kassa Bewegingen` is compacter gemaakt: de standaardweergave toont alleen de belangrijkste ledgerinformatie.
 - Technische broninformatie zoals source file, bron, immutable en audit-only staat nu achter een `Details`-knop per ledgerregel.

@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.9";
+const APP_VERSION = "1.25.10";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -685,6 +685,17 @@ const T = {
     kb_type_payconiq: "Payconiq",
     kb_type_ticket_audit: "Ticketfeiten",
     kb_type_price_change_audit: "Prijslijstmutaties",
+    kb_add_correction: "Correctie toevoegen",
+    kb_save_correction: "Correctie bewaren",
+    kb_cancel_correction: "Annuleren",
+    kb_correction_amount: "Correctiebedrag (€)",
+    kb_correction_reason: "Reden",
+    kb_correction_note: "Opmerking",
+    kb_corrections: "Correcties",
+    kb_net_amount: "Netto",
+    kb_correction_added: "✓ Correctieboeking toegevoegd.",
+    kb_correction_blocked: "Vul een geldig correctiebedrag en een reden in.",
+    kb_correction_immutable: "Correctie is apart geboekt; originele ledgerregel blijft ongewijzigd.",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1639,6 +1650,17 @@ const T = {
     kb_type_payconiq: "Payconiq",
     kb_type_ticket_audit: "Faits tickets",
     kb_type_price_change_audit: "Mutations liste de prix",
+    kb_add_correction: "Ajouter correction",
+    kb_save_correction: "Enregistrer correction",
+    kb_cancel_correction: "Annuler",
+    kb_correction_amount: "Montant correction (€)",
+    kb_correction_reason: "Raison",
+    kb_correction_note: "Remarque",
+    kb_corrections: "Corrections",
+    kb_net_amount: "Net",
+    kb_correction_added: "✓ Écriture de correction ajoutée.",
+    kb_correction_blocked: "Saisissez un montant de correction valide et une raison.",
+    kb_correction_immutable: "La correction est comptabilisée séparément; la ligne ledger originale reste inchangée.",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -3953,6 +3975,9 @@ const helpContentNl = [{
     naam: "Kassa Bewegingen controleren",
     uitleg: "Ga naar Kassa Bewegingen om de definitieve ledgerregels read-only te controleren. Standaard zie je een compacte lijst met totalen, bedrag, batch en boekingsdatum; technische bronverwijzingen staan onder Details."
   }, {
+    naam: "Correctieboekingen",
+    uitleg: "Moet een geboekte Kassa-regel administratief gecorrigeerd worden, voeg dan in Kassa Bewegingen een aparte correctie met bedrag en reden toe. De originele ledgerregel blijft immutable; de eindafrekening rekent later met ledger plus correcties."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -4068,6 +4093,9 @@ const helpContentFr = [{
   }, {
     naam: "Contrôler les mouvements caisse",
     uitleg: "Allez dans Mouvements de Caisse pour contrôler les lignes ledger définitives en lecture seule. Par défaut, la liste est compacte avec totaux, montant, lot et date; les références techniques sont sous Détails."
+  }, {
+    naam: "Écritures de correction",
+    uitleg: "Si une ligne caisse comptabilisée doit être corrigée administrativement, ajoutez dans Mouvements de Caisse une correction séparée avec montant et raison. La ligne ledger originale reste immuable; le décompte final utilisera plus tard ledger plus corrections."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -6068,6 +6096,60 @@ function App() {
     });
     showToast(posted ? t.kx_post_ledger_done : blocked ? t.kx_post_ledger_blocked : t.kx_post_ledger_duplicate);
   };
+  const addKassaLedgerCorrection = (ledgerRow, correctionDraft) => {
+    const amountCents = Math.round(parseBedragNum(correctionDraft && correctionDraft.amount) * 100);
+    const reason = (correctionDraft && correctionDraft.reason || "").trim();
+    const note = (correctionDraft && correctionDraft.note || "").trim();
+    if (!ledgerRow || ledgerRow.auditOnly || !Number.isFinite(amountCents) || amountCents === 0 || !reason) {
+      showToast(t.kb_correction_blocked);
+      return false;
+    }
+    const createdAt = new Date().toISOString();
+    const correctionId = uid();
+    setData(d => {
+      const currentFinance = d.finance || defaultData.finance;
+      const correction = {
+        id: correctionId,
+        createdAt,
+        createdByAppVersion: APP_VERSION,
+        eventId: ledgerRow.eventId || d.activeEventId || "",
+        source: "kassa-ledger-correction",
+        sourceLedgerTransactionId: ledgerRow.id || "",
+        correctionOf: ledgerRow.id || "",
+        sourceBatchId: ledgerRow.sourceBatchId || "",
+        sourceExportId: ledgerRow.sourceExportId || "",
+        sourceFileName: ledgerRow.sourceFileName || "",
+        type: ledgerRow.type || "correction",
+        amountCents,
+        reason,
+        note,
+        immutable: true,
+        status: "posted"
+      };
+      return {
+        ...d,
+        finance: {
+          ...defaultData.finance,
+          ...currentFinance,
+          corrections: [...(currentFinance.corrections || []), correction]
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_ledger_correction_added",
+          createdAt,
+          appVersion: APP_VERSION,
+          eventId: correction.eventId,
+          ledgerTransactionId: correction.sourceLedgerTransactionId,
+          correctionId,
+          amountCents,
+          reason,
+          immutable: true
+        }]
+      };
+    });
+    showToast(t.kb_correction_added);
+    return true;
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -7041,6 +7123,7 @@ function App() {
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement(KassaBewegingenTab, {
     data: data,
+    onAddCorrection: addKassaLedgerCorrection,
     t: t
   }), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
     eventHistory: data.eventHistory || [],
@@ -8346,21 +8429,33 @@ function buildKassaLedgerTransactionsFromPreview(batch, ledgerPreview) {
 
 function KassaBewegingenTab({
   data,
+  onAddCorrection,
   t
 }) {
   const [batchFilter, setBatchFilter] = useState("");
   const [openLedgerRowId, setOpenLedgerRowId] = useState("");
+  const [correctionTargetId, setCorrectionTargetId] = useState("");
+  const [correctionDraft, setCorrectionDraft] = useState({
+    amount: "",
+    reason: "",
+    note: ""
+  });
   const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(row => row && row.source === "kassa-import") : [];
+  const ledgerCorrections = data && data.finance && Array.isArray(data.finance.corrections) ? data.finance.corrections.filter(item => item && item.source === "kassa-ledger-correction") : [];
   const visibleRows = batchFilter ? ledgerRows.filter(row => row.sourceBatchId === batchFilter) : ledgerRows;
+  const visibleCorrections = batchFilter ? ledgerCorrections.filter(item => item.sourceBatchId === batchFilter) : ledgerCorrections;
   const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
   const batchOptions = batches.filter(batch => ledgerRows.some(row => row.sourceBatchId === batch.id));
   const sumType = type => visibleRows.filter(row => row.type === type && !row.auditOnly).reduce((sum, row) => sum + getKassaPreviewCents(row.amountCents), 0);
+  const sumCorrectionType = type => visibleCorrections.filter(item => item.type === type).reduce((sum, item) => sum + getKassaPreviewCents(item.amountCents), 0);
+  const correctionTotal = visibleCorrections.reduce((sum, item) => sum + getKassaPreviewCents(item.amountCents), 0);
   const totals = {
-    sales: sumType("sales"),
-    donations: sumType("donations"),
-    cash: sumType("cash"),
-    card: sumType("card"),
-    payconiq: sumType("payconiq"),
+    sales: sumType("sales") + sumCorrectionType("sales"),
+    donations: sumType("donations") + sumCorrectionType("donations"),
+    cash: sumType("cash") + sumCorrectionType("cash"),
+    card: sumType("card") + sumCorrectionType("card"),
+    payconiq: sumType("payconiq") + sumCorrectionType("payconiq"),
+    corrections: correctionTotal,
     audit: visibleRows.filter(row => row.auditOnly).length,
     entries: visibleRows.length
   };
@@ -8386,6 +8481,32 @@ function KassaBewegingenTab({
       price_change_audit: t.kb_type_price_change_audit
     };
     return labels[row && row.type] || row && row.label || row && row.type || "-";
+  };
+  const correctionsForRow = row => ledgerCorrections.filter(item => item && (item.sourceLedgerTransactionId === row.id || item.correctionOf === row.id));
+  const correctionTotalForRow = row => correctionsForRow(row).reduce((sum, item) => sum + getKassaPreviewCents(item.amountCents), 0);
+  const updateCorrectionDraft = (field, value) => setCorrectionDraft(prev => ({
+    ...prev,
+    [field]: value
+  }));
+  const startCorrection = row => {
+    setCorrectionTargetId(row.id);
+    setOpenLedgerRowId(row.id);
+    setCorrectionDraft({
+      amount: "",
+      reason: "",
+      note: ""
+    });
+  };
+  const saveCorrection = row => {
+    const ok = typeof onAddCorrection === "function" && onAddCorrection(row, correctionDraft);
+    if (ok) {
+      setCorrectionTargetId("");
+      setCorrectionDraft({
+        amount: "",
+        reason: "",
+        note: ""
+      });
+    }
   };
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8459,7 +8580,7 @@ function KassaBewegingenTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
       gap: "0.5rem"
     }
-  }, [[t.kb_total_sales, totals.sales, true], [t.kb_total_donations, totals.donations, true], [t.kb_total_cash, totals.cash, true], [t.kb_total_card, totals.card, true], [t.kb_total_payconiq, totals.payconiq, true], [t.kb_audit_entries, totals.audit, false], [t.kb_ledger_entries, totals.entries, false]].map(([label, value, money]) => /*#__PURE__*/React.createElement("div", {
+  }, [[t.kb_total_sales, totals.sales, true], [t.kb_total_donations, totals.donations, true], [t.kb_total_cash, totals.cash, true], [t.kb_total_card, totals.card, true], [t.kb_total_payconiq, totals.payconiq, true], [t.kb_corrections, totals.corrections, true], [t.kb_audit_entries, totals.audit, false], [t.kb_ledger_entries, totals.entries, false]].map(([label, value, money]) => /*#__PURE__*/React.createElement("div", {
     key: label,
     style: {
       border: "1px solid var(--line)",
@@ -8518,12 +8639,24 @@ function KassaBewegingenTab({
       fontSize: "0.7rem",
       fontWeight: 900
     }
-  }, row.auditOnly ? t.kb_audit_only : t.kb_immutable)), /*#__PURE__*/React.createElement("span", {
+  }, row.auditOnly ? t.kb_audit_only : t.kb_immutable)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "0.12rem",
+      textAlign: "right"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
     style: {
       fontWeight: 950,
       color: row.auditOnly ? "var(--ink-soft)" : "var(--green)"
     }
-  }, formatKassaPreviewMoney(row.amountCents))), /*#__PURE__*/React.createElement("div", {
+  }, formatKassaPreviewMoney(row.amountCents)), correctionsForRow(row).length > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: "0.72rem",
+      color: "var(--accent)",
+      fontWeight: 900
+    }
+  }, t.kb_corrections, ": ", formatKassaPreviewMoney(correctionTotalForRow(row)), " · ", t.kb_net_amount, ": ", formatKassaPreviewMoney(getKassaPreviewCents(row.amountCents) + correctionTotalForRow(row))))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -8532,7 +8665,10 @@ function KassaBewegingenTab({
       color: "var(--ink-soft)",
       fontSize: "0.76rem"
     }
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_batch, ": "), batchLabel(row.sourceBatchId)), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_posted_at, ": "), formatPostedAt(row.postedAt)), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_batch, ": "), batchLabel(row.sourceBatchId)), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, t.kb_posted_at, ": "), formatPostedAt(row.postedAt)), !row.auditOnly && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => startCorrection(row)
+  }, t.kb_add_correction), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: () => setOpenLedgerRowId(openLedgerRowId === row.id ? "" : row.id)
   }, openLedgerRowId === row.id ? t.kb_hide_details : t.kb_details)), openLedgerRowId === row.id && /*#__PURE__*/React.createElement("div", {
@@ -8548,7 +8684,71 @@ function KassaBewegingenTab({
     style: {
       overflowWrap: "anywhere"
     }
-  }, /*#__PURE__*/React.createElement("strong", null, label, ": "), value)))))) : /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("strong", null, label, ": "), value))), correctionsForRow(row).length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid rgba(211,62,62,0.22)",
+      borderRadius: 7,
+      padding: "0.55rem",
+      background: "rgba(211,62,62,0.045)",
+      display: "grid",
+      gap: "0.3rem",
+      fontSize: "0.78rem"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, t.kb_corrections), correctionsForRow(row).map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.id,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.6rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, item.reason || "-"), /*#__PURE__*/React.createElement("strong", null, formatKassaPreviewMoney(item.amountCents)), item.note && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--ink-soft)",
+      width: "100%"
+    }
+  }, item.note))), /*#__PURE__*/React.createElement("small", {
+    style: {
+      color: "var(--ink-soft)"
+    }
+  }, t.kb_correction_immutable)), correctionTargetId === row.id && !row.auditOnly && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid rgba(153,173,122,0.45)",
+      borderRadius: 7,
+      padding: "0.65rem",
+      background: "rgba(153,173,122,0.08)",
+      display: "grid",
+      gap: "0.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+      gap: "0.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("label", null, t.kb_correction_amount, /*#__PURE__*/React.createElement("input", {
+    value: correctionDraft.amount,
+    onChange: e => updateCorrectionDraft("amount", e.target.value),
+    placeholder: "-5,00"
+  })), /*#__PURE__*/React.createElement("label", null, t.kb_correction_reason, /*#__PURE__*/React.createElement("input", {
+    value: correctionDraft.reason,
+    onChange: e => updateCorrectionDraft("reason", e.target.value)
+  })), /*#__PURE__*/React.createElement("label", null, t.kb_correction_note, /*#__PURE__*/React.createElement("input", {
+    value: correctionDraft.note,
+    onChange: e => updateCorrectionDraft("note", e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: () => saveCorrection(row)
+  }, t.kb_save_correction), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => setCorrectionTargetId("")
+  }, t.kb_cancel_correction)))))) : /*#__PURE__*/React.createElement("p", {
     style: {
       color: "var(--ink-soft)",
       margin: 0,
