@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.6
+- Kassa Import Engine stap 3 toegevoegd: vanuit uitgepakte importfeiten kan nu een read-only ledger-preview worden gemaakt.
+- Nieuwe opslaglaag `kassaImports.ledgerPreviews` bewaart het boekingsvoorstel apart van de echte immutable ledger.
+- De preview toont voorgestelde regels voor verkopen, giften, cash, kaart, Payconiq en auditinfo voor tickets/prijslijstmutaties.
+- Er wordt nog niets geschreven naar `finance.ledgerTransactions`; de ledgerstatus blijft expliciet `not_posted`.
+- Backward compatible: bestaande data zonder `ledgerPreviews` krijgt automatisch een lege previewlaag.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.5
 - Kassa Import Engine stap 2 toegevoegd: gevalideerde importbatches kunnen nu worden uitgepakt naar een read-only feitenlaag onder `kassaImports.importedFacts`.
 - De feitenlaag bewaart transacties, verkoopregels, betaalfeiten, ticketregistraties en prijslijstmutaties apart van de originele payload.

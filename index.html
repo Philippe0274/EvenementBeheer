@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.5";
+const APP_VERSION = "1.25.6";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -752,6 +752,21 @@ const T = {
     kx_facts_payments: "Betaalfeiten",
     kx_facts_tickets: "Ticketfeiten",
     kx_facts_price_changes: "Prijslijstmutaties",
+    kx_create_ledger_preview: "Ledger-preview maken",
+    kx_ledger_preview_created: "✓ Ledger-preview aangemaakt. Nog niet geboekt.",
+    kx_ledger_preview_duplicate: "Voor deze importbatch bestaat al een ledger-preview.",
+    kx_ledger_preview_blocked: "Pak eerst de feiten uit voor je een ledger-preview maakt.",
+    kx_ledger_preview_title: "Ledger-preview",
+    kx_ledger_preview_readonly: "Boekingsvoorstel alleen-lezen",
+    kx_ledger_preview_entries: "Voorgestelde regels",
+    kx_ledger_preview_sales: "Verkoopvoorstel",
+    kx_ledger_preview_donations: "Giftvoorstel",
+    kx_ledger_preview_cash: "Cashvoorstel",
+    kx_ledger_preview_card: "Kaartvoorstel",
+    kx_ledger_preview_payconiq: "Payconiqvoorstel",
+    kx_ledger_preview_audit: "Auditinfo",
+    kx_ledger_preview_amount: "Bedrag",
+    kx_ledger_preview_no_posting: "Geen definitieve boeking uitgevoerd",
     kx_validation_ok: "✓ Importbatch gevalideerd. Nog niet geboekt.",
     kx_validation_failed: "Importvalidatie bevat fouten. Niet geboekt.",
     kx_validation_report: "Validatierapport",
@@ -1653,6 +1668,21 @@ const T = {
     kx_facts_payments: "Faits de paiement",
     kx_facts_tickets: "Faits tickets",
     kx_facts_price_changes: "Mutations liste de prix",
+    kx_create_ledger_preview: "Créer aperçu ledger",
+    kx_ledger_preview_created: "✓ Aperçu ledger créé. Pas encore comptabilisé.",
+    kx_ledger_preview_duplicate: "Un aperçu ledger existe déjà pour ce lot.",
+    kx_ledger_preview_blocked: "Extrayez d'abord les faits avant de créer un aperçu ledger.",
+    kx_ledger_preview_title: "Aperçu ledger",
+    kx_ledger_preview_readonly: "Proposition de comptabilisation en lecture seule",
+    kx_ledger_preview_entries: "Lignes proposées",
+    kx_ledger_preview_sales: "Proposition ventes",
+    kx_ledger_preview_donations: "Proposition dons",
+    kx_ledger_preview_cash: "Proposition cash",
+    kx_ledger_preview_card: "Proposition carte",
+    kx_ledger_preview_payconiq: "Proposition Payconiq",
+    kx_ledger_preview_audit: "Info audit",
+    kx_ledger_preview_amount: "Montant",
+    kx_ledger_preview_no_posting: "Aucune comptabilisation définitive effectuée",
     kx_validation_ok: "✓ Lot d'import validé. Pas encore comptabilisé.",
     kx_validation_failed: "La validation contient des erreurs. Rien n'est comptabilisé.",
     kx_validation_report: "Rapport de validation",
@@ -2680,7 +2710,8 @@ const defaultData = {
   kassaImports: {
     batches: [],
     files: [],
-    importedFacts: []
+    importedFacts: [],
+    ledgerPreviews: []
   },
   finance: {
     ledgerTransactions: [],
@@ -3495,7 +3526,8 @@ const normalizeData = raw => {
       ...defaultData.kassaImports,
       batches: Array.isArray(raw.kassaImports.batches) ? raw.kassaImports.batches : [],
       files: Array.isArray(raw.kassaImports.files) ? raw.kassaImports.files : [],
-      importedFacts: Array.isArray(raw.kassaImports.importedFacts) ? raw.kassaImports.importedFacts : []
+      importedFacts: Array.isArray(raw.kassaImports.importedFacts) ? raw.kassaImports.importedFacts : [],
+      ledgerPreviews: Array.isArray(raw.kassaImports.ledgerPreviews) ? raw.kassaImports.ledgerPreviews : []
     };
   }
   if (Array.isArray(raw.auditTrail)) {
@@ -3836,6 +3868,9 @@ const helpContentNl = [{
     naam: "Feiten uitpakken",
     uitleg: "Na een geslaagde validatie kan de batch worden uitgepakt naar een read-only feitenlaag onder kassaImports.importedFacts. Daarin staan transacties, verkoopregels, betaalfeiten, ticketregistraties en prijslijstmutaties. Ook dit boekt nog niets in het ledger."
   }, {
+    naam: "Ledger-preview",
+    uitleg: "Vanuit de uitgepakte feiten kan de Hoofdapp een boekingsvoorstel tonen. Dit laat verkoop, giften, cash, kaart, Payconiq en auditinfo zien, maar schrijft nog niets naar finance.ledgerTransactions."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -3942,6 +3977,9 @@ const helpContentFr = [{
   }, {
     naam: "Extraire les faits",
     uitleg: "Après une validation réussie, le lot peut être extrait vers une couche de faits en lecture seule sous kassaImports.importedFacts. Elle contient transactions, lignes de vente, faits de paiement, tickets et mutations de liste de prix. Cela ne comptabilise toujours rien dans le ledger."
+  }, {
+    naam: "Aperçu ledger",
+    uitleg: "À partir des faits extraits, la Hoofdapp peut afficher une proposition de comptabilisation. Elle montre ventes, dons, cash, carte, Payconiq et informations d'audit, mais n'écrit encore rien dans finance.ledgerTransactions."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -5823,6 +5861,57 @@ function App() {
     });
     showToast(extracted ? t.kx_facts_extracted : blocked ? t.kx_facts_blocked : t.kx_facts_duplicate);
   };
+  const createKassaLedgerPreview = batchId => {
+    let created = false;
+    let blocked = false;
+    setData(d => {
+      const currentImports = d.kassaImports || defaultData.kassaImports;
+      const batch = (currentImports.batches || []).find(item => item && item.id === batchId);
+      const facts = (currentImports.importedFacts || []).find(item => item && item.batchId === batchId);
+      if (!batch || !facts) {
+        blocked = true;
+        return d;
+      }
+      const existingPreview = (currentImports.ledgerPreviews || []).some(item => item && item.batchId === batchId);
+      if (existingPreview) return d;
+      const preview = buildKassaLedgerPreview(batch, facts, t);
+      created = true;
+      return {
+        ...d,
+        kassaImports: {
+          ...defaultData.kassaImports,
+          ...currentImports,
+          batches: (currentImports.batches || []).map(item => item && item.id === batchId ? {
+            ...item,
+            status: "ledger_preview_ready",
+            ledgerPreviewStatus: "preview_ready",
+            ledgerPreviewId: preview.id,
+            ledgerPreviewCreatedAt: preview.createdAt,
+            ledgerStatus: "not_posted",
+            immutable: true
+          } : item),
+          files: currentImports.files || [],
+          importedFacts: currentImports.importedFacts || [],
+          ledgerPreviews: [...(currentImports.ledgerPreviews || []), preview]
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_ledger_preview_created",
+          createdAt: preview.createdAt,
+          appVersion: APP_VERSION,
+          eventId: batch.eventId || "",
+          batchId: batch.id,
+          exportId: batch.exportId || "",
+          sourceFileName: batch.sourceFileName || "",
+          totals: deepClone(preview.totals),
+          counts: deepClone(preview.counts),
+          immutable: true,
+          ledgerStatus: "not_posted"
+        }]
+      };
+    });
+    showToast(created ? t.kx_ledger_preview_created : blocked ? t.kx_ledger_preview_blocked : t.kx_ledger_preview_duplicate);
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -6791,6 +6880,7 @@ function App() {
     onPrepareImport: prepareKassaExportImport,
     onValidateImport: validatePreparedKassaImport,
     onExtractFacts: extractPreparedKassaImportFacts,
+    onCreateLedgerPreview: createKassaLedgerPreview,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8007,11 +8097,90 @@ function buildKassaImportedFacts(batch, fileRecord) {
   };
 }
 
+function buildKassaLedgerPreview(batch, facts, t) {
+  const now = new Date().toISOString();
+  const sumCents = (items, getter) => (items || []).reduce((sum, item) => sum + getKassaPreviewCents(getter(item)), 0);
+  const salesCents = sumCents(facts.salesLines || [], line => line.lineTotalCents);
+  const donationCents = sumCents(facts.payments || [], payment => payment.donationCents);
+  const cashCents = (facts.payments || []).reduce((sum, payment) => sum + getKassaPreviewCents(payment.cashReceivedCents) - getKassaPreviewCents(payment.cashChangeGivenCents), 0);
+  const cardCents = sumCents(facts.payments || [], payment => payment.cardReceivedCents);
+  const payconiqCents = sumCents(facts.payments || [], payment => payment.payconiqReceivedCents);
+  const entries = [];
+  const addEntry = (type, label, amountCents, meta = {}) => {
+    entries.push({
+      id: `klp_${uid()}`,
+      batchId: batch.id,
+      exportId: batch.exportId || "",
+      type,
+      label,
+      amountCents: getKassaPreviewCents(amountCents),
+      status: "preview_only",
+      ledgerStatus: "not_posted",
+      immutable: true,
+      ...meta
+    });
+  };
+  if (salesCents) addEntry("sales", t.kx_ledger_preview_sales, salesCents, {
+    sourceCount: facts.counts && facts.counts.salesLines || 0
+  });
+  if (donationCents) addEntry("donations", t.kx_ledger_preview_donations, donationCents, {
+    sourceCount: (facts.payments || []).filter(payment => getKassaPreviewCents(payment.donationCents) > 0).length
+  });
+  if (cashCents) addEntry("cash", t.kx_ledger_preview_cash, cashCents, {
+    paymentMethod: "cash"
+  });
+  if (cardCents) addEntry("card", t.kx_ledger_preview_card, cardCents, {
+    paymentMethod: "card"
+  });
+  if (payconiqCents) addEntry("payconiq", t.kx_ledger_preview_payconiq, payconiqCents, {
+    paymentMethod: "payconiq"
+  });
+  if ((facts.tickets || []).length) addEntry("ticket_audit", t.kx_facts_tickets, 0, {
+    sourceCount: facts.tickets.length,
+    auditOnly: true
+  });
+  if ((facts.priceChanges || []).length) addEntry("price_change_audit", t.kx_facts_price_changes, 0, {
+    sourceCount: facts.priceChanges.length,
+    auditOnly: true
+  });
+  return {
+    id: `klpreview_${uid()}`,
+    batchId: batch.id,
+    factsRecordId: facts.id,
+    exportId: batch.exportId || "",
+    eventId: batch.eventId || "",
+    sourceFileName: batch.sourceFileName || "",
+    createdAt: now,
+    createdByAppVersion: APP_VERSION,
+    status: "preview_only",
+    immutable: true,
+    readOnly: true,
+    ledgerStatus: "not_posted",
+    totals: {
+      salesCents,
+      donationCents,
+      cashCents,
+      cardCents,
+      payconiqCents
+    },
+    counts: {
+      entries: entries.length,
+      transactions: facts.counts && facts.counts.transactions || 0,
+      salesLines: facts.counts && facts.counts.salesLines || 0,
+      payments: facts.counts && facts.counts.payments || 0,
+      tickets: facts.counts && facts.counts.tickets || 0,
+      priceChanges: facts.counts && facts.counts.priceChanges || 0
+    },
+    entries
+  };
+}
+
 function KassaExportMonitorTab({
   data,
   onPrepareImport,
   onValidateImport,
   onExtractFacts,
+  onCreateLedgerPreview,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -8090,6 +8259,7 @@ function KassaExportMonitorTab({
   const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
   const importFiles = data && data.kassaImports && Array.isArray(data.kassaImports.files) ? data.kassaImports.files : [];
   const importedFacts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts : [];
+  const ledgerPreviews = data && data.kassaImports && Array.isArray(data.kassaImports.ledgerPreviews) ? data.kassaImports.ledgerPreviews : [];
   const validationBadgeFor = batch => {
     const report = batch && batch.validationReport;
     if (!report) return {
@@ -8216,7 +8386,9 @@ function KassaExportMonitorTab({
     const report = batch.validationReport;
     const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
     const facts = importedFacts.find(item => item && item.batchId === batch.id);
+    const ledgerPreview = ledgerPreviews.find(item => item && item.batchId === batch.id);
     const canExtractFacts = hasPayload && report && !report.errors && !facts && typeof onExtractFacts === "function";
+    const canCreateLedgerPreview = !!facts && !ledgerPreview && typeof onCreateLedgerPreview === "function";
     return /*#__PURE__*/React.createElement("div", {
       key: batch.id,
       style: {
@@ -8263,7 +8435,7 @@ function KassaExportMonitorTab({
         fontWeight: 850,
         fontSize: "0.72rem"
       }
-    }, batch.status === "validated" ? t.kx_validation_validated : batch.status === "validation_failed" ? t.kx_validation_errors : t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
+    }, batch.status === "ledger_preview_ready" ? t.kx_ledger_preview_title : batch.status === "facts_extracted" ? t.kx_facts_extracted_badge : batch.status === "validated" ? t.kx_validation_validated : batch.status === "validation_failed" ? t.kx_validation_errors : t.kx_import_batch_ready), /*#__PURE__*/React.createElement("span", {
       style: {
         borderRadius: 999,
         padding: "0.2rem 0.55rem",
@@ -8334,7 +8506,12 @@ function KassaExportMonitorTab({
       onClick: () => onExtractFacts && onExtractFacts(batch.id),
       disabled: !canExtractFacts,
       title: facts ? t.kx_facts_duplicate : !report || report.errors ? t.kx_facts_blocked : t.kx_extract_facts
-    }, facts ? t.kx_facts_extracted_badge : t.kx_extract_facts)), facts && /*#__PURE__*/React.createElement("div", {
+    }, facts ? t.kx_facts_extracted_badge : t.kx_extract_facts), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      onClick: () => onCreateLedgerPreview && onCreateLedgerPreview(batch.id),
+      disabled: !canCreateLedgerPreview,
+      title: ledgerPreview ? t.kx_ledger_preview_duplicate : !facts ? t.kx_ledger_preview_blocked : t.kx_create_ledger_preview
+    }, ledgerPreview ? t.kx_ledger_preview_title : t.kx_create_ledger_preview)), facts && /*#__PURE__*/React.createElement("div", {
       style: {
         border: "1px solid rgba(153,173,122,0.35)",
         borderRadius: 7,
@@ -8372,7 +8549,79 @@ function KassaExportMonitorTab({
       style: {
         fontWeight: 900
       }
-    }, value))))), report && /*#__PURE__*/React.createElement("div", {
+    }, value))))), ledgerPreview && /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid rgba(192,138,46,0.38)",
+        borderRadius: 7,
+        padding: "0.55rem",
+        background: "rgba(192,138,46,0.1)",
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        alignItems: "center",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.82rem"
+      }
+    }, t.kx_ledger_preview_title), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.22rem 0.55rem",
+        background: "rgba(222,62,62,0.1)",
+        color: "#DE3E3E",
+        fontWeight: 900,
+        fontSize: "0.72rem"
+      }
+    }, t.kx_ledger_preview_no_posting)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: "0.35rem"
+      }
+    }, [[t.kx_ledger_preview_sales, ledgerPreview.totals && ledgerPreview.totals.salesCents || 0], [t.kx_ledger_preview_donations, ledgerPreview.totals && ledgerPreview.totals.donationCents || 0], [t.kx_ledger_preview_cash, ledgerPreview.totals && ledgerPreview.totals.cashCents || 0], [t.kx_ledger_preview_card, ledgerPreview.totals && ledgerPreview.totals.cardCents || 0], [t.kx_ledger_preview_payconiq, ledgerPreview.totals && ledgerPreview.totals.payconiqCents || 0], [t.kx_ledger_preview_entries, ledgerPreview.counts && ledgerPreview.counts.entries || 0]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 6,
+        padding: "0.35rem",
+        background: "#fffaf2"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.62rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900
+      }
+    }, typeof value === "number" && label !== t.kx_ledger_preview_entries ? formatKassaPreviewMoney(value) : value)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.25rem",
+        maxHeight: 130,
+        overflow: "auto"
+      }
+    }, (ledgerPreview.entries || []).map(entry => /*#__PURE__*/React.createElement("div", {
+      key: entry.id,
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        color: entry.auditOnly ? "var(--ink-soft)" : "var(--ink)",
+        fontSize: "0.75rem",
+        fontWeight: 750
+      }
+    }, /*#__PURE__*/React.createElement("span", null, entry.auditOnly ? `${t.kx_ledger_preview_audit}: ` : "", entry.label, entry.sourceCount ? ` (${entry.sourceCount})` : ""), /*#__PURE__*/React.createElement("span", null, formatKassaPreviewMoney(entry.amountCents)))))), report && /*#__PURE__*/React.createElement("div", {
       style: {
         border: `1px solid ${report.errors ? "#DE3E3E55" : report.warnings ? "rgba(192,138,46,0.35)" : "rgba(153,173,122,0.35)"}`,
         borderRadius: 7,
