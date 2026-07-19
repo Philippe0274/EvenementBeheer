@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.8
+- Het tabblad `Kassa Bewegingen` is vervangen door een read-only ledgercontrole op `finance.ledgerTransactions`.
+- De controlepagina toont definitieve totalen voor verkopen, giften, cash, kaart, Payconiq, auditregels en aantal ledgerregels.
+- Er is een batchfilter toegevoegd zodat geboekte Kassa-imports apart gecontroleerd kunnen worden.
+- Elke ledgerregel toont bedrag, type, batch, bronbestand, boekingsdatum, bron en immutable/audit-only status.
+- Bestaande rapporten blijven ongewijzigd; dit is uitsluitend een controleweergave op de nieuwe ledger.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.7
 - Kassa Import Engine stap 4 toegevoegd: een gecontroleerde ledger-preview kan nu eenmalig definitief geboekt worden.
 - Definitieve boeking schrijft immutable regels naar `finance.ledgerTransactions` met bronverwijzingen naar importbatch, ledger-preview, exportId, source file en source entry.

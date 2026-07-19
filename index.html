@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.7";
+const APP_VERSION = "1.25.8";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -654,6 +654,28 @@ const T = {
     tab_prijslijst: "Prijslijst",
     tab_kassa_exports: "Kassa Exports",
     tab_business_continuity: "Business Continuity",
+    kb_title: "Kassa Bewegingen",
+    kb_intro: "Read-only controle van definitief geboekte ledgerregels. Dit wijzigt geen rapporten en boekt niets extra.",
+    kb_empty: "Nog geen definitieve ledgerregels gevonden.",
+    kb_total_sales: "Verkopen",
+    kb_total_donations: "Giften",
+    kb_total_cash: "Cash",
+    kb_total_card: "Kaart",
+    kb_total_payconiq: "Payconiq",
+    kb_audit_entries: "Auditregels",
+    kb_ledger_entries: "Ledgerregels",
+    kb_filter_batch: "Filter op batch",
+    kb_all_batches: "Alle batches",
+    kb_event: "Event",
+    kb_batch: "Batch",
+    kb_source: "Bron",
+    kb_type: "Type",
+    kb_amount: "Bedrag",
+    kb_source_file: "Bronbestand",
+    kb_posted_at: "Geboekt op",
+    kb_audit_only: "Audit-only",
+    kb_immutable: "Immutable",
+    kb_financial_truth: "Definitieve ledgergegevens",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1577,6 +1599,28 @@ const T = {
     tab_prijslijst: "Liste de prix",
     tab_kassa_exports: "Exports caisse",
     tab_business_continuity: "Business Continuity",
+    kb_title: "Mouvements de Caisse",
+    kb_intro: "Contrôle en lecture seule des lignes ledger définitivement comptabilisées. Cela ne modifie pas les rapports et ne comptabilise rien de plus.",
+    kb_empty: "Aucune ligne ledger définitive trouvée.",
+    kb_total_sales: "Ventes",
+    kb_total_donations: "Dons",
+    kb_total_cash: "Cash",
+    kb_total_card: "Carte",
+    kb_total_payconiq: "Payconiq",
+    kb_audit_entries: "Lignes audit",
+    kb_ledger_entries: "Lignes ledger",
+    kb_filter_batch: "Filtrer par lot",
+    kb_all_batches: "Tous les lots",
+    kb_event: "Événement",
+    kb_batch: "Lot",
+    kb_source: "Source",
+    kb_type: "Type",
+    kb_amount: "Montant",
+    kb_source_file: "Fichier source",
+    kb_posted_at: "Comptabilisé le",
+    kb_audit_only: "Audit-only",
+    kb_immutable: "Immuable",
+    kb_financial_truth: "Données ledger définitives",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -3888,6 +3932,9 @@ const helpContentNl = [{
     naam: "Definitief boeken",
     uitleg: "Na controle van de ledger-preview kan de batch eenmalig definitief geboekt worden. De Hoofdapp schrijft dan immutable regels naar finance.ledgerTransactions en blokkeert dubbele posting. Fouten worden later uitsluitend via correctieboekingen rechtgezet."
   }, {
+    naam: "Kassa Bewegingen controleren",
+    uitleg: "Ga naar Kassa Bewegingen om de definitieve ledgerregels read-only te controleren. Je ziet totalen voor verkopen, giften, cash, kaart, Payconiq, auditregels en de bronverwijzingen per regel."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -3904,7 +3951,7 @@ const helpContentNl = [{
     uitleg: "Per vrijwilliger met kastickets kan een Gmail-concept voorbereid worden met onderwerp, tekst, rekeningnummer uit opmerkingen, ticketbestandsnamen en totaalbedrag. Ticketbestanden voeg je als bijlage toe."
   }, {
     naam: "Kostenbeheer",
-    uitleg: "Beheer budget, zaalhuur, manuele kosten, kasgegevens en winkelkosten. Dit blijft administratief tot Kassa-ledgerpostings later officieel toegevoegd worden."
+    uitleg: "Beheer budget, zaalhuur, manuele kosten, kasgegevens en winkelkosten. Dit blijft administratief; de definitieve Kassa-verkopen staan afzonderlijk in de immutable ledger onder Kassa Bewegingen."
   }, {
     naam: "Berichten en Bulk Send",
     uitleg: "Stuur WhatsApp-berichten op basis van sjablonen, taal, taken en placeholders. De app houdt verzendstatus bij zodat je dubbele berichten ziet."
@@ -4001,6 +4048,9 @@ const helpContentFr = [{
     naam: "Comptabiliser définitivement",
     uitleg: "Après contrôle de l'aperçu ledger, le lot peut être comptabilisé définitivement une seule fois. La Hoofdapp écrit alors des lignes immuables dans finance.ledgerTransactions et bloque les doublons. Les erreurs seront corrigées plus tard uniquement via écritures de correction."
   }, {
+    naam: "Contrôler les mouvements caisse",
+    uitleg: "Allez dans Mouvements de Caisse pour contrôler les lignes ledger définitives en lecture seule. Vous voyez les totaux ventes, dons, cash, carte, Payconiq, lignes audit et références source par ligne."
+  }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
   }, {
@@ -4017,7 +4067,7 @@ const helpContentFr = [{
     uitleg: "Pour chaque bénévole avec tickets, un brouillon Gmail peut être préparé avec sujet, texte, numéro de compte depuis les remarques, noms des fichiers tickets et montant total. Les fichiers tickets sont ajoutés comme pièces jointes."
   }, {
     naam: "Gestion des coûts",
-    uitleg: "Gérez budget, location de salle, coûts manuels, données de caisse et coûts magasin. Cela reste administratif jusqu'à l'ajout officiel des postings ledger caisse."
+    uitleg: "Gérez budget, location de salle, coûts manuels, données de caisse et coûts magasin. Cela reste administratif; les ventes caisse définitives se trouvent séparément dans le ledger immuable sous Mouvements de Caisse."
   }, {
     naam: "Messages et Envoi groupé",
     uitleg: "Envoyez des messages WhatsApp à partir de modèles, langue, tâches et placeholders. L'app garde le statut d'envoi pour repérer les doublons."
@@ -6971,27 +7021,10 @@ function App() {
     onCreateLedgerPreview: createKassaLedgerPreview,
     onPostLedger: postKassaLedgerPreview,
     t: t
-  }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "center",
-      padding: "3rem 2rem",
-      background: "var(--bg-card)",
-      border: "2px dashed var(--accent)",
-      borderRadius: "8px",
-      marginTop: "1.5rem"
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      fontSize: "2rem",
-      color: "var(--accent)",
-      margin: "0 0 1rem 0"
-    }
-  }, "🚧 UNDER CONSTRUCTION"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "var(--ink-soft)",
-      fontSize: "1rem"
-    }
-  }, "Dit tabblad wordt binnenkort ingevuld...")), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
+  }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement(KassaBewegingenTab, {
+    data: data,
+    t: t
+  }), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
     eventHistory: data.eventHistory || [],
     events: data.events || [],
     activeEventId: data.activeEventId,
@@ -8291,6 +8324,179 @@ function buildKassaLedgerTransactionsFromPreview(batch, ledgerPreview) {
     correctionOf: "",
     status: "posted"
   }));
+}
+
+function KassaBewegingenTab({
+  data,
+  t
+}) {
+  const [batchFilter, setBatchFilter] = useState("");
+  const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(row => row && row.source === "kassa-import") : [];
+  const visibleRows = batchFilter ? ledgerRows.filter(row => row.sourceBatchId === batchFilter) : ledgerRows;
+  const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const batchOptions = batches.filter(batch => ledgerRows.some(row => row.sourceBatchId === batch.id));
+  const sumType = type => visibleRows.filter(row => row.type === type && !row.auditOnly).reduce((sum, row) => sum + getKassaPreviewCents(row.amountCents), 0);
+  const totals = {
+    sales: sumType("sales"),
+    donations: sumType("donations"),
+    cash: sumType("cash"),
+    card: sumType("card"),
+    payconiq: sumType("payconiq"),
+    audit: visibleRows.filter(row => row.auditOnly).length,
+    entries: visibleRows.length
+  };
+  const batchLabel = batchId => {
+    const batch = batches.find(item => item && item.id === batchId);
+    if (!batch) return batchId || "-";
+    return `${batch.terminal || batch.deviceId || t.kx_unknown} · ${batch.eventName || t.kx_unknown}`;
+  };
+  const formatPostedAt = value => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleString(data.taal === "fr" ? "fr-BE" : "nl-BE");
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      flexWrap: "wrap",
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      marginTop: 0
+    }
+  }, "💶 ", t.kb_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      margin: 0,
+      maxWidth: 760
+    }
+  }, t.kb_intro)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.35rem 0.7rem",
+      background: "rgba(153,173,122,0.22)",
+      color: "var(--green)",
+      fontWeight: 900
+    }
+  }, t.kb_financial_truth)), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      display: "grid",
+      gap: "0.8rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, t.kb_ledger_entries), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      alignItems: "center",
+      color: "var(--ink-soft)",
+      fontWeight: 800
+    }
+  }, t.kb_filter_batch, /*#__PURE__*/React.createElement("select", {
+    value: batchFilter,
+    onChange: e => setBatchFilter(e.target.value),
+    style: {
+      minWidth: 220
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, t.kb_all_batches), batchOptions.map(batch => /*#__PURE__*/React.createElement("option", {
+    key: batch.id,
+    value: batch.id
+  }, batchLabel(batch.id)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
+      gap: "0.5rem"
+    }
+  }, [[t.kb_total_sales, totals.sales, true], [t.kb_total_donations, totals.donations, true], [t.kb_total_cash, totals.cash, true], [t.kb_total_card, totals.card, true], [t.kb_total_payconiq, totals.payconiq, true], [t.kb_audit_entries, totals.audit, false], [t.kb_ledger_entries, totals.entries, false]].map(([label, value, money]) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      border: "1px solid var(--line)",
+      borderRadius: 7,
+      padding: "0.65rem",
+      background: "rgba(255,255,255,0.7)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.68rem",
+      textTransform: "uppercase",
+      color: "var(--ink-soft)",
+      fontWeight: 850
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 950,
+      fontSize: "1.15rem"
+    }
+  }, money ? formatKassaPreviewMoney(value) : value)))), visibleRows.length ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "0.5rem"
+    }
+  }, visibleRows.slice().reverse().map(row => /*#__PURE__*/React.createElement("div", {
+    key: row.id,
+    style: {
+      border: "1px solid var(--line)",
+      borderLeft: row.auditOnly ? "4px solid var(--amber)" : "4px solid #99AD7A",
+      borderRadius: 7,
+      padding: "0.65rem",
+      background: "#fffaf2",
+      display: "grid",
+      gap: "0.45rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, row.label || row.type), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 950,
+      color: row.auditOnly ? "var(--ink-soft)" : "var(--green)"
+    }
+  }, formatKassaPreviewMoney(row.amountCents))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+      gap: "0.35rem",
+      color: "var(--ink-soft)",
+      fontSize: "0.76rem"
+    }
+  }, [[t.kb_type, row.type], [t.kb_batch, batchLabel(row.sourceBatchId)], [t.kb_source_file, row.sourceFileName || "-"], [t.kb_posted_at, formatPostedAt(row.postedAt)], [t.kb_source, row.source || "-"], [t.kb_immutable, row.immutable ? "✓" : "-"], [t.kb_audit_only, row.auditOnly ? "✓" : "-"]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      overflowWrap: "anywhere"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, label, ": "), value)))))) : /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      margin: 0,
+      textAlign: "center",
+      padding: "1rem"
+    }
+  }, t.kb_empty)));
 }
 
 function KassaExportMonitorTab({
