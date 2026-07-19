@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.4";
+const APP_VERSION = "1.25.5";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -739,6 +739,19 @@ const T = {
     kx_import_batch_readonly: "Immutable bewaard",
     kx_import_batch_none: "Nog geen Kassa-export als importbatch vastgelegd.",
     kx_validate_import: "Valideer import",
+    kx_extract_facts: "Feiten uitpakken",
+    kx_facts_extracted: "✓ Importfeiten uitgepakt. Nog niet geboekt.",
+    kx_facts_duplicate: "De feiten van deze importbatch zijn al uitgepakt.",
+    kx_facts_blocked: "Alleen gevalideerde batches zonder fouten kunnen worden uitgepakt.",
+    kx_facts_status: "Feiten",
+    kx_facts_not_extracted: "Nog niet uitgepakt",
+    kx_facts_extracted_badge: "Feiten uitgepakt",
+    kx_facts_readonly: "Read-only feitenlaag",
+    kx_facts_transactions: "Transactiefeiten",
+    kx_facts_sales_lines: "Verkoopregels",
+    kx_facts_payments: "Betaalfeiten",
+    kx_facts_tickets: "Ticketfeiten",
+    kx_facts_price_changes: "Prijslijstmutaties",
     kx_validation_ok: "✓ Importbatch gevalideerd. Nog niet geboekt.",
     kx_validation_failed: "Importvalidatie bevat fouten. Niet geboekt.",
     kx_validation_report: "Validatierapport",
@@ -1627,6 +1640,19 @@ const T = {
     kx_import_batch_readonly: "Conservé immuable",
     kx_import_batch_none: "Aucun export caisse n'est encore enregistré comme lot d'import.",
     kx_validate_import: "Valider l'import",
+    kx_extract_facts: "Extraire les faits",
+    kx_facts_extracted: "✓ Faits d'import extraits. Pas encore comptabilisé.",
+    kx_facts_duplicate: "Les faits de ce lot sont déjà extraits.",
+    kx_facts_blocked: "Seuls les lots validés sans erreurs peuvent être extraits.",
+    kx_facts_status: "Faits",
+    kx_facts_not_extracted: "Pas encore extrait",
+    kx_facts_extracted_badge: "Faits extraits",
+    kx_facts_readonly: "Couche de faits en lecture seule",
+    kx_facts_transactions: "Faits transactions",
+    kx_facts_sales_lines: "Lignes de vente",
+    kx_facts_payments: "Faits de paiement",
+    kx_facts_tickets: "Faits tickets",
+    kx_facts_price_changes: "Mutations liste de prix",
     kx_validation_ok: "✓ Lot d'import validé. Pas encore comptabilisé.",
     kx_validation_failed: "La validation contient des erreurs. Rien n'est comptabilisé.",
     kx_validation_report: "Rapport de validation",
@@ -2653,7 +2679,8 @@ const defaultData = {
   },
   kassaImports: {
     batches: [],
-    files: []
+    files: [],
+    importedFacts: []
   },
   finance: {
     ledgerTransactions: [],
@@ -3467,7 +3494,8 @@ const normalizeData = raw => {
     safe.kassaImports = {
       ...defaultData.kassaImports,
       batches: Array.isArray(raw.kassaImports.batches) ? raw.kassaImports.batches : [],
-      files: Array.isArray(raw.kassaImports.files) ? raw.kassaImports.files : []
+      files: Array.isArray(raw.kassaImports.files) ? raw.kassaImports.files : [],
+      importedFacts: Array.isArray(raw.kassaImports.importedFacts) ? raw.kassaImports.importedFacts : []
     };
   }
   if (Array.isArray(raw.auditTrail)) {
@@ -3805,6 +3833,9 @@ const helpContentNl = [{
     naam: "Import valideren",
     uitleg: "Klik Valideer import op een voorbereide batch. De Hoofdapp controleert schemaVersion 1.0.0, eventmatch, kassa-afsluiting, duplicaten, transacties, artikels, prijsverschillen, prijslijstmutaties en ticketregistraties."
   }, {
+    naam: "Feiten uitpakken",
+    uitleg: "Na een geslaagde validatie kan de batch worden uitgepakt naar een read-only feitenlaag onder kassaImports.importedFacts. Daarin staan transacties, verkoopregels, betaalfeiten, ticketregistraties en prijslijstmutaties. Ook dit boekt nog niets in het ledger."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -3908,6 +3939,9 @@ const helpContentFr = [{
   }, {
     naam: "Valider l'import",
     uitleg: "Cliquez Valider l'import sur un lot préparé. La Hoofdapp contrôle schemaVersion 1.0.0, correspondance événement, clôture caisse, doublons, transactions, articles, différences de prix, mutations de liste de prix et enregistrements de tickets."
+  }, {
+    naam: "Extraire les faits",
+    uitleg: "Après une validation réussie, le lot peut être extrait vers une couche de faits en lecture seule sous kassaImports.importedFacts. Elle contient transactions, lignes de vente, faits de paiement, tickets et mutations de liste de prix. Cela ne comptabilise toujours rien dans le ledger."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -5736,6 +5770,59 @@ function App() {
       showToast(validationReport.errors ? t.kx_validation_failed : t.kx_validation_ok);
     }
   };
+  const extractPreparedKassaImportFacts = batchId => {
+    let extracted = false;
+    let blocked = false;
+    setData(d => {
+      const currentImports = d.kassaImports || defaultData.kassaImports;
+      const batch = (currentImports.batches || []).find(item => item && item.id === batchId);
+      if (!batch || batch.validationStatus === "validation_failed" || batch.status === "validation_failed" || !batch.validationReport) {
+        blocked = true;
+        return d;
+      }
+      const existingFacts = (currentImports.importedFacts || []).some(facts => facts && facts.batchId === batchId);
+      if (existingFacts) return d;
+      const fileRecord = (currentImports.files || []).find(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+      if (!fileRecord || !fileRecord.payload) {
+        blocked = true;
+        return d;
+      }
+      const facts = buildKassaImportedFacts(batch, fileRecord);
+      extracted = true;
+      return {
+        ...d,
+        kassaImports: {
+          ...defaultData.kassaImports,
+          ...currentImports,
+          batches: (currentImports.batches || []).map(item => item && item.id === batchId ? {
+            ...item,
+            status: "facts_extracted",
+            factsStatus: "extracted",
+            factsExtractedAt: facts.extractedAt,
+            factsRecordId: facts.id,
+            ledgerStatus: "not_posted",
+            immutable: true
+          } : item),
+          files: currentImports.files || [],
+          importedFacts: [...(currentImports.importedFacts || []), facts]
+        },
+        auditTrail: [...(d.auditTrail || []), {
+          id: uid(),
+          type: "kassa_import_facts_extracted",
+          createdAt: facts.extractedAt,
+          appVersion: APP_VERSION,
+          eventId: batch.eventId || "",
+          batchId: batch.id,
+          exportId: batch.exportId || "",
+          sourceFileName: batch.sourceFileName || "",
+          counts: deepClone(facts.counts),
+          immutable: true,
+          ledgerStatus: "not_posted"
+        }]
+      };
+    });
+    showToast(extracted ? t.kx_facts_extracted : blocked ? t.kx_facts_blocked : t.kx_facts_duplicate);
+  };
   const exportMateriaalAlleen = () => {
     const wb = XLSX.utils.book_new();
     const rows = (data.materiaal || []).map(m => {
@@ -6703,6 +6790,7 @@ function App() {
     data: data,
     onPrepareImport: prepareKassaExportImport,
     onValidateImport: validatePreparedKassaImport,
+    onExtractFacts: extractPreparedKassaImportFacts,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7785,10 +7873,145 @@ function buildKassaImportValidationReport(batch, fileRecord, data, t) {
   };
 }
 
+function buildKassaImportedFacts(batch, fileRecord) {
+  const now = new Date().toISOString();
+  const payload = fileRecord && fileRecord.payload || {};
+  const exportData = payload.data || {};
+  const transactions = Array.isArray(exportData.transactions) ? exportData.transactions : [];
+  const masterArticles = exportData.masterData && Array.isArray(exportData.masterData.articles) ? exportData.masterData.articles : [];
+  const priceChanges = masterArticles.filter(article => article && (article.createdOnTablet || article.priceChangedOnTablet || article.statusChangedOnTablet || article.nameChangedOnTablet)).map((article, index) => ({
+    id: `kif_pc_${uid()}`,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    sequence: index + 1,
+    articleId: article.articleId || "",
+    officialArticleId: article.officialArticleId || "",
+    articleNumber: article.articleNumber || "",
+    name: article.name || "",
+    category: article.categoryName || article.category || "",
+    priceCents: getKassaPreviewCents(article.priceCents),
+    active: article.active !== false,
+    createdOnTablet: !!article.createdOnTablet,
+    priceChangedOnTablet: !!article.priceChangedOnTablet,
+    statusChangedOnTablet: !!article.statusChangedOnTablet,
+    nameChangedOnTablet: !!article.nameChangedOnTablet,
+    immutable: true
+  }));
+  const salesLines = [];
+  const payments = [];
+  const transactionFacts = transactions.map((transaction, txIndex) => {
+    const transactionId = transaction && transaction.transactionId || `tx-${txIndex + 1}`;
+    const lineItems = Array.isArray(transaction && transaction.lineItems) ? transaction.lineItems : [];
+    lineItems.forEach((line, lineIndex) => {
+      salesLines.push({
+        id: `kif_line_${uid()}`,
+        batchId: batch.id,
+        exportId: batch.exportId || "",
+        transactionId,
+        sequence: lineIndex + 1,
+        articleId: line && line.articleId || "",
+        officialArticleId: line && line.officialArticleId || "",
+        articleNumber: line && (line.articleNumber || line.number || line.code) || "",
+        articleName: line && (line.articleName || line.name) || "",
+        category: line && (line.categoryName || line.category) || "",
+        quantity: Number(line && line.quantity) || 0,
+        unitPriceCents: getKassaPreviewCents(line && (line.unitPriceCents ?? line.priceCents)),
+        lineTotalCents: getKassaPreviewCents(line && line.lineTotalCents),
+        note: line && line.note || "",
+        immutable: true
+      });
+    });
+    const payment = transaction && transaction.payment || {};
+    payments.push({
+      id: `kif_pay_${uid()}`,
+      batchId: batch.id,
+      exportId: batch.exportId || "",
+      transactionId,
+      method: getKassaPreviewPaymentMethod(payment),
+      subtotalCents: getKassaPreviewCents(payment.subtotalCents),
+      donationCents: getKassaPreviewCents(payment.donationCents),
+      cashReceivedCents: getKassaPreviewCents(payment.cashReceivedCents),
+      cashChangeGivenCents: getKassaPreviewCents(payment.cashChangeGivenCents),
+      cardReceivedCents: getKassaPreviewCents(payment.cardReceivedCents),
+      payconiqReceivedCents: getKassaPreviewCents(payment.payconiqReceivedCents),
+      immutable: true
+    });
+    return {
+      id: `kif_tx_${uid()}`,
+      batchId: batch.id,
+      exportId: batch.exportId || "",
+      transactionId,
+      eventId: batch.eventId || "",
+      deviceId: batch.deviceId || "",
+      terminal: batch.terminal || "",
+      operator: batch.operator || "",
+      transactionTime: transaction && (transaction.transactionTime || transaction.createdAt) || "",
+      transactionType: transaction && transaction.transactionType || "sale",
+      lineCount: lineItems.length,
+      paymentMethod: getKassaPreviewPaymentMethod(payment),
+      immutable: true
+    };
+  });
+  const manifestaTickets = Array.isArray(exportData.manifiestaTicketRegistrations) ? exportData.manifiestaTicketRegistrations : [];
+  const externalTickets = Array.isArray(exportData.externalTicketRegistrations) ? exportData.externalTicketRegistrations : [];
+  const ticketFacts = [...manifestaTickets.map((ticket, index) => ({
+    id: `kif_ticket_${uid()}`,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    type: "manifiesta",
+    sequence: index + 1,
+    registrationId: ticket.registrationId || "",
+    eventName: "ManiFiesta",
+    eventDate: ticket.eventDate || "",
+    time: ticket.time || "",
+    quantity: parseInt(ticket.quantity, 10) || 0,
+    note: ticket.note || "",
+    immutable: true
+  })), ...externalTickets.map((ticket, index) => ({
+    id: `kif_ticket_${uid()}`,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    type: "external",
+    sequence: manifestaTickets.length + index + 1,
+    registrationId: ticket.registrationId || "",
+    eventName: ticket.externalEventName || "",
+    eventDate: ticket.externalEventDate || ticket.sourceEventDate || "",
+    time: ticket.time || "",
+    quantity: parseInt(ticket.quantity, 10) || 0,
+    note: ticket.note || "",
+    immutable: true
+  }))];
+  return {
+    id: `kifacts_${uid()}`,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    eventId: batch.eventId || "",
+    sourceFileName: batch.sourceFileName || "",
+    extractedAt: now,
+    extractedByAppVersion: APP_VERSION,
+    immutable: true,
+    readOnly: true,
+    ledgerStatus: "not_posted",
+    counts: {
+      transactions: transactionFacts.length,
+      salesLines: salesLines.length,
+      payments: payments.length,
+      tickets: ticketFacts.length,
+      priceChanges: priceChanges.length
+    },
+    transactions: transactionFacts,
+    salesLines,
+    payments,
+    tickets: ticketFacts,
+    priceChanges
+  };
+}
+
 function KassaExportMonitorTab({
   data,
   onPrepareImport,
   onValidateImport,
+  onExtractFacts,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -7866,6 +8089,7 @@ function KassaExportMonitorTab({
   const latestFileIds = new Set(Array.from(latestByGroup.values()).map(item => item.fileId));
   const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
   const importFiles = data && data.kassaImports && Array.isArray(data.kassaImports.files) ? data.kassaImports.files : [];
+  const importedFacts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts : [];
   const validationBadgeFor = batch => {
     const report = batch && batch.validationReport;
     if (!report) return {
@@ -7991,6 +8215,8 @@ function KassaExportMonitorTab({
     const validationBadge = validationBadgeFor(batch);
     const report = batch.validationReport;
     const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+    const facts = importedFacts.find(item => item && item.batchId === batch.id);
+    const canExtractFacts = hasPayload && report && !report.errors && !facts && typeof onExtractFacts === "function";
     return /*#__PURE__*/React.createElement("div", {
       key: batch.id,
       style: {
@@ -8067,7 +8293,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: "0.35rem"
       }
-    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_facts_status, facts ? t.kx_facts_extracted_badge : t.kx_facts_not_extracted], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -8103,7 +8329,50 @@ function KassaExportMonitorTab({
       className: "btn btn-primary btn-sm",
       onClick: () => onValidateImport && onValidateImport(batch.id),
       disabled: !hasPayload || typeof onValidateImport !== "function"
-    }, t.kx_validate_import)), report && /*#__PURE__*/React.createElement("div", {
+    }, t.kx_validate_import), /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-ghost btn-sm",
+      onClick: () => onExtractFacts && onExtractFacts(batch.id),
+      disabled: !canExtractFacts,
+      title: facts ? t.kx_facts_duplicate : !report || report.errors ? t.kx_facts_blocked : t.kx_extract_facts
+    }, facts ? t.kx_facts_extracted_badge : t.kx_extract_facts)), facts && /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid rgba(153,173,122,0.35)",
+        borderRadius: 7,
+        padding: "0.55rem",
+        background: "rgba(153,173,122,0.12)",
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.82rem"
+      }
+    }, t.kx_facts_readonly), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: "0.35rem"
+      }
+    }, [[t.kx_facts_transactions, facts.counts && facts.counts.transactions || 0], [t.kx_facts_sales_lines, facts.counts && facts.counts.salesLines || 0], [t.kx_facts_payments, facts.counts && facts.counts.payments || 0], [t.kx_facts_tickets, facts.counts && facts.counts.tickets || 0], [t.kx_facts_price_changes, facts.counts && facts.counts.priceChanges || 0], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 6,
+        padding: "0.35rem",
+        background: "#fffaf2"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: "0.62rem",
+        textTransform: "uppercase",
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 900
+      }
+    }, value))))), report && /*#__PURE__*/React.createElement("div", {
       style: {
         border: `1px solid ${report.errors ? "#DE3E3E55" : report.warnings ? "rgba(192,138,46,0.35)" : "rgba(153,173,122,0.35)"}`,
         borderRadius: 7,

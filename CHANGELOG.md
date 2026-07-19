@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.5
+- Kassa Import Engine stap 2 toegevoegd: gevalideerde importbatches kunnen nu worden uitgepakt naar een read-only feitenlaag onder `kassaImports.importedFacts`.
+- De feitenlaag bewaart transacties, verkoopregels, betaalfeiten, ticketregistraties en prijslijstmutaties apart van de originele payload.
+- De batchkaart toont nu de feitenstatus, een knop "Feiten uitpakken" en na extractie een read-only overzicht met aantallen.
+- Ledger-status blijft expliciet `not_posted`; er wordt nog niets financieel geboekt of gerapporteerd.
+- Backward compatible: bestaande data zonder `kassaImports.importedFacts` krijgt automatisch een lege feitenlaag.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.4
 - Kassa Import Engine fase 1 afgerond: een geschikte Kassa-export kan veilig als immutable importbatch worden voorbereid zonder ledger-posting.
 - De importbatch bewaart nu expliciet gebruiker, kassapunt, bronbestand, schema, eventinfo, exportId, aantallen transacties, ticketregistraties en prijslijstmutaties.
