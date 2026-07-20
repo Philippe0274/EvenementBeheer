@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.25
+- Kassa-exportarchief v1 toegevoegd: bij het ophalen van Kassa-exportbestanden bewaart de Hoofdapp een kopie onder `EventToolSync / eventmap / 02-kassa-exports`.
+- De bestaande root-exportbestanden blijven behouden en worden nog niet verplaatst of verwijderd, zodat de huidige monitor- en tabletflow veilig blijft.
+- Per exportbestandsnaam blijft in `02-kassa-exports` één archiefkopie bestaan; opnieuw ophalen vervangt die kopie.
+
 ## 1.25.24
 - Officiële beginprijslijst wordt bij publicatie nu ook als archiefkopie bewaard onder `EventToolSync / eventmap / 01-prijslijst`.
 - De bestaande root-publicatie `EventToolSync/kassa-tool-official-start-pricelist.json` blijft behouden voor de huidige Kassa Tool-flow.
