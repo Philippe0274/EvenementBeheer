@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.16";
+const APP_VERSION = "1.25.17";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -751,6 +751,8 @@ const T = {
     kb_final_correction_date: "Datum",
     kb_final_no_corrections: "Geen correcties geregistreerd.",
     kb_final_audit_note: "Het eindrapport rekent met definitieve kassaboekingen + correcties. De originele import blijft immutable bewaard.",
+    kb_final_yes: "Ja",
+    kb_final_no: "Nee",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1765,6 +1767,8 @@ const T = {
     kb_final_correction_date: "Date",
     kb_final_no_corrections: "Aucune correction enregistrée.",
     kb_final_audit_note: "Le rapport final calcule avec les écritures caisse définitives + corrections. L'import original reste conservé de manière immuable.",
+    kb_final_yes: "Oui",
+    kb_final_no: "Non",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -16990,7 +16994,7 @@ function KostenbeheerTab({
           value: String(batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? "-")
         }, {
           label: t.kb_final_posted_status,
-          value: batch.ledgerStatus === "posted" ? "✓" : "-"
+          value: batch.ledgerStatus === "posted" ? t.kb_final_yes : t.kb_final_no
         }], {
           accent: [111, 137, 184]
         });
@@ -17033,7 +17037,7 @@ function KostenbeheerTab({
     }
     cardBlock(t.kb_final_bookings_title, [{
       label: t.kb_final_posted_status,
-      value: financialRows.length || auditRows.length ? "✓" : "-"
+      value: financialRows.length || auditRows.length ? t.kb_final_yes : t.kb_final_no
     }], {
       accent: ROOD,
       note: t.kb_final_audit_note

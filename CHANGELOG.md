@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.25.17
+- PDF-weergave van het Eindrapport gecorrigeerd: vinkjes in statusvelden zijn vervangen door `Ja/Nee` en `Oui/Non`, zodat jsPDF geen vreemde tekens meer toont.
+- Geen wijziging aan berekeningen, kassaboekingen, correcties of importlogica.
+
 ## 1.25.16
 - Regressie opgelost waarbij `Eindafrekening` en `Eindrapport` geen kassaboekingen toonden wanneer de Kassa Tool na reset een andere technische `eventId` had.
 - Definitieve kassaboekingen worden nu veilig gekoppeld via de goedgekeurde importbatch wanneer eventnaam en eventdatum overeenkomen met het actieve event.
