@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.28
+- Kassa Exports: de knop `Definitief boeken` is nu duidelijk statusbewust.
+- Zolang feiten nog niet uitgepakt zijn toont de knop `Eerst feiten uitpakken`; zolang er nog geen boekingsvoorstel is toont hij `Eerst boekingsvoorstel maken`.
+- De definitieve boekingsfunctie toont nu meteen een waarschuwing wanneer er nog geen geldige boekingspreview bestaat, in plaats van stil te lijken blokkeren.
+- Geen wijziging aan importdata, boekingsregels, kassaboekingen, rapportberekeningen of Drive-koppeling.
+
 ## 1.25.27
 - Dashboard-knop `Map openen` opent nu na `Archief controleren` de gevonden eventmap in plaats van altijd de rootmap `EventToolSync`.
 - Zonder uitgevoerde archiefcontrole blijft `Map openen` veilig naar de rootmap gaan.
