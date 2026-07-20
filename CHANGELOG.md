@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.21
+- Mailtekst van het Eindrapport opgeschoond: de Drive-downloadlink staat nu slechts één keer onderaan de tweetalige mail.
+- De downloadregel is verduidelijkt als `Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport`.
+- Geen wijziging aan PDF-opmaak, Drive-upload, financiële berekeningen of rapportinhoud.
+
 ## 1.25.20
 - Eindrapport-mailvoorbereiding bewaart de PDF nu automatisch in Google Drive-map `EventToolSync`.
 - Het Drive-bestand wordt deelbaar gemaakt zodat de link door ontvangers geopend en gedownload kan worden.
