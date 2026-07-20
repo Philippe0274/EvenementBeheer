@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.27
+- Dashboard-knop `Map openen` opent nu na `Archief controleren` de gevonden eventmap in plaats van altijd de rootmap `EventToolSync`.
+- Zonder uitgevoerde archiefcontrole blijft `Map openen` veilig naar de rootmap gaan.
+- Geen wijziging aan Drive-opslag, prijslijstpublicatie, Kassa-exportmonitor of financiële verwerking.
+
 ## 1.25.26
 - Dashboard toont nu een read-only Drive-eventarchiefcontrole in het Google Drive-paneel.
 - Nieuwe knop `Archief controleren` telt bestanden in `01-prijslijst`, `02-kassa-exports` en `03-rapporten`.
