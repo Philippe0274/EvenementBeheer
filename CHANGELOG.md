@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.20
+- Eindrapport-mailvoorbereiding bewaart de PDF nu automatisch in Google Drive-map `EventToolSync`.
+- Het Drive-bestand wordt deelbaar gemaakt zodat de link door ontvangers geopend en gedownload kan worden.
+- De Gmail-body bevat automatisch de downloadlink naar het eindrapport; de lokale PDF-download blijft behouden.
+- Als Google Drive niet verbonden is, wordt de gebruiker duidelijk naar het Dashboard gestuurd om opnieuw te verbinden.
+
 ## 1.25.19
 - Mailvoorbereiding toegevoegd bij het financieel eindrapport in `Kostenbeheer`.
 - Per event kan een aparte ontvangerslijst voor het eindrapport worden ingevuld en bewaard.

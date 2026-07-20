@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.19";
+const APP_VERSION = "1.25.20";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -524,6 +524,45 @@ async function eventToolGDriveUploadJson(fileName, payload) {
   return await r.json();
 }
 
+async function eventToolGDriveUploadBlob(fileName, blob, mimeType) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const form = new FormData();
+  form.append("metadata", new Blob([JSON.stringify({
+    name: fileName,
+    parents: [EVENT_TOOL_SYNC_FOLDER_ID]
+  })], {
+    type: "application/json"
+  }));
+  form.append("file", blob, fileName);
+  const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    },
+    body: form
+  });
+  if (!r.ok) throw new Error(`Drive file upload failed: ${r.status}`);
+  const file = await r.json();
+  const permissionResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${eventToolGDriveAccessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        role: "reader",
+        type: "anyone"
+      })
+    });
+  if (!permissionResponse.ok) throw new Error(`Drive share failed: ${permissionResponse.status}`);
+  const meta = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?fields=id,name,webViewLink,webContentLink`, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  return meta.ok ? await meta.json() : file;
+}
+
 async function eventToolGDriveDownloadJson(fileName) {
   if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
   const files = await eventToolGDriveSearchFile(fileName);
@@ -733,6 +772,10 @@ const T = {
     kb_final_report_mail_button: "✉️ Mail eindrapport voorbereiden",
     kb_final_report_ready: "✓ Eindrapport aangemaakt",
     kb_final_report_mail_ready: "✓ PDF gedownload en Gmail geopend. Voeg de PDF toe als bijlage vóór verzending.",
+    kb_final_report_drive_ready: "✓ PDF gedownload, opgeslagen op Google Drive en Gmail geopend met downloadlink.",
+    kb_final_report_drive_uploading: "Eindrapport opslaan op Google Drive...",
+    kb_final_report_drive_not_connected: "Google Drive is niet verbonden. Verbind eerst via het Dashboard.",
+    kb_final_report_drive_error: "Eindrapport kon niet op Google Drive worden opgeslagen",
     kb_final_report_intro: "Genereer een officieel financieel eindrapport voor secretariaat of bestuur. Technische kassacontrole blijft beschikbaar in Kassa Bewegingen en wordt niet in dit rapport opgenomen.",
     kb_final_report_generated: "Gegenereerd op",
     kb_final_secretariat_note: "Kassagegevens verwerkt via gecontroleerde Kassa Tool-export. Technische importdetails blijven intern beschikbaar in de Hoofdapp.",
@@ -740,6 +783,7 @@ const T = {
     kb_final_mail_recipients_help: "Eén of meerdere e-mailadressen, gescheiden met komma, puntkomma of nieuwe regel. Gmail opent via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Vul minstens één ontvanger in.",
     kb_final_mail_attachment_hint: "Voeg het zojuist gedownloade eindrapport toe als bijlage vóór verzending.",
+    kb_final_mail_drive_link_label: "Downloadlink eindrapport",
     kb_final_bookings_title: "Definitieve kassaboekingen",
     kb_final_bookings_intro: "De originele kassaboekingen worden nooit aangepast. Correcties worden apart toegevoegd.",
     kb_final_booking_entries: "Boekingsregels",
@@ -1756,6 +1800,10 @@ const T = {
     kb_final_report_mail_button: "✉️ Préparer e-mail rapport final",
     kb_final_report_ready: "✓ Rapport final créé",
     kb_final_report_mail_ready: "✓ PDF téléchargé et Gmail ouvert. Ajoutez le PDF en pièce jointe avant l'envoi.",
+    kb_final_report_drive_ready: "✓ PDF téléchargé, enregistré sur Google Drive et Gmail ouvert avec lien de téléchargement.",
+    kb_final_report_drive_uploading: "Enregistrement du rapport final sur Google Drive...",
+    kb_final_report_drive_not_connected: "Google Drive n'est pas connecté. Connectez-le d'abord via le tableau de bord.",
+    kb_final_report_drive_error: "Le rapport final n'a pas pu être enregistré sur Google Drive",
     kb_final_report_intro: "Générez un rapport financier officiel pour le secrétariat ou la direction. Le contrôle technique de la caisse reste disponible dans Mouvements de Caisse et n'est pas repris dans ce rapport.",
     kb_final_report_generated: "Généré le",
     kb_final_secretariat_note: "Données de caisse traitées via un export contrôlé de la Kassa Tool. Les détails techniques d'import restent disponibles en interne dans la Hoofdapp.",
@@ -1763,6 +1811,7 @@ const T = {
     kb_final_mail_recipients_help: "Une ou plusieurs adresses e-mail, séparées par une virgule, un point-virgule ou une nouvelle ligne. Gmail s'ouvre via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Saisissez au moins un destinataire.",
     kb_final_mail_attachment_hint: "Ajoutez le rapport final qui vient d'être téléchargé comme pièce jointe avant l'envoi.",
+    kb_final_mail_drive_link_label: "Lien de téléchargement du rapport final",
     kb_final_bookings_title: "Écritures caisse définitives",
     kb_final_bookings_intro: "Les écritures caisse originales ne sont jamais modifiées. Les corrections sont ajoutées séparément.",
     kb_final_booking_entries: "Écritures",
@@ -16973,7 +17022,11 @@ function KostenbeheerTab({
       setBezig(false);
     }
   };
-  const finalReportFileName = () => `eindrapport_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+  const finalReportFileName = () => {
+    const safeEvent = (data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+    const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
+    return `eventtool-final-report-${safeEvent}-${stamp}.pdf`;
+  };
   const finalReportRecipientsRaw = data.event && data.event.finalReportEmails || "";
   const finalReportRecipientsList = finalReportRecipientsRaw.split(/[;,\n]+/).map(email => email.trim()).filter(Boolean);
   const finalReportRecipients = finalReportRecipientsList.join(",");
@@ -16994,7 +17047,7 @@ function KostenbeheerTab({
     };
   };
   const buildFinalReportMailSubject = () => `Finaal overzicht van ${finalReportEventLabel()} - Résumé final de ${finalReportEventLabel()}`;
-  const buildFinalReportMailBody = () => {
+  const buildFinalReportMailBody = driveLink => {
     const greeting = finalReportGreeting();
     const eventNaam = data.event.naam || t.no_event;
     const eventDate = data.event.datum ? formatDate(data.event.datum, "nl") : "";
@@ -17002,9 +17055,23 @@ function KostenbeheerTab({
     const eventPlace = data.event.gemeente || data.event.locatieNaam || "";
     const nlPlace = eventPlace ? ` in ${eventPlace}` : "";
     const frPlace = eventPlace ? ` à ${eventPlace}` : "";
-    return [`${greeting.nl}`, "", `Gelieve hierbij het finaal financieel overzicht te vinden van het evenement ${eventNaam}.`, "", `Het betreft het overzicht van de inkomsten, uitgaven en het eindresultaat van het evenement${eventDate ? ` dat plaatsvond op ${eventDate}` : ""}${nlPlace}.`, "", "De kassagegevens werden verwerkt op basis van de gecontroleerde export uit de Kassa Tool.", "", "Alvast bedankt.", "", "Met kameraadschappelijke groeten,", "", "Angela Janett Flores", "", "----------------------------------------", "", `${greeting.fr}`, "", `Veuillez trouver ci-joint le résumé financier final de l'événement ${eventNaam}.`, "", `Il s'agit de l'aperçu des recettes, des dépenses et du résultat final de l'événement${eventDateFr ? ` qui a eu lieu le ${eventDateFr}` : ""}${frPlace}.`, "", "Les données de caisse ont été traitées sur la base de l'export contrôlé de la Kassa Tool.", "", "Merci d'avance.", "", "Salutations camarades,", "", "Angela Janett Flores"].join("\n");
+    const linkLinesNl = driveLink ? ["", `${t.kb_final_mail_drive_link_label}:`, driveLink] : [];
+    const linkLinesFr = driveLink ? ["", `${t.kb_final_mail_drive_link_label}:`, driveLink] : [];
+    return [`${greeting.nl}`, "", `Gelieve hierbij het finaal financieel overzicht te vinden van het evenement ${eventNaam}.`, ...linkLinesNl, "", `Het betreft het overzicht van de inkomsten, uitgaven en het eindresultaat van het evenement${eventDate ? ` dat plaatsvond op ${eventDate}` : ""}${nlPlace}.`, "", "De kassagegevens werden verwerkt op basis van de gecontroleerde export uit de Kassa Tool.", "", "Alvast bedankt.", "", "Met kameraadschappelijke groeten,", "", "Angela Janett Flores", "", "----------------------------------------", "", `${greeting.fr}`, "", `Veuillez trouver ci-joint le résumé financier final de l'événement ${eventNaam}.`, ...linkLinesFr, "", `Il s'agit de l'aperçu des recettes, des dépenses et du résultat final de l'événement${eventDateFr ? ` qui a eu lieu le ${eventDateFr}` : ""}${frPlace}.`, "", "Les données de caisse ont été traitées sur la base de l'export contrôlé de la Kassa Tool.", "", "Merci d'avance.", "", "Salutations camarades,", "", "Angela Janett Flores"].join("\n");
   };
-  const prepareFinalReportEmail = () => {
+  const uploadFinalReportToDrive = async (doc, fileName) => {
+    if (!eventToolGDriveIsTokenValid()) {
+      eventToolGDriveConnect();
+      throw new Error(t.kb_final_report_drive_not_connected);
+    }
+    showToast(t.kb_final_report_drive_uploading);
+    const blob = doc.output("blob");
+    const file = await eventToolGDriveUploadBlob(fileName, blob, "application/pdf");
+    localStorage.removeItem("eventtool_gdrive_last_error");
+    eventToolGDriveEmit();
+  return file.webContentLink || file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+  };
+  const prepareFinalReportEmail = async () => {
     if (!finalReportRecipientsList.length) {
       alert(t.kb_final_mail_missing_recipients);
       return;
@@ -17013,10 +17080,17 @@ function KostenbeheerTab({
     try {
       const doc = genereerEindrapportPDF();
       if (!doc) return;
-      doc.save(finalReportFileName());
-      const url = `https://mail.google.com/mail/u/1/?view=cm&fs=1&to=${encodeURIComponent(finalReportRecipients)}&su=${encodeURIComponent(buildFinalReportMailSubject())}&body=${encodeURIComponent(buildFinalReportMailBody())}`;
+      const fileName = finalReportFileName();
+      doc.save(fileName);
+      const driveLink = await uploadFinalReportToDrive(doc, fileName);
+      const url = `https://mail.google.com/mail/u/1/?view=cm&fs=1&to=${encodeURIComponent(finalReportRecipients)}&su=${encodeURIComponent(buildFinalReportMailSubject())}&body=${encodeURIComponent(buildFinalReportMailBody(driveLink))}`;
       window.open(url, "_blank", "noopener");
-      showToast(t.kb_final_report_mail_ready);
+      showToast(t.kb_final_report_drive_ready);
+    } catch (e) {
+      const msg = e && e.message || String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      eventToolGDriveEmit();
+      alert(`${t.kb_final_report_drive_error}: ${msg}`);
     } finally {
       setBezig(false);
     }
