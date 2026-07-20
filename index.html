@@ -35,6 +35,8 @@
   .app-header-inner { max-width: 1240px; margin: 0 auto; padding: 1.05rem 2rem 1.35rem; }
   .app-topline { display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem; }
   .app-topline > div:first-child { width: 100%; text-align: center; background: rgba(255, 253, 248, 0.88); border: 1px solid rgba(222, 211, 196, 0.78); border-radius: 8px; padding: 1rem 1.25rem 1.05rem; box-shadow: var(--shadow-soft); }
+  .app-brand-panel { position: relative; min-height: 6.7rem; padding-right: 8.8rem !important; padding-left: 8.8rem !important; }
+  .app-owner-logo { position: absolute; top: 0.8rem; right: 1rem; width: 7.2rem; max-width: 18vw; height: auto; border-radius: 6px; object-fit: contain; box-shadow: 0 4px 12px rgba(26, 22, 18, 0.14); background: #1a1612; }
   .app-kicker { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 650; }
   .app-version-pill { display: inline-flex; align-items: center; min-height: 1.45rem; padding: 0 0.55rem; border-radius: 999px; border: 1px solid var(--line); background: var(--muted-panel); color: var(--ink-soft); letter-spacing: 0; text-transform: none; font-size: 0.68rem; font-weight: 650; }
   .event-title-row { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.25rem; }
@@ -48,6 +50,10 @@
   .tab-btn { padding: 0.54rem 0.88rem; border: 1px solid transparent; background: transparent; color: #574d42; font-size: 0.8rem; font-weight: 560; letter-spacing: 0.025em; cursor: pointer; transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s; text-transform: uppercase; border-radius: 999px; }
   .tab-btn:hover { color: var(--ink); background: rgba(255, 255, 255, 0.72); border-color: rgba(222, 211, 196, 0.7); }
   .tab-btn.active { color: #8f2f20; border-color: rgba(185, 63, 43, 0.34); background: #f3dfd7; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55); font-weight: 720; }
+  @media (max-width: 760px) {
+    .app-brand-panel { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+    .app-owner-logo { position: static; display: block; width: 6.2rem; max-width: 42vw; margin: 0.75rem auto 0; }
+  }
   .card { background: var(--card) !important; border: 1px solid rgba(217, 207, 193, 0.88); border-left: 0.28rem solid rgba(185, 63, 43, 0.48) !important; border-radius: 7px; padding: 1.35rem; box-shadow: var(--shadow-soft); }
   .input, .select, .textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--line); background: white; border-radius: 3px; font-family: 'Inter Tight', sans-serif; font-size: 0.9rem; color: var(--ink); }
   .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
@@ -271,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.13";
+const APP_VERSION = "1.25.14";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -6985,7 +6991,9 @@ function App() {
     className: "app-header-inner"
   }, /*#__PURE__*/React.createElement("div", {
     className: "app-topline"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "app-brand-panel"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "font-body app-kicker"
   }, /*#__PURE__*/React.createElement("span", null, t.app_subtitle), /*#__PURE__*/React.createElement("span", {
     title: `APP_VERSION ${APP_VERSION}`,
@@ -6999,7 +7007,11 @@ function App() {
   }, t.pl_actief)), data.event.datum && /*#__PURE__*/React.createElement("div", {
     className: "font-body",
     className: "event-subline"
-  }, formatDate(data.event.datum, data.taal), " \xB7 ", data.event.gemeente || "—")), /*#__PURE__*/React.createElement("div", {
+  }, formatDate(data.event.datum, data.taal), " \xB7 ", data.event.gemeente || "—"), /*#__PURE__*/React.createElement("img", {
+    className: "app-owner-logo",
+    src: "./assets/pdm-logo.png",
+    alt: "PDM Philippe De Meersman"
+  })), /*#__PURE__*/React.createElement("div", {
     className: "app-toolbar"
   }, /*#__PURE__*/React.createElement("div", {
     className: "toolbar-group"

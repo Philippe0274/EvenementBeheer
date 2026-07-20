@@ -1,4 +1,4 @@
-const APP_VERSION = "1.25.13";
+const APP_VERSION = "1.25.14";
 const CACHE_NAME = `hoofdapp-${APP_VERSION}`;
 const CACHE_PREFIXES = ['hoofdapp-', 'kassa-tool-'];
 const FALLBACK_DOCUMENTS = [
@@ -13,6 +13,7 @@ self.addEventListener('install', event => {
         await cache.addAll([
             './index.html',
             './index_EvenementBeheer.html',
+            './assets/pdm-logo.png',
             './assets/volunteer-man.png',
             './assets/volunteer-woman.png',
             './assets/volunteer-question.png'

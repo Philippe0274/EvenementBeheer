@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.14
+- Vast PDM-logo toegevoegd als app-branding in de header, rechts in het blok met eventnaam, datum en versie.
+- Logo toegevoegd als lokale asset `assets/pdm-logo.png` en opgenomen in de service-worker cache voor offline gebruik.
+- Headerlayout blijft responsive: op smallere schermen komt het logo onder de eventinformatie te staan.
+
 ## 1.25.13
 - Budgetcontrole in Eindafrekening verduidelijkt: `Budget na kosten` is hernoemd naar `Budgetruimte over` / `Marge budget restante`.
 - Er staat nu expliciet bij dat budget een controlebedrag is en niet meetelt als werkelijke opbrengst.
