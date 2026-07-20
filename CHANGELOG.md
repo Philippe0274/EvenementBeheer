@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.15
+- Eindrapport v2 toegevoegd met extra read-only detailblokken voor `Definitieve kassaboekingen`, gebruikte Kassa-imports en correctiesamenvatting.
+- Zichtbare eindrapport-taal verduidelijkt: gebruikers zien voortaan `kassaboekingen` in plaats van technische ledgerterminologie.
+- De originele kassaboekingen blijven immutable; het rapport toont correcties apart zonder berekeningen of dataopslag te wijzigen.
+- Nederlandse en Franse labels zijn bijgewerkt.
+
 ## 1.25.14
 - Vast PDM-logo toegevoegd als app-branding in de header, rechts in het blok met eventnaam, datum en versie.
 - Logo toegevoegd als lokale asset `assets/pdm-logo.png` en opgenomen in de service-worker cache voor offline gebruik.

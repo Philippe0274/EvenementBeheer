@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.14";
+const APP_VERSION = "1.25.15";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -661,15 +661,15 @@ const T = {
     tab_kassa_exports: "Kassa Exports",
     tab_business_continuity: "Business Continuity",
     kb_title: "Kassa Bewegingen",
-    kb_intro: "Read-only controle van definitief geboekte ledgerregels. Dit wijzigt geen rapporten en boekt niets extra.",
-    kb_empty: "Nog geen definitieve ledgerregels gevonden.",
+    kb_intro: "Read-only controle van definitieve kassaboekingen. Dit wijzigt geen rapporten en boekt niets extra.",
+    kb_empty: "Nog geen definitieve kassaboekingen gevonden.",
     kb_total_sales: "Verkopen",
     kb_total_donations: "Giften",
     kb_total_cash: "Cash",
     kb_total_card: "Kaart",
     kb_total_payconiq: "Payconiq",
     kb_audit_entries: "Auditregels",
-    kb_ledger_entries: "Ledgerregels",
+    kb_ledger_entries: "Kassaboekingen",
     kb_filter_batch: "Filter op batch",
     kb_all_batches: "Alle batches",
     kb_event: "Event",
@@ -681,7 +681,7 @@ const T = {
     kb_posted_at: "Geboekt op",
     kb_audit_only: "Audit-only",
     kb_immutable: "Immutable",
-    kb_financial_truth: "Definitieve ledgergegevens",
+    kb_financial_truth: "Definitieve kassaboekingen",
     kb_details: "Details",
     kb_hide_details: "Details verbergen",
     kb_type_sales: "Verkopen",
@@ -704,14 +704,14 @@ const T = {
     kb_correction_immutable: "Correctie is apart geboekt; originele ledgerregel blijft ongewijzigd.",
     kb_final_title: "Eindafrekening",
     kb_final_badge: "Read-only berekening",
-    kb_final_intro: "Controleoverzicht op basis van definitieve Kassa-ledger, correcties en kosten. Dit wijzigt geen data en maakt nog geen PDF.",
+    kb_final_intro: "Controleoverzicht op basis van definitieve kassaboekingen, correcties en kosten. Dit wijzigt geen data.",
     kb_final_revenue: "Werkelijke inkomsten",
     kb_final_costs: "Werkelijke kosten",
     kb_final_result: "Eindresultaat",
     kb_final_kassa_net: "Netto kassa",
     kb_final_sales: "Verkopen",
     kb_final_donations: "Giften",
-    kb_final_ledger_corrections: "Ledgercorrecties",
+    kb_final_ledger_corrections: "Correcties op kassaboekingen",
     kb_final_presale: "Voorverkoop",
     kb_final_other_income: "Zelfinbreng / andere inkomsten",
     kb_final_room: "Zaal / locatie",
@@ -727,12 +727,30 @@ const T = {
     kb_final_tickets_info: "Ticketregistraties",
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Externe tickets",
-    kb_final_no_ledger: "Nog geen definitieve Kassa-ledger geboekt.",
+    kb_final_no_ledger: "Nog geen definitieve kassaboekingen verwerkt.",
     kb_final_report: "Eindrapport",
     kb_final_report_button: "📄 Eindrapport genereren",
     kb_final_report_ready: "✓ Eindrapport aangemaakt",
     kb_final_report_intro: "Genereer een eerste eindrapport op basis van de gecontroleerde eindafrekening. De affiche staat klein naast de titel en wordt niet als watermerk gebruikt.",
     kb_final_report_generated: "Gegenereerd op",
+    kb_final_bookings_title: "Definitieve kassaboekingen",
+    kb_final_bookings_intro: "De originele kassaboekingen worden nooit aangepast. Correcties worden apart toegevoegd.",
+    kb_final_booking_entries: "Boekingsregels",
+    kb_final_audit_entries: "Auditregels",
+    kb_final_import_sources: "Kassa-imports",
+    kb_final_batch: "Batch",
+    kb_final_cashpoint: "Kassapunt",
+    kb_final_user: "Gebruiker",
+    kb_final_export_file: "Exportbestand",
+    kb_final_processed_at: "Verwerkt op",
+    kb_final_transactions: "Transacties",
+    kb_final_posted_status: "Definitief verwerkt",
+    kb_final_corrections_title: "Correctiesamenvatting",
+    kb_final_correction_reason: "Reden",
+    kb_final_correction_note: "Opmerking",
+    kb_final_correction_date: "Datum",
+    kb_final_no_corrections: "Geen correcties geregistreerd.",
+    kb_final_audit_note: "Het eindrapport rekent met definitieve kassaboekingen + correcties. De originele import blijft immutable bewaard.",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1657,15 +1675,15 @@ const T = {
     tab_kassa_exports: "Exports caisse",
     tab_business_continuity: "Business Continuity",
     kb_title: "Mouvements de Caisse",
-    kb_intro: "Contrôle en lecture seule des lignes ledger définitivement comptabilisées. Cela ne modifie pas les rapports et ne comptabilise rien de plus.",
-    kb_empty: "Aucune ligne ledger définitive trouvée.",
+    kb_intro: "Contrôle en lecture seule des écritures caisse définitives. Cela ne modifie pas les rapports et ne comptabilise rien de plus.",
+    kb_empty: "Aucune écriture caisse définitive trouvée.",
     kb_total_sales: "Ventes",
     kb_total_donations: "Dons",
     kb_total_cash: "Cash",
     kb_total_card: "Carte",
     kb_total_payconiq: "Payconiq",
     kb_audit_entries: "Lignes audit",
-    kb_ledger_entries: "Lignes ledger",
+    kb_ledger_entries: "Écritures caisse",
     kb_filter_batch: "Filtrer par lot",
     kb_all_batches: "Tous les lots",
     kb_event: "Événement",
@@ -1677,7 +1695,7 @@ const T = {
     kb_posted_at: "Comptabilisé le",
     kb_audit_only: "Audit-only",
     kb_immutable: "Immuable",
-    kb_financial_truth: "Données ledger définitives",
+    kb_financial_truth: "Écritures caisse définitives",
     kb_details: "Détails",
     kb_hide_details: "Masquer détails",
     kb_type_sales: "Ventes",
@@ -1700,14 +1718,14 @@ const T = {
     kb_correction_immutable: "La correction est comptabilisée séparément; la ligne ledger originale reste inchangée.",
     kb_final_title: "Décompte final",
     kb_final_badge: "Calcul en lecture seule",
-    kb_final_intro: "Aperçu de contrôle basé sur le ledger caisse définitif, les corrections et les coûts. Cela ne modifie aucune donnée et ne crée pas encore de PDF.",
+    kb_final_intro: "Aperçu de contrôle basé sur les écritures caisse définitives, les corrections et les coûts. Cela ne modifie aucune donnée.",
     kb_final_revenue: "Recettes réelles",
     kb_final_costs: "Coûts réels",
     kb_final_result: "Résultat final",
     kb_final_kassa_net: "Caisse nette",
     kb_final_sales: "Ventes",
     kb_final_donations: "Dons",
-    kb_final_ledger_corrections: "Corrections ledger",
+    kb_final_ledger_corrections: "Corrections des écritures caisse",
     kb_final_presale: "Prévente",
     kb_final_other_income: "Apports / autres recettes",
     kb_final_room: "Salle / lieu",
@@ -1723,12 +1741,30 @@ const T = {
     kb_final_tickets_info: "Enregistrements tickets",
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Tickets externes",
-    kb_final_no_ledger: "Aucun ledger caisse définitif comptabilisé.",
+    kb_final_no_ledger: "Aucune écriture caisse définitive traitée.",
     kb_final_report: "Rapport final",
     kb_final_report_button: "📄 Générer rapport final",
     kb_final_report_ready: "✓ Rapport final créé",
     kb_final_report_intro: "Générez un premier rapport final basé sur le décompte final contrôlé. L'affiche est placée en petit à côté du titre et n'est pas utilisée comme filigrane.",
     kb_final_report_generated: "Généré le",
+    kb_final_bookings_title: "Écritures caisse définitives",
+    kb_final_bookings_intro: "Les écritures caisse originales ne sont jamais modifiées. Les corrections sont ajoutées séparément.",
+    kb_final_booking_entries: "Écritures",
+    kb_final_audit_entries: "Lignes audit",
+    kb_final_import_sources: "Imports caisse",
+    kb_final_batch: "Lot",
+    kb_final_cashpoint: "Point caisse",
+    kb_final_user: "Utilisateur",
+    kb_final_export_file: "Fichier export",
+    kb_final_processed_at: "Traité le",
+    kb_final_transactions: "Transactions",
+    kb_final_posted_status: "Traité définitivement",
+    kb_final_corrections_title: "Résumé des corrections",
+    kb_final_correction_reason: "Raison",
+    kb_final_correction_note: "Remarque",
+    kb_final_correction_date: "Date",
+    kb_final_no_corrections: "Aucune correction enregistrée.",
+    kb_final_audit_note: "Le rapport final calcule avec les écritures caisse définitives + corrections. L'import original reste conservé de manière immuable.",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -16672,11 +16708,12 @@ function KostenbeheerTab({
     };
     const cardBlock = (title, rows, opts = {}) => {
       const rowHeight = 6;
-      const noteHeight = opts.note ? 7 : 0;
-      const h = 12 + rows.length * rowHeight + noteHeight + 4;
-      ensure(h + 4);
       const x = marge;
       const w = pageW - marge * 2;
+      const noteLines = opts.note ? doc.splitTextToSize(opts.note, w - 14) : [];
+      const noteHeight = noteLines.length ? noteLines.length * 4 + 3 : 0;
+      const h = 12 + rows.length * rowHeight + noteHeight + 4;
+      ensure(h + 4);
       const top = y;
       const accent = opts.accent || ROOD;
       doc.setFillColor(255, 252, 247);
@@ -16709,10 +16746,38 @@ function KostenbeheerTab({
         doc.setFont("helvetica", "italic");
         doc.setFontSize(8.1);
         doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
-        doc.text(doc.splitTextToSize(opts.note, w - 14), x + 7, yy + 1);
+        doc.text(noteLines, x + 7, yy + 1);
       }
       y = top + h + 6;
     };
+    const shortText = (value, max = 58) => {
+      const text = String(value || "");
+      return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+    };
+    const dateTime = value => {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE");
+    };
+    const typeLabel = type => ({
+      sales: t.kb_type_sales,
+      donations: t.kb_type_donations,
+      cash: t.kb_type_cash,
+      card: t.kb_type_card,
+      payconiq: t.kb_type_payconiq,
+      ticket_audit: t.kb_type_ticket_audit,
+      price_change_audit: t.kb_type_price_change_audit
+    })[type] || type || "-";
+    const bookingRows = Array.isArray(eind.ledgerRows) ? eind.ledgerRows : [];
+    const auditRows = bookingRows.filter(item => item && item.auditOnly);
+    const financialRows = bookingRows.filter(item => item && !item.auditOnly);
+    const batchIds = [...new Set(bookingRows.map(item => item && item.sourceBatchId).filter(Boolean))];
+    const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+    const batchesForReport = batchIds.map(id => importBatches.find(batch => batch && batch.id === id) || {
+      id
+    });
+    const correctionRows = Array.isArray(eind.corrections) ? eind.corrections : [];
     const headerY = y;
     const flyer = data.event && data.event.affiche;
     let textX = marge;
@@ -16852,6 +16917,102 @@ function KostenbeheerTab({
       value: String(eind.ticketCounts.external)
     }], {
       accent: [154, 123, 184]
+    });
+    doc.addPage();
+    y = marge;
+    cardBlock(t.kb_final_bookings_title, [{
+      label: t.kb_final_sales,
+      value: money(eind.salesCents)
+    }, {
+      label: t.kb_final_donations,
+      value: money(eind.donationsCents)
+    }, {
+      label: t.kb_total_cash,
+      value: money(eind.cashCents)
+    }, {
+      label: t.kb_total_card,
+      value: money(eind.cardCents)
+    }, {
+      label: t.kb_total_payconiq,
+      value: money(eind.payconiqCents)
+    }, {
+      label: t.kb_final_booking_entries,
+      value: String(financialRows.length),
+      strong: true,
+      line: true
+    }, {
+      label: t.kb_final_audit_entries,
+      value: String(auditRows.length)
+    }], {
+      accent: [153, 173, 122],
+      note: t.kb_final_bookings_intro
+    });
+    if (batchesForReport.length) {
+      batchesForReport.forEach(batch => {
+        cardBlock(`${t.kb_final_import_sources} · ${shortText(batch.id || "-", 18)}`, [{
+          label: t.kb_final_cashpoint,
+          value: shortText(batch.terminal || batch.deviceId || "-")
+        }, {
+          label: t.kb_final_user,
+          value: shortText(batch.operator || t.kx_unknown)
+        }, {
+          label: t.kb_final_export_file,
+          value: shortText(batch.sourceFileName || "-")
+        }, {
+          label: t.kb_final_processed_at,
+          value: dateTime(batch.ledgerPostedAt || batch.importedAt || batch.preparedAt)
+        }, {
+          label: t.kb_final_transactions,
+          value: String(batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? "-")
+        }, {
+          label: t.kb_final_posted_status,
+          value: batch.ledgerStatus === "posted" ? "✓" : "-"
+        }], {
+          accent: [111, 137, 184]
+        });
+      });
+    }
+    if (correctionRows.length) {
+      correctionRows.forEach((correction, index) => {
+        const original = bookingRows.find(rowItem => rowItem && rowItem.id === correction.sourceLedgerTransactionId);
+        cardBlock(`${t.kb_final_corrections_title} ${index + 1}`, [{
+          label: t.kb_type,
+          value: typeLabel(correction.type)
+        }, {
+          label: t.kb_amount,
+          value: money(correction.amountCents),
+          color: getKassaPreviewCents(correction.amountCents) < 0 ? "red" : "green",
+          strong: true
+        }, {
+          label: t.kb_final_correction_date,
+          value: dateTime(correction.createdAt)
+        }, {
+          label: t.kb_final_correction_reason,
+          value: shortText(correction.reason || "-")
+        }, {
+          label: t.kb_final_correction_note,
+          value: shortText(correction.note || "-")
+        }, {
+          label: t.kb_final_batch,
+          value: shortText(correction.sourceBatchId || original && original.sourceBatchId || "-")
+        }], {
+          accent: [217, 155, 42]
+        });
+      });
+    } else {
+      cardBlock(t.kb_final_corrections_title, [{
+        label: t.kb_final_corrections_title,
+        value: t.kb_final_no_corrections
+      }], {
+        accent: [217, 155, 42]
+      });
+    }
+    cardBlock(t.kb_final_bookings_title, [{
+      label: t.kb_final_posted_status,
+      value: financialRows.length || auditRows.length ? "✓" : "-"
+    }], {
+      accent: ROOD,
+      note: t.kb_final_audit_note
     });
     const totaalPaginas = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totaalPaginas; p++) {
