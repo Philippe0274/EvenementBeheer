@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.34
+- Workflownavigatie toegevoegd voor `Stappen tot Integratie met Kassa Tool`.
+- Wanneer een workflowknop een tabblad opent, toont dat tabblad bovenaan de actieve stap met `Terug naar stappenplan` en `Volgende stap`.
+- Tabletstappen blijven praktische uitleg tonen en brengen de gebruiker terug naar het stappenplan.
+- Geen wijziging aan data, Google Drive-opslag, Kassa-imports, kassaboekingen, rapporten of bestaande tabfuncties.
+
 ## 1.25.33
 - Dashboard-workflow `Stappen tot Integratie met Kassa Tool` uitgebreid naar 8 stappen.
 - `Voor Evenement` bevat nu ook de tabletstap om de Kassa Tool te koppelen en de prijslijst te laden.

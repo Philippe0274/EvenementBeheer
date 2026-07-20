@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.33";
+const APP_VERSION = "1.25.34";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -886,6 +886,9 @@ const T = {
     dashboard_status_todo: "Te doen",
     dashboard_status_busy: "Bezig",
     dashboard_status_done: "Voltooid",
+    dashboard_workflow_back: "Terug naar stappenplan",
+    dashboard_workflow_next: "Volgende stap",
+    dashboard_workflow_step_label: (nr, title) => `Stap ${nr} van 8: ${title}`,
     dashboard_cockpit_pricelist: "Prijslijst klaarzetten",
     dashboard_cockpit_drive: "Google Drive connectie controleren",
     dashboard_cockpit_publish: "Prijslijst publiceren naar Kassa Tool",
@@ -1953,6 +1956,9 @@ const T = {
     dashboard_status_todo: "À faire",
     dashboard_status_busy: "En cours",
     dashboard_status_done: "Terminé",
+    dashboard_workflow_back: "Retour au plan d'étapes",
+    dashboard_workflow_next: "Étape suivante",
+    dashboard_workflow_step_label: (nr, title) => `Étape ${nr} sur 8 : ${title}`,
     dashboard_cockpit_pricelist: "Préparer la liste de prix",
     dashboard_cockpit_drive: "Contrôler la connexion Google Drive",
     dashboard_cockpit_publish: "Publier la liste de prix vers la Kassa Tool",
@@ -5173,20 +5179,42 @@ function App() {
   const [data, setData] = useState(() => normalizeData(defaultData));
   const [tab, setTab] = useState("dashboard");
   const [toonTerugKnop, setToonTerugKnop] = useState(false);
+  const [workflowStep, setWorkflowStep] = useState(null);
   // Sprong vanuit een Dashboard-aandachtspunt: onthoud dat we terug kunnen
-  const springNaarTab = doelTab => {
+  const springNaarTab = (doelTab, stepNr = null) => {
     setToonTerugKnop(true);
+    setWorkflowStep(stepNr);
     setTab(doelTab);
   };
   // Gewone tabwissel wist de terugknop
   const wisselTab = doelTab => {
     setToonTerugKnop(false);
+    setWorkflowStep(null);
     setTab(doelTab);
   };
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const t = T[data.taal] || T.nl;
+  const gaNaarStappenplan = () => {
+    setWorkflowStep(null);
+    setToonTerugKnop(false);
+    setTab("dashboard");
+  };
+  const gaNaarWorkflowStap = stepNr => {
+    const step = getKassaWorkflowSteps(t).find(item => item.nr === stepNr);
+    if (!step) return;
+    if (step.help) {
+      alert(step.help);
+      setWorkflowStep(null);
+      setToonTerugKnop(false);
+      setTab("dashboard");
+      return;
+    }
+    setWorkflowStep(stepNr);
+    setToonTerugKnop(true);
+    setTab(step.tab || "dashboard");
+  };
   const showToast = msg => {
     setToast(msg);
     setTimeout(() => setToast(""), 2200);
@@ -7410,7 +7438,12 @@ function App() {
       padding: "2rem"
     },
     className: "font-body"
-  }, toonTerugKnop && tab !== "dashboard" && /*#__PURE__*/React.createElement("button", {
+  }, workflowStep && tab !== "dashboard" ? /*#__PURE__*/React.createElement(KassaWorkflowNav, {
+    stepNr: workflowStep,
+    t: t,
+    goDashboard: gaNaarStappenplan,
+    goStep: gaNaarWorkflowStap
+  }) : toonTerugKnop && tab !== "dashboard" && /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     style: {
       marginBottom: "1rem"
@@ -10339,7 +10372,7 @@ function DashboardCockpit({
     title: t.dashboard_cockpit_pricelist,
     status: priceCount > 0 ? statusDone : statusTodo,
     action: t.dashboard_cockpit_open_pricelist,
-    run: () => setTab("prijslijst")
+    run: () => setTab("prijslijst", 1)
   }, {
     nr: 2,
     title: t.dashboard_cockpit_drive,
@@ -10351,7 +10384,7 @@ function DashboardCockpit({
     title: t.dashboard_cockpit_publish,
     status: priceListPublished ? statusDone : priceCount > 0 && drive.connected ? statusBusy : statusTodo,
     action: t.dashboard_cockpit_publish_button,
-    run: () => setTab("prijslijst")
+    run: () => setTab("prijslijst", 3)
   }, {
     nr: 4,
     title: t.dashboard_cockpit_tablet_load,
@@ -10370,19 +10403,19 @@ function DashboardCockpit({
     title: t.dashboard_cockpit_exports,
     status: batches.length || bookingCount ? statusDone : statusTodo,
     action: t.dashboard_cockpit_fetch_exports,
-    run: () => setTab("kassaExports")
+    run: () => setTab("kassaExports", 6)
   }, {
     nr: 7,
     title: t.dashboard_cockpit_process,
     status: bookingCount ? statusDone : openBatchCount ? statusBusy : statusTodo,
     action: t.dashboard_cockpit_process_button,
-    run: () => setTab("kassaExports")
+    run: () => setTab("kassaExports", 7)
   }, {
     nr: 8,
     title: t.dashboard_cockpit_report,
     status: reportReady ? statusDone : statusTodo,
     action: t.dashboard_cockpit_report_button,
-    run: () => setTab("kassabewegingen")
+    run: () => setTab("kassabewegingen", 8)
   }];
   const renderStepCard = step => /*#__PURE__*/React.createElement("div", {
     key: step.nr,
@@ -10490,6 +10523,85 @@ function DashboardCockpit({
       gap: "1rem"
     }
   }, renderSection(t.dashboard_cockpit_before_event, beforeSteps), renderSection(t.dashboard_cockpit_after_event, afterSteps)));
+}
+function getKassaWorkflowSteps(t) {
+  return [{
+    nr: 1,
+    title: t.dashboard_cockpit_pricelist,
+    tab: "prijslijst"
+  }, {
+    nr: 2,
+    title: t.dashboard_cockpit_drive,
+    tab: "dashboard"
+  }, {
+    nr: 3,
+    title: t.dashboard_cockpit_publish,
+    tab: "prijslijst"
+  }, {
+    nr: 4,
+    title: t.dashboard_cockpit_tablet_load,
+    help: t.dashboard_cockpit_tablet_load_help
+  }, {
+    nr: 5,
+    title: t.dashboard_cockpit_tablet_export,
+    help: t.dashboard_cockpit_tablet_export_help
+  }, {
+    nr: 6,
+    title: t.dashboard_cockpit_exports,
+    tab: "kassaExports"
+  }, {
+    nr: 7,
+    title: t.dashboard_cockpit_process,
+    tab: "kassaExports"
+  }, {
+    nr: 8,
+    title: t.dashboard_cockpit_report,
+    tab: "kassabewegingen"
+  }];
+}
+function KassaWorkflowNav({
+  stepNr,
+  t,
+  goDashboard,
+  goStep
+}) {
+  const steps = getKassaWorkflowSteps(t);
+  const step = steps.find(item => item.nr === stepNr);
+  if (!step) return null;
+  const nextStep = steps.find(item => item.nr === stepNr + 1);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1rem",
+      borderLeft: "5px solid var(--accent)",
+      padding: "0.85rem 1rem",
+      background: "rgba(222,62,62,0.06)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "0.75rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontSize: "0.98rem"
+    }
+  }, t.dashboard_workflow_step_label(step.nr, step.title)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.45rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: goDashboard
+  }, "← ", t.dashboard_workflow_back), nextStep && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: () => goStep(nextStep.nr)
+  }, t.dashboard_workflow_next, " →"))));
 }
 function Dashboard({
   data,
