@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.32
+- Dashboard-cockpit herwerkt naar `Stappen tot Integratie met Kassa Tool`.
+- De workflow is visueel opgesplitst in `Voor Evenement` en `Na Evenement`.
+- Elke kaart toont alleen stapnummer, eenvoudige titel, status `Te doen` / `Bezig` / `Voltooid` en één knop.
+- De knoppen zijn in deze fase bewust nog niet gekoppeld aan acties; dit is alleen de visuele basis.
+- Geen wijziging aan Google Drive, Kassa-imports, kassaboekingen, rapporten of bestaande tabfuncties.
+
 ## 1.25.31
 - Google Drive-paneel op het Dashboard compacter gemaakt.
 - Alleen de knoppen `Verbinden/Herverbinden`, `Map openen` en `Ontkoppelen` blijven zichtbaar.
