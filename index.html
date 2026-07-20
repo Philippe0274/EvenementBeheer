@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.21";
+const APP_VERSION = "1.25.23";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -450,8 +450,8 @@ function eventToolGDriveEscapeQueryValue(value) {
   return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
-async function eventToolGDriveSearchFile(fileName) {
-  const q = `name='${eventToolGDriveEscapeQueryValue(fileName)}' and '${EVENT_TOOL_SYNC_FOLDER_ID}' in parents and trashed=false`;
+async function eventToolGDriveSearchFile(fileName, parentId = EVENT_TOOL_SYNC_FOLDER_ID) {
+  const q = `name='${eventToolGDriveEscapeQueryValue(fileName)}' and '${parentId}' in parents and trashed=false`;
   const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,modifiedTime,size)`;
   const r = await fetch(url, {
     headers: {
@@ -461,6 +461,34 @@ async function eventToolGDriveSearchFile(fileName) {
   if (!r.ok) throw new Error(`Drive search failed: ${r.status}`);
   const data = await r.json();
   return data.files || [];
+}
+
+async function eventToolGDriveEnsureFolder(folderName, parentId = EVENT_TOOL_SYNC_FOLDER_ID) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const q = `name='${eventToolGDriveEscapeQueryValue(folderName)}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const listUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,webViewLink)`;
+  const listResponse = await fetch(listUrl, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!listResponse.ok) throw new Error(`Drive folder search failed: ${listResponse.status}`);
+  const listData = await listResponse.json();
+  if (listData.files && listData.files.length) return listData.files[0];
+  const createResponse = await fetch("https://www.googleapis.com/drive/v3/files?fields=id,name,webViewLink", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: folderName,
+      mimeType: "application/vnd.google-apps.folder",
+      parents: [parentId]
+    })
+  });
+  if (!createResponse.ok) throw new Error(`Drive folder create failed: ${createResponse.status}`);
+  return await createResponse.json();
 }
 
 async function eventToolGDriveListFilesByPrefix(prefix) {
@@ -524,12 +552,25 @@ async function eventToolGDriveUploadJson(fileName, payload) {
   return await r.json();
 }
 
-async function eventToolGDriveUploadBlob(fileName, blob, mimeType) {
+async function eventToolGDriveUploadBlob(fileName, blob, mimeType, parentId = EVENT_TOOL_SYNC_FOLDER_ID) {
   if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const existing = await eventToolGDriveSearchFile(fileName, parentId);
+  for (const file of existing) {
+    try {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${eventToolGDriveAccessToken}`
+        }
+      });
+    } catch (e) {
+      console.warn("Drive file delete failed:", e);
+    }
+  }
   const form = new FormData();
   form.append("metadata", new Blob([JSON.stringify({
     name: fileName,
-    parents: [EVENT_TOOL_SYNC_FOLDER_ID]
+    parents: [parentId]
   })], {
     type: "application/json"
   }));
@@ -17024,8 +17065,11 @@ function KostenbeheerTab({
   };
   const finalReportFileName = () => {
     const safeEvent = (data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
-    const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
-    return `eventtool-final-report-${safeEvent}-${stamp}.pdf`;
+    return `eventtool-final-report-${safeEvent}.pdf`;
+  };
+  const finalReportEventFolderName = () => {
+    const parts = [data.event.naam || "evenement", data.event.datum || "", data.event.gemeente || data.event.locatieNaam || ""].filter(Boolean);
+    return parts.join("_").replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
   };
   const finalReportRecipientsRaw = data.event && data.event.finalReportEmails || "";
   const finalReportRecipientsList = finalReportRecipientsRaw.split(/[;,\n]+/).map(email => email.trim()).filter(Boolean);
@@ -17065,7 +17109,9 @@ function KostenbeheerTab({
     }
     showToast(t.kb_final_report_drive_uploading);
     const blob = doc.output("blob");
-    const file = await eventToolGDriveUploadBlob(fileName, blob, "application/pdf");
+    const eventFolder = await eventToolGDriveEnsureFolder(finalReportEventFolderName());
+    const reportFolder = await eventToolGDriveEnsureFolder("03-rapporten", eventFolder.id);
+    const file = await eventToolGDriveUploadBlob(fileName, blob, "application/pdf", reportFolder.id);
     localStorage.removeItem("eventtool_gdrive_last_error");
     eventToolGDriveEmit();
   return file.webContentLink || file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;

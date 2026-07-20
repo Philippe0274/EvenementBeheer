@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.25.23
+- Rapportarchief v1 toegevoegd op Google Drive: Eindrapporten worden nu bewaard onder `EventToolSync / eventmap / 03-rapporten`.
+- De eventmap wordt automatisch aangemaakt op basis van eventnaam, datum en locatie.
+- Binnen `03-rapporten` blijft één vaste eindrapport-PDF per event bestaan; opnieuw mailen vervangt de vorige Drive-versie.
+- Prijslijst-publicatie en Kassa Tool-exports blijven voorlopig ongewijzigd in de bestaande Drive-flow.
+
+## 1.25.22
+- Drive-opslag van het Eindrapport gebruikt nu één vaste bestandsnaam per event.
+- Bij opnieuw `Mail eindrapport voorbereiden` wordt de vorige Drive-versie met dezelfde naam vervangen, zodat er geen nieuwe dubbele rapportbestanden ontstaan.
+- Lokale PDF-download, mailtekst, Drive-link en financiële berekeningen blijven ongewijzigd.
+
 ## 1.25.21
 - Mailtekst van het Eindrapport opgeschoond: de Drive-downloadlink staat nu slechts één keer onderaan de tweetalige mail.
 - De downloadregel is verduidelijkt als `Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport`.
