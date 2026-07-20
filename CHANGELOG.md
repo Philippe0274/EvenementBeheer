@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.33
+- Dashboard-workflow `Stappen tot Integratie met Kassa Tool` uitgebreid naar 8 stappen.
+- `Voor Evenement` bevat nu ook de tabletstap om de Kassa Tool te koppelen en de prijslijst te laden.
+- `Na Evenement` bevat nu ook de tabletstap om de Kassa-export naar Drive te maken.
+- Alle workflowknoppen zijn veilig klikbaar: ze openen de juiste bestaande tab, starten de Drive-koppeling of tonen praktische tabletuitleg.
+- Geen automatische import, boeking, rapportgeneratie of nieuwe financiële logica toegevoegd.
+
 ## 1.25.32
 - Dashboard-cockpit herwerkt naar `Stappen tot Integratie met Kassa Tool`.
 - De workflow is visueel opgesplitst in `Voor Evenement` en `Na Evenement`.

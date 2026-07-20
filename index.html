@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.32";
+const APP_VERSION = "1.25.33";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -889,6 +889,12 @@ const T = {
     dashboard_cockpit_pricelist: "Prijslijst klaarzetten",
     dashboard_cockpit_drive: "Google Drive connectie controleren",
     dashboard_cockpit_publish: "Prijslijst publiceren naar Kassa Tool",
+    dashboard_cockpit_tablet_load: "Kassa Tool koppelen op tablet",
+    dashboard_cockpit_tablet_load_button: "Toon uitleg",
+    dashboard_cockpit_tablet_load_help: "Open de Kassa Tool op de tablet.\nGa naar Google Drive / Sync.\nTik op verbinden of herverbinden.\nGebruik hetzelfde Google-account.\nTik daarna op Prijslijst laden.\nControleer of de artikelen zichtbaar zijn.\nPas daarna mag de kassa gebruikt worden.",
+    dashboard_cockpit_tablet_export: "Export maken op tablet",
+    dashboard_cockpit_tablet_export_button: "Toon uitleg",
+    dashboard_cockpit_tablet_export_help: "Open de Kassa Tool op de tablet.\nSluit de kassa af.\nTik op Export naar Drive.\nWacht tot de export bevestigd is.\nDaarna kan de Hoofdapp de export ophalen.",
     dashboard_cockpit_exports: "Kassa-export ophalen",
     dashboard_cockpit_process: "Kassa-export verwerken",
     dashboard_cockpit_report: "Eindrapport maken",
@@ -1950,6 +1956,12 @@ const T = {
     dashboard_cockpit_pricelist: "Préparer la liste de prix",
     dashboard_cockpit_drive: "Contrôler la connexion Google Drive",
     dashboard_cockpit_publish: "Publier la liste de prix vers la Kassa Tool",
+    dashboard_cockpit_tablet_load: "Connecter la Kassa Tool sur la tablette",
+    dashboard_cockpit_tablet_load_button: "Voir explication",
+    dashboard_cockpit_tablet_load_help: "Ouvrez la Kassa Tool sur la tablette.\nAllez vers Google Drive / Sync.\nTouchez connecter ou reconnecter.\nUtilisez le même compte Google.\nTouchez ensuite Charger la liste de prix.\nContrôlez que les articles sont visibles.\nLa caisse ne peut être utilisée qu'après cette étape.",
+    dashboard_cockpit_tablet_export: "Créer l'export sur la tablette",
+    dashboard_cockpit_tablet_export_button: "Voir explication",
+    dashboard_cockpit_tablet_export_help: "Ouvrez la Kassa Tool sur la tablette.\nClôturez la caisse.\nTouchez Export vers Drive.\nAttendez la confirmation de l'export.\nEnsuite, l'application principale peut charger l'export.",
     dashboard_cockpit_exports: "Charger l'export caisse",
     dashboard_cockpit_process: "Traiter l'export caisse",
     dashboard_cockpit_report: "Créer le rapport final",
@@ -10326,33 +10338,51 @@ function DashboardCockpit({
     nr: 1,
     title: t.dashboard_cockpit_pricelist,
     status: priceCount > 0 ? statusDone : statusTodo,
-    action: t.dashboard_cockpit_open_pricelist
+    action: t.dashboard_cockpit_open_pricelist,
+    run: () => setTab("prijslijst")
   }, {
     nr: 2,
     title: t.dashboard_cockpit_drive,
     status: drive.connected ? statusDone : statusTodo,
-    action: t.dashboard_cockpit_connect_drive
+    action: t.dashboard_cockpit_connect_drive,
+    run: () => eventToolGDriveConnect()
   }, {
     nr: 3,
     title: t.dashboard_cockpit_publish,
     status: priceListPublished ? statusDone : priceCount > 0 && drive.connected ? statusBusy : statusTodo,
-    action: t.dashboard_cockpit_publish_button
+    action: t.dashboard_cockpit_publish_button,
+    run: () => setTab("prijslijst")
+  }, {
+    nr: 4,
+    title: t.dashboard_cockpit_tablet_load,
+    status: batches.length || bookingCount ? statusDone : priceListPublished ? statusBusy : statusTodo,
+    action: t.dashboard_cockpit_tablet_load_button,
+    run: () => alert(t.dashboard_cockpit_tablet_load_help)
   }];
   const afterSteps = [{
-    nr: 4,
-    title: t.dashboard_cockpit_exports,
-    status: batches.length || bookingCount ? statusDone : statusTodo,
-    action: t.dashboard_cockpit_fetch_exports
-  }, {
     nr: 5,
-    title: t.dashboard_cockpit_process,
-    status: bookingCount ? statusDone : openBatchCount ? statusBusy : statusTodo,
-    action: t.dashboard_cockpit_process_button
+    title: t.dashboard_cockpit_tablet_export,
+    status: batches.length || bookingCount ? statusDone : statusTodo,
+    action: t.dashboard_cockpit_tablet_export_button,
+    run: () => alert(t.dashboard_cockpit_tablet_export_help)
   }, {
     nr: 6,
+    title: t.dashboard_cockpit_exports,
+    status: batches.length || bookingCount ? statusDone : statusTodo,
+    action: t.dashboard_cockpit_fetch_exports,
+    run: () => setTab("kassaExports")
+  }, {
+    nr: 7,
+    title: t.dashboard_cockpit_process,
+    status: bookingCount ? statusDone : openBatchCount ? statusBusy : statusTodo,
+    action: t.dashboard_cockpit_process_button,
+    run: () => setTab("kassaExports")
+  }, {
+    nr: 8,
     title: t.dashboard_cockpit_report,
     status: reportReady ? statusDone : statusTodo,
-    action: t.dashboard_cockpit_report_button
+    action: t.dashboard_cockpit_report_button,
+    run: () => setTab("kassabewegingen")
   }];
   const renderStepCard = step => /*#__PURE__*/React.createElement("div", {
     key: step.nr,
@@ -10402,7 +10432,10 @@ function DashboardCockpit({
   }, step.title), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-primary btn-sm",
-    onClick: event => event.preventDefault()
+    onClick: event => {
+      event.preventDefault();
+      if (typeof step.run === "function") step.run();
+    }
   }, step.action));
   const renderSection = (title, steps) => /*#__PURE__*/React.createElement("section", {
     style: {
