@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.31
+- Google Drive-paneel op het Dashboard compacter gemaakt.
+- Alleen de knoppen `Verbinden/Herverbinden`, `Map openen` en `Ontkoppelen` blijven zichtbaar.
+- De sync-test, archiefcontrole en bijkomende uitlegteksten zijn uit de zichtbare Dashboard-weergave gehaald.
+- Geen wijziging aan Google Drive-authenticatie, bestandsopslag, Kassa-imports, kassaboekingen of rapporten.
+
 ## 1.25.30
 - Dashboard-cockpit toegevoegd voor een eenvoudige workflow rond prijslijst, Drive, Kassa Exports, definitieve kassaboekingen en eindrapport.
 - De cockpit navigeert alleen naar bestaande tabbladen en wijzigt geen import-, Drive-, boekings- of rapportlogica.
