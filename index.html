@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.25";
+const APP_VERSION = "1.25.26";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -489,6 +489,34 @@ async function eventToolGDriveEnsureFolder(folderName, parentId = EVENT_TOOL_SYN
   });
   if (!createResponse.ok) throw new Error(`Drive folder create failed: ${createResponse.status}`);
   return await createResponse.json();
+}
+
+async function eventToolGDriveFindFolder(folderName, parentId = EVENT_TOOL_SYNC_FOLDER_ID) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const q = `name='${eventToolGDriveEscapeQueryValue(folderName)}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,webViewLink)`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!response.ok) throw new Error(`Drive folder search failed: ${response.status}`);
+  const data = await response.json();
+  return data.files && data.files.length ? data.files[0] : null;
+}
+
+async function eventToolGDriveListFilesInFolder(parentId) {
+  if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
+  const q = `'${parentId}' in parents and trashed=false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&orderBy=modifiedTime desc&fields=files(id,name,mimeType,modifiedTime,size,webViewLink)`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${eventToolGDriveAccessToken}`
+    }
+  });
+  if (!response.ok) throw new Error(`Drive folder list failed: ${response.status}`);
+  const data = await response.json();
+  return data.files || [];
 }
 
 async function eventToolGDriveListFilesByPrefix(prefix) {
@@ -727,6 +755,15 @@ const T = {
     gdrive_never: "Nog nooit",
     gdrive_folder: "Drive-map",
     gdrive_ready_hint: "Google Drive is klaar voor sync-test en prijslijstpublicatie. Kassa-import volgt later.",
+    gdrive_archive_title: "Eventarchief",
+    gdrive_archive_check: "Archief controleren",
+    gdrive_archive_checking: "Archief controleren...",
+    gdrive_archive_open_event: "Eventmap openen",
+    gdrive_archive_missing: "Nog geen eventmap gevonden.",
+    gdrive_archive_pricelist: "01 Prijslijst",
+    gdrive_archive_exports: "02 Kassa-exports",
+    gdrive_archive_reports: "03 Rapporten",
+    gdrive_archive_found: "Eventarchief gevonden",
     reset: "Reset",
     help_button: "Werking",
     help_close: "Sluiten",
@@ -1755,6 +1792,15 @@ const T = {
     gdrive_never: "Jamais",
     gdrive_folder: "Dossier Drive",
     gdrive_ready_hint: "Google Drive est prêt pour le test de sync et la publication de la liste de prix. L'import Kassa suivra plus tard.",
+    gdrive_archive_title: "Archive événement",
+    gdrive_archive_check: "Contrôler l'archive",
+    gdrive_archive_checking: "Contrôle de l'archive...",
+    gdrive_archive_open_event: "Ouvrir le dossier événement",
+    gdrive_archive_missing: "Aucun dossier événement trouvé.",
+    gdrive_archive_pricelist: "01 Liste de prix",
+    gdrive_archive_exports: "02 Exports caisse",
+    gdrive_archive_reports: "03 Rapports",
+    gdrive_archive_found: "Archive événement trouvée",
     reset: "Réinitialiser",
     help_button: "Fonctionnement",
     help_close: "Fermer",
@@ -7940,6 +7986,8 @@ function GoogleDrivePanel({
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [archiveStatus, setArchiveStatus] = useState(null);
   useEffect(() => {
     initEventToolGoogleDrive();
     const unsub = eventToolGDriveSubscribe(setDrive);
@@ -7971,6 +8019,56 @@ function GoogleDrivePanel({
       eventToolGDriveEmit();
     } finally {
       setBusy(false);
+    }
+  };
+  const countFolderFiles = async (folderName, parentId) => {
+    const folder = await eventToolGDriveFindFolder(folderName, parentId);
+    if (!folder) return { folder: null, count: 0 };
+    const files = await eventToolGDriveListFilesInFolder(folder.id);
+    return { folder, count: files.filter(file => file.mimeType !== "application/vnd.google-apps.folder").length };
+  };
+  const checkArchive = async () => {
+    setArchiveBusy(true);
+    setMessage(t.gdrive_archive_checking);
+    try {
+      if (!eventToolGDriveIsTokenValid()) {
+        eventToolGDriveConnect();
+        setMessage(t.gdrive_reconnect_saved);
+        return;
+      }
+      const eventFolderName = eventToolGDriveEventFolderNameFromPayload(null, data && data.event || {});
+      const eventFolder = await eventToolGDriveFindFolder(eventFolderName);
+      if (!eventFolder) {
+        setArchiveStatus({
+          eventFolderName,
+          eventFolder: null,
+          pricelist: { count: 0 },
+          exports: { count: 0 },
+          reports: { count: 0 }
+        });
+        setMessage(t.gdrive_archive_missing);
+        return;
+      }
+      const [pricelist, exports, reports] = await Promise.all([
+        countFolderFiles("01-prijslijst", eventFolder.id),
+        countFolderFiles("02-kassa-exports", eventFolder.id),
+        countFolderFiles("03-rapporten", eventFolder.id)
+      ]);
+      setArchiveStatus({
+        eventFolderName,
+        eventFolder,
+        pricelist,
+        exports,
+        reports
+      });
+      setMessage(t.gdrive_archive_found);
+    } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      setMessage(`${t.gdrive_test_error}: ${msg}`);
+      eventToolGDriveEmit();
+    } finally {
+      setArchiveBusy(false);
     }
   };
   return /*#__PURE__*/React.createElement("div", {
@@ -8067,7 +8165,63 @@ function GoogleDrivePanel({
       eventToolGDriveDisconnect();
       setMessage(t.gdrive_not_connected);
     }
-  }, t.gdrive_disconnect)), /*#__PURE__*/React.createElement("p", {
+  }, t.gdrive_disconnect)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "1rem",
+      padding: "0.75rem",
+      border: "1px solid var(--line)",
+      borderRadius: 8,
+      background: "rgba(255,255,255,0.65)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, t.gdrive_archive_title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.45rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    disabled: archiveBusy || !drive.ready,
+    onClick: checkArchive
+  }, archiveBusy ? t.gdrive_archive_checking : t.gdrive_archive_check), archiveStatus && archiveStatus.eventFolder && /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: () => window.open(archiveStatus.eventFolder.webViewLink || `https://drive.google.com/drive/folders/${archiveStatus.eventFolder.id}`, "_blank")
+  }, t.gdrive_archive_open_event))), archiveStatus && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
+      gap: "0.55rem",
+      marginTop: "0.7rem"
+    }
+  }, [[t.gdrive_archive_pricelist, archiveStatus.pricelist.count], [t.gdrive_archive_exports, archiveStatus.exports.count], [t.gdrive_archive_reports, archiveStatus.reports.count]].map(([label, count]) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      border: "1px solid var(--line)",
+      borderRadius: 6,
+      padding: "0.55rem 0.65rem",
+      background: "rgba(255,255,255,0.74)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "0.72rem",
+      color: "var(--ink-soft)",
+      textTransform: "uppercase",
+      fontWeight: 800
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: "1.05rem",
+      fontWeight: 900
+    }
+  }, count))))), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0.8rem 0 0",
       color: "var(--ink-soft)",

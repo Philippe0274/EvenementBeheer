@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.26
+- Dashboard toont nu een read-only Drive-eventarchiefcontrole in het Google Drive-paneel.
+- Nieuwe knop `Archief controleren` telt bestanden in `01-prijslijst`, `02-kassa-exports` en `03-rapporten`.
+- Nieuwe knop `Eventmap openen` opent rechtstreeks de eventmap in Google Drive zodra die gevonden is.
+- Geen wijziging aan prijslijstpublicatie, Kassa-exportmonitor, import, boekingen of rapportberekeningen.
+
 ## 1.25.25
 - Kassa-exportarchief v1 toegevoegd: bij het ophalen van Kassa-exportbestanden bewaart de Hoofdapp een kopie onder `EventToolSync / eventmap / 02-kassa-exports`.
 - De bestaande root-exportbestanden blijven behouden en worden nog niet verplaatst of verwijderd, zodat de huidige monitor- en tabletflow veilig blijft.
