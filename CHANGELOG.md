@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.19
+- Mailvoorbereiding toegevoegd bij het financieel eindrapport in `Kostenbeheer`.
+- Per event kan een aparte ontvangerslijst voor het eindrapport worden ingevuld en bewaard.
+- De knop `Mail eindrapport voorbereiden` downloadt de PDF en opent Gmail via accountpositie `/u/1/` voor `jflores2000@gmail.com` met onderwerp en tweetalige mailtekst.
+- De PDF moet om veiligheidsredenen handmatig als bijlage toegevoegd worden in Gmail.
+
 ## 1.25.18
 - Eindrapport omgevormd naar een net secretariaatsrapport: technische blokken voor Kassa-imports, definitieve kassaboekingen en correctiesamenvatting worden niet meer in de PDF getoond.
 - Kassa- en correctiecijfers blijven volledig meegerekend in de bestaande financiële blokken.
