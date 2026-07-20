@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.30
+- Dashboard-cockpit toegevoegd voor een eenvoudige workflow rond prijslijst, Drive, Kassa Exports, definitieve kassaboekingen en eindrapport.
+- De cockpit navigeert alleen naar bestaande tabbladen en wijzigt geen import-, Drive-, boekings- of rapportlogica.
+- Kassa Exports toont standaard alleen nieuwe, nog niet vastgelegde exports; verwerkte exports blijven beschikbaar via `Oude exports tonen`.
+- De lege status in Kassa Exports is verduidelijkt als er geen nieuwe exports zijn.
+
 ## 1.25.29
 - Kassa Exports toont standaard alleen nog open/nog te verwerken importbatches.
 - Definitief geboekte importbatches blijven bewaard maar worden standaard verborgen achter `Oude exports tonen`.

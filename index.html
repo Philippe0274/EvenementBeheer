@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.29";
+const APP_VERSION = "1.25.30";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -879,6 +879,27 @@ const T = {
     kb_final_mail_missing_recipients: "Vul minstens één ontvanger in.",
     kb_final_mail_attachment_hint: "Voeg het zojuist gedownloade eindrapport toe als bijlage vóór verzending.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
+    dashboard_cockpit_title: "Event afsluiten / Kassa verwerken",
+    dashboard_cockpit_intro: "Eén rustige werkflow voor de belangrijkste stappen. De technische controles blijven beschikbaar in hun eigen tabbladen.",
+    dashboard_cockpit_pricelist: "Prijslijst klaarzetten",
+    dashboard_cockpit_pricelist_ready: n => `${n} artikelen klaar`,
+    dashboard_cockpit_pricelist_empty: "Nog geen artikelen",
+    dashboard_cockpit_drive: "Google Drive",
+    dashboard_cockpit_drive_connected: "Verbonden",
+    dashboard_cockpit_drive_not_connected: "Niet verbonden",
+    dashboard_cockpit_exports: "Kassa-export ophalen",
+    dashboard_cockpit_exports_open: n => `${n} open export${n === 1 ? "" : "s"}`,
+    dashboard_cockpit_exports_done: "Geen open exports",
+    dashboard_cockpit_bookings: "Definitief boeken",
+    dashboard_cockpit_bookings_done: n => `${n} kassaboeking${n === 1 ? "" : "en"}`,
+    dashboard_cockpit_bookings_waiting: "Nog niets geboekt",
+    dashboard_cockpit_report: "Eindrapport maken",
+    dashboard_cockpit_report_ready: "Rapport beschikbaar",
+    dashboard_cockpit_report_waiting: "Nog voorbereiden",
+    dashboard_cockpit_open_pricelist: "Open prijslijst",
+    dashboard_cockpit_open_exports: "Open Kassa Exports",
+    dashboard_cockpit_open_bookings: "Open kassaboekingen",
+    dashboard_cockpit_open_report: "Open eindrapport",
     kb_final_bookings_title: "Definitieve kassaboekingen",
     kb_final_bookings_intro: "De originele kassaboekingen worden nooit aangepast. Correcties worden apart toegevoegd.",
     kb_final_booking_entries: "Boekingsregels",
@@ -905,6 +926,7 @@ const T = {
     kx_refreshing: "Exports ophalen...",
     kx_not_connected: "Google Drive is niet verbonden. Verbind eerst via het Dashboard.",
     kx_none: "Geen kassa-exportbestanden gevonden.",
+    kx_none_new: "Geen nieuwe kassa-export gevonden. Reeds vastgelegde of definitief geboekte exports staan onder Oude exports tonen.",
     kx_found: n => `${n} kassa-exportbestand${n === 1 ? "" : "en"} gevonden.`,
     kx_error: "Kassa-exports ophalen mislukt",
     kx_details: "Details bekijken",
@@ -934,7 +956,7 @@ const T = {
     kx_older_export: "Oudere export",
     kx_show_old_exports: "Oude exports tonen",
     kx_hide_old_exports: "Oude exports verbergen",
-    kx_latest_only_note: "Standaard worden alleen de meest recente exports per kassa getoond.",
+    kx_latest_only_note: "Standaard worden alleen nieuwe, nog niet vastgelegde exports getoond.",
     kx_active_batches_note: "Standaard worden alleen open importbatches getoond.",
     kx_no_active_batches: "Geen open importbatches. Definitief geboekte batches zitten onder Oude exports tonen.",
     kx_preimport_title: "Pre-import controle",
@@ -1920,6 +1942,27 @@ const T = {
     kb_final_mail_missing_recipients: "Saisissez au moins un destinataire.",
     kb_final_mail_attachment_hint: "Ajoutez le rapport final qui vient d'être téléchargé comme pièce jointe avant l'envoi.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
+    dashboard_cockpit_title: "Clôturer l'événement / Traiter la caisse",
+    dashboard_cockpit_intro: "Un flux de travail clair pour les étapes principales. Les contrôles techniques restent disponibles dans leurs onglets.",
+    dashboard_cockpit_pricelist: "Préparer la liste de prix",
+    dashboard_cockpit_pricelist_ready: n => `${n} articles prêts`,
+    dashboard_cockpit_pricelist_empty: "Aucun article",
+    dashboard_cockpit_drive: "Google Drive",
+    dashboard_cockpit_drive_connected: "Connecté",
+    dashboard_cockpit_drive_not_connected: "Non connecté",
+    dashboard_cockpit_exports: "Charger l'export caisse",
+    dashboard_cockpit_exports_open: n => `${n} export${n === 1 ? "" : "s"} ouvert${n === 1 ? "" : "s"}`,
+    dashboard_cockpit_exports_done: "Aucun export ouvert",
+    dashboard_cockpit_bookings: "Comptabiliser définitivement",
+    dashboard_cockpit_bookings_done: n => `${n} écriture${n === 1 ? "" : "s"} caisse`,
+    dashboard_cockpit_bookings_waiting: "Rien comptabilisé",
+    dashboard_cockpit_report: "Créer le rapport final",
+    dashboard_cockpit_report_ready: "Rapport disponible",
+    dashboard_cockpit_report_waiting: "Encore à préparer",
+    dashboard_cockpit_open_pricelist: "Ouvrir liste de prix",
+    dashboard_cockpit_open_exports: "Ouvrir exports caisse",
+    dashboard_cockpit_open_bookings: "Ouvrir écritures caisse",
+    dashboard_cockpit_open_report: "Ouvrir rapport final",
     kb_final_bookings_title: "Écritures caisse définitives",
     kb_final_bookings_intro: "Les écritures caisse originales ne sont jamais modifiées. Les corrections sont ajoutées séparément.",
     kb_final_booking_entries: "Écritures",
@@ -1946,6 +1989,7 @@ const T = {
     kx_refreshing: "Chargement...",
     kx_not_connected: "Google Drive n'est pas connecté. Connectez-le d'abord via le tableau de bord.",
     kx_none: "Aucun export caisse trouvé.",
+    kx_none_new: "Aucun nouvel export caisse trouvé. Les exports déjà enregistrés ou comptabilisés se trouvent sous Afficher anciens exports.",
     kx_found: n => `${n} fichier${n === 1 ? "" : "s"} d'export caisse trouvé${n === 1 ? "" : "s"}.`,
     kx_error: "Échec du chargement des exports caisse",
     kx_details: "Voir détails",
@@ -1975,7 +2019,7 @@ const T = {
     kx_older_export: "Export plus ancien",
     kx_show_old_exports: "Afficher anciens exports",
     kx_hide_old_exports: "Masquer anciens exports",
-    kx_latest_only_note: "Par défaut, seuls les exports les plus récents par caisse sont affichés.",
+    kx_latest_only_note: "Par défaut, seuls les nouveaux exports non enregistrés sont affichés.",
     kx_active_batches_note: "Par défaut, seuls les lots d'import ouverts sont affichés.",
     kx_no_active_batches: "Aucun lot d'import ouvert. Les lots comptabilisés définitivement sont sous Afficher anciens exports.",
     kx_preimport_title: "Contrôle pré-import",
@@ -9380,9 +9424,14 @@ function KassaExportMonitorTab({
       background: "rgba(153,173,122,0.22)"
     };
   };
-  const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId));
   const postedBatchIds = new Set((data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : []).filter(item => item && item.source === "kassa-import" && item.sourceBatchId).map(item => item.sourceBatchId));
   const isPostedImportBatch = batch => !!batch && (batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id));
+  const isExportAlreadyImported = item => {
+    const importPreview = buildKassaImportPreview(item, t);
+    const exportId = item && item.payload && item.payload.export && item.payload.export.exportId || "";
+    return importBatches.some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
+  };
+  const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId) && !isExportAlreadyImported(item));
   const visibleImportBatches = showOldExports ? importBatches : importBatches.filter(batch => !isPostedImportBatch(batch));
   const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
@@ -9801,7 +9850,7 @@ function KassaExportMonitorTab({
       textAlign: "center",
       color: "var(--ink-soft)"
     }
-  }, t.kx_none) : /*#__PURE__*/React.createElement("div", {
+  }, showOldExports ? t.kx_none : t.kx_none_new) : /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -10177,6 +10226,135 @@ function KassaExportMonitorTab({
     }, null, 2))));
   })));
 }
+function DashboardCockpit({
+  data,
+  setTab,
+  t
+}) {
+  const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
+  useEffect(() => {
+    initEventToolGoogleDrive();
+    return eventToolGDriveSubscribe(setDrive);
+  }, []);
+  const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
+  const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
+  const postedBatchIds = new Set(ledgerRows.filter(item => item && item.source === "kassa-import" && item.sourceBatchId).map(item => item.sourceBatchId));
+  const openBatchCount = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length;
+  const bookingCount = ledgerRows.length;
+  const reportReady = bookingCount > 0;
+  const cockpitSteps = [{
+    title: t.dashboard_cockpit_pricelist,
+    status: priceCount ? t.dashboard_cockpit_pricelist_ready(priceCount) : t.dashboard_cockpit_pricelist_empty,
+    ok: priceCount > 0,
+    action: t.dashboard_cockpit_open_pricelist,
+    tab: "prijslijst"
+  }, {
+    title: t.dashboard_cockpit_drive,
+    status: drive.connected ? t.dashboard_cockpit_drive_connected : t.dashboard_cockpit_drive_not_connected,
+    ok: drive.connected,
+    action: drive.connected ? t.dashboard_cockpit_drive_connected : t.gdrive_connect,
+    tab: "dashboard",
+    run: () => {
+      if (!drive.connected) eventToolGDriveConnect();
+    }
+  }, {
+    title: t.dashboard_cockpit_exports,
+    status: openBatchCount ? t.dashboard_cockpit_exports_open(openBatchCount) : t.dashboard_cockpit_exports_done,
+    ok: openBatchCount === 0,
+    action: t.dashboard_cockpit_open_exports,
+    tab: "kassaExports"
+  }, {
+    title: t.dashboard_cockpit_bookings,
+    status: bookingCount ? t.dashboard_cockpit_bookings_done(bookingCount) : t.dashboard_cockpit_bookings_waiting,
+    ok: bookingCount > 0,
+    action: t.dashboard_cockpit_open_bookings,
+    tab: "kassabewegingen"
+  }, {
+    title: t.dashboard_cockpit_report,
+    status: reportReady ? t.dashboard_cockpit_report_ready : t.dashboard_cockpit_report_waiting,
+    ok: reportReady,
+    action: t.dashboard_cockpit_open_report,
+    tab: "kassabewegingen"
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1.35rem",
+      borderLeft: "5px solid var(--green)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      alignItems: "flex-start",
+      flexWrap: "wrap",
+      marginBottom: "0.85rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      margin: 0,
+      fontSize: "1.35rem"
+    }
+  }, "🧭 ", t.dashboard_cockpit_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.35rem 0 0",
+      color: "var(--ink-soft)",
+      maxWidth: 760
+    }
+  }, t.dashboard_cockpit_intro))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+      gap: "0.65rem"
+    }
+  }, cockpitSteps.map((step, index) => /*#__PURE__*/React.createElement("div", {
+    key: step.title,
+    style: {
+      border: "1px solid var(--line)",
+      borderRadius: 8,
+      padding: "0.7rem",
+      background: step.ok ? "rgba(153,173,122,0.12)" : "rgba(192,138,46,0.1)",
+      display: "grid",
+      gap: "0.55rem",
+      minHeight: 142
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.5rem",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      background: "rgba(255,255,255,0.75)",
+      border: "1px solid var(--line)",
+      padding: "0.15rem 0.45rem",
+      fontSize: "0.7rem",
+      fontWeight: 900
+    }
+  }, index + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.2rem 0.5rem",
+      fontSize: "0.7rem",
+      fontWeight: 900,
+      color: step.ok ? "var(--green)" : "var(--amber)",
+      background: step.ok ? "rgba(153,173,122,0.2)" : "rgba(192,138,46,0.14)"
+    }
+  }, step.status)), /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontSize: "0.95rem"
+    }
+  }, step.title), /*#__PURE__*/React.createElement("button", {
+    className: index === 0 || index === 2 ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm",
+    onClick: () => step.run ? step.run() : setTab(step.tab)
+  }, step.action)))));
+}
 function Dashboard({
   data,
   dagen,
@@ -10394,6 +10572,10 @@ function Dashboard({
     t: t
   }), /*#__PURE__*/React.createElement(GoogleDrivePanel, {
     data: data,
+    t: t
+  }), /*#__PURE__*/React.createElement(DashboardCockpit, {
+    data: data,
+    setTab: setTab,
     t: t
   }), heeftData && /*#__PURE__*/React.createElement("div", {
     className: "card",
