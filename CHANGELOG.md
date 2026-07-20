@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.18
+- Eindrapport omgevormd naar een net secretariaatsrapport: technische blokken voor Kassa-imports, definitieve kassaboekingen en correctiesamenvatting worden niet meer in de PDF getoond.
+- Kassa- en correctiecijfers blijven volledig meegerekend in de bestaande financiële blokken.
+- Korte controlezin toegevoegd dat kassagegevens via gecontroleerde Kassa Tool-export verwerkt zijn.
+- PDM-logo subtiel toegevoegd in de footer van het Eindrapport.
+
 ## 1.25.17
 - PDF-weergave van het Eindrapport gecorrigeerd: vinkjes in statusvelden zijn vervangen door `Ja/Nee` en `Oui/Non`, zodat jsPDF geen vreemde tekens meer toont.
 - Geen wijziging aan berekeningen, kassaboekingen, correcties of importlogica.
