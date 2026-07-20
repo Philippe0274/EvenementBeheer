@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.10";
+const APP_VERSION = "1.25.11";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -696,6 +696,31 @@ const T = {
     kb_correction_added: "✓ Correctieboeking toegevoegd.",
     kb_correction_blocked: "Vul een geldig correctiebedrag en een reden in.",
     kb_correction_immutable: "Correctie is apart geboekt; originele ledgerregel blijft ongewijzigd.",
+    kb_final_title: "Eindafrekening",
+    kb_final_badge: "Read-only berekening",
+    kb_final_intro: "Controleoverzicht op basis van definitieve Kassa-ledger, correcties en kosten. Dit wijzigt geen data en maakt nog geen PDF.",
+    kb_final_revenue: "Werkelijke inkomsten",
+    kb_final_costs: "Werkelijke kosten",
+    kb_final_result: "Eindresultaat",
+    kb_final_kassa_net: "Netto kassa",
+    kb_final_sales: "Verkopen",
+    kb_final_donations: "Giften",
+    kb_final_ledger_corrections: "Ledgercorrecties",
+    kb_final_presale: "Voorverkoop",
+    kb_final_other_income: "Zelfinbreng / andere inkomsten",
+    kb_final_room: "Zaal / locatie",
+    kb_final_shop_costs: "Winkelkosten",
+    kb_final_manual_costs: "Manuele kosten",
+    kb_final_payment_control: "Betaalcontrole",
+    kb_final_payments: "Betaalstromen",
+    kb_final_payment_diff: "Verschil omzet/betalingen",
+    kb_final_budget_control: "Budgetcontrole",
+    kb_final_budget_available: "Budget beschikbaar",
+    kb_final_budget_after_costs: "Budget na kosten",
+    kb_final_tickets_info: "Ticketregistraties",
+    kb_final_manifiesta_tickets: "ManiFiesta",
+    kb_final_external_tickets: "Externe tickets",
+    kb_final_no_ledger: "Nog geen definitieve Kassa-ledger geboekt.",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1661,6 +1686,31 @@ const T = {
     kb_correction_added: "✓ Écriture de correction ajoutée.",
     kb_correction_blocked: "Saisissez un montant de correction valide et une raison.",
     kb_correction_immutable: "La correction est comptabilisée séparément; la ligne ledger originale reste inchangée.",
+    kb_final_title: "Décompte final",
+    kb_final_badge: "Calcul en lecture seule",
+    kb_final_intro: "Aperçu de contrôle basé sur le ledger caisse définitif, les corrections et les coûts. Cela ne modifie aucune donnée et ne crée pas encore de PDF.",
+    kb_final_revenue: "Recettes réelles",
+    kb_final_costs: "Coûts réels",
+    kb_final_result: "Résultat final",
+    kb_final_kassa_net: "Caisse nette",
+    kb_final_sales: "Ventes",
+    kb_final_donations: "Dons",
+    kb_final_ledger_corrections: "Corrections ledger",
+    kb_final_presale: "Prévente",
+    kb_final_other_income: "Apports / autres recettes",
+    kb_final_room: "Salle / lieu",
+    kb_final_shop_costs: "Coûts en magasin",
+    kb_final_manual_costs: "Coûts manuels",
+    kb_final_payment_control: "Contrôle paiements",
+    kb_final_payments: "Flux de paiement",
+    kb_final_payment_diff: "Écart recettes/paiements",
+    kb_final_budget_control: "Contrôle budget",
+    kb_final_budget_available: "Budget disponible",
+    kb_final_budget_after_costs: "Budget après coûts",
+    kb_final_tickets_info: "Enregistrements tickets",
+    kb_final_manifiesta_tickets: "ManiFiesta",
+    kb_final_external_tickets: "Tickets externes",
+    kb_final_no_ledger: "Aucun ledger caisse définitif comptabilisé.",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -2950,6 +3000,69 @@ function berekenKosten(data) {
   };
 }
 
+function berekenEindafrekening(data) {
+  const kosten = berekenKosten(data || {});
+  const activeEventId = data && data.activeEventId || data && data.event && data.event.id || "";
+  const isCurrentEvent = item => !activeEventId || !item || !item.eventId || item.eventId === activeEventId;
+  const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(row => row && row.source === "kassa-import" && isCurrentEvent(row)) : [];
+  const corrections = data && data.finance && Array.isArray(data.finance.corrections) ? data.finance.corrections.filter(item => item && item.source === "kassa-ledger-correction" && isCurrentEvent(item)) : [];
+  const sumRows = (rows, type) => rows.filter(row => row.type === type && !row.auditOnly).reduce((sum, row) => sum + getKassaPreviewCents(row.amountCents), 0);
+  const sumCorrections = type => corrections.filter(item => item.type === type).reduce((sum, item) => sum + getKassaPreviewCents(item.amountCents), 0);
+  const salesCents = sumRows(ledgerRows, "sales") + sumCorrections("sales");
+  const donationsCents = sumRows(ledgerRows, "donations") + sumCorrections("donations");
+  const cashCents = sumRows(ledgerRows, "cash") + sumCorrections("cash");
+  const cardCents = sumRows(ledgerRows, "card") + sumCorrections("card");
+  const payconiqCents = sumRows(ledgerRows, "payconiq") + sumCorrections("payconiq");
+  const revenueCorrectionsCents = sumCorrections("sales") + sumCorrections("donations");
+  const paymentCents = cashCents + cardCents + payconiqCents;
+  const kassaNetCents = salesCents + donationsCents;
+  const voorverkoopCents = Math.round((kosten.voorverkoopTotaal || 0) * 100);
+  const otherIncomeCents = Math.round((kosten.zelfinbrengTotaal || 0) * 100);
+  const roomCents = Math.round((kosten.zaalhuur || 0) * 100);
+  const shopCents = Math.round((kosten.winkelTotaal || 0) * 100);
+  const manualCents = Math.round((kosten.manueelTotaal || 0) * 100);
+  const totalRevenueCents = kassaNetCents + voorverkoopCents + otherIncomeCents;
+  const totalCostsCents = roomCents + shopCents + manualCents;
+  const resultCents = totalRevenueCents - totalCostsCents;
+  const budgetCents = Math.round((kosten.budget || 0) * 100);
+  const budgetAfterCostsCents = budgetCents - totalCostsCents;
+  const facts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts.filter(item => item && isCurrentEvent(item)) : [];
+  const ticketCounts = facts.reduce((acc, fact) => {
+    (fact.tickets || []).forEach(ticket => {
+      const qty = parseInt(ticket.quantity, 10) || 0;
+      if (ticket.type === "manifiesta") acc.manifiesta += qty;else if (ticket.type === "external") acc.external += qty;
+    });
+    return acc;
+  }, {
+    manifesta: 0,
+    external: 0
+  });
+  return {
+    ledgerRows,
+    corrections,
+    salesCents,
+    donationsCents,
+    revenueCorrectionsCents,
+    cashCents,
+    cardCents,
+    payconiqCents,
+    paymentCents,
+    kassaNetCents,
+    paymentDifferenceCents: kassaNetCents - paymentCents,
+    voorverkoopCents,
+    otherIncomeCents,
+    totalRevenueCents,
+    roomCents,
+    shopCents,
+    manualCents,
+    totalCostsCents,
+    resultCents,
+    budgetCents,
+    budgetAfterCostsCents,
+    ticketCounts
+  };
+}
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -3978,6 +4091,9 @@ const helpContentNl = [{
     naam: "Correctieboekingen",
     uitleg: "Moet een geboekte Kassa-regel administratief gecorrigeerd worden, voeg dan in Kassa Bewegingen een aparte correctie met bedrag en reden toe. De originele ledgerregel blijft immutable; de eindafrekening rekent later met ledger plus correcties."
   }, {
+    naam: "Eindafrekening controleren",
+    uitleg: "In Kostenbeheer toont de Hoofdapp een read-only eindafrekening. Die combineert definitieve Kassa-ledger, correcties, voorverkoop, zelfinbreng, winkelkosten, zaalhuur en manuele kosten. Budget wordt apart gecontroleerd en telt niet als echte opbrengst."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -4096,6 +4212,9 @@ const helpContentFr = [{
   }, {
     naam: "Écritures de correction",
     uitleg: "Si une ligne caisse comptabilisée doit être corrigée administrativement, ajoutez dans Mouvements de Caisse une correction séparée avec montant et raison. La ligne ledger originale reste immuable; le décompte final utilisera plus tard ledger plus corrections."
+  }, {
+    naam: "Contrôler le décompte final",
+    uitleg: "Dans Gestion des coûts, la Hoofdapp affiche un décompte final en lecture seule. Il combine ledger caisse définitif, corrections, prévente, apports, coûts en magasin, salle et coûts manuels. Le budget est contrôlé séparément et ne compte pas comme recette réelle."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -15813,7 +15932,35 @@ function KostenbeheerTab({
     manueleKosten: []
   };
   const k = berekenKosten(data);
+  const eind = berekenEindafrekening(data);
   const [bezig, setBezig] = React.useState(false);
+  const fmtCents = cents => formatKassaPreviewMoney(cents);
+  const eindLine = (label, valueCents, strong = false, color = "inherit") => /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      padding: "0.22rem 0",
+      borderTop: strong ? "1px solid var(--line)" : "0",
+      fontWeight: strong ? 900 : 600,
+      color
+    }
+  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("strong", null, fmtCents(valueCents)));
+  const eindCard = (title, lines, accent = "#99AD7A") => /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid var(--line)",
+      borderLeft: `4px solid ${accent}`,
+      borderRadius: 7,
+      padding: "0.75rem",
+      background: "rgba(255,255,255,0.72)",
+      display: "grid",
+      gap: "0.35rem"
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontSize: "0.95rem"
+    }
+  }, title), lines);
 
   // Grafiekdata: kostenposten
   const posten = [];
@@ -17031,6 +17178,68 @@ function KostenbeheerTab({
       fontWeight: 600
     }
   }, overBudget ? t.kb_over : t.kb_saldo, ": ", fmtEuro(Math.abs(k.saldo))))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      alignItems: "flex-start",
+      flexWrap: "wrap",
+      marginBottom: "0.8rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: 0,
+      fontSize: "1.15rem"
+    }
+  }, t.kb_final_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.86rem",
+      margin: "0.25rem 0 0"
+    }
+  }, t.kb_final_intro)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.3rem 0.65rem",
+      background: "rgba(153,173,122,0.22)",
+      color: "var(--green)",
+      fontWeight: 900,
+      fontSize: "0.78rem"
+    }
+  }, t.kb_final_badge)), eind.ledgerRows.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "alert-bar",
+    style: {
+      marginBottom: "0.9rem",
+      borderLeftColor: "var(--amber)",
+      background: "rgba(216,155,42,0.12)"
+    }
+  }, t.kb_final_no_ledger), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "0.75rem"
+    }
+  }, eindCard(t.kb_final_revenue, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_sales, eind.salesCents), eindLine(t.kb_final_donations, eind.donationsCents), eindLine(t.kb_final_ledger_corrections, eind.revenueCorrectionsCents), eindLine(t.kb_final_kassa_net, eind.kassaNetCents, true, "var(--green)"), eindLine(t.kb_final_presale, eind.voorverkoopCents), eindLine(t.kb_final_other_income, eind.otherIncomeCents), eindLine(t.kb_final_revenue, eind.totalRevenueCents, true, "var(--green)")), "#99AD7A"), eindCard(t.kb_final_costs, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_room, eind.roomCents), eindLine(t.kb_final_shop_costs, eind.shopCents), eindLine(t.kb_final_manual_costs, eind.manualCents), eindLine(t.kb_final_costs, eind.totalCostsCents, true, "var(--accent)")), "#DE3E3E"), eindCard(t.kb_final_result, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_revenue, eind.totalRevenueCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_result, eind.resultCents, true, eind.resultCents < 0 ? "var(--accent)" : "var(--green)")), eind.resultCents < 0 ? "#DE3E3E" : "#99AD7A"), eindCard(t.kb_final_payment_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_total_cash, eind.cashCents), eindLine(t.kb_total_card, eind.cardCents), eindLine(t.kb_total_payconiq, eind.payconiqCents), eindLine(t.kb_final_payments, eind.paymentCents, true), eindLine(t.kb_final_payment_diff, eind.paymentDifferenceCents, true, Math.abs(eind.paymentDifferenceCents) > 0 ? "var(--amber)" : "var(--green)")), "#d99b2a"), eindCard(t.kb_final_budget_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_budget_available, eind.budgetCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_budget_after_costs, eind.budgetAfterCostsCents, true, eind.budgetAfterCostsCents < 0 ? "var(--accent)" : "var(--green)")), "#6f89b8"), eindCard(t.kb_final_tickets_info, /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "0.22rem 0",
+      fontWeight: 700
+    }
+  }, /*#__PURE__*/React.createElement("span", null, t.kb_final_manifiesta_tickets), /*#__PURE__*/React.createElement("strong", null, eind.ticketCounts.manifesta)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "0.22rem 0",
+      fontWeight: 700
+    }
+  }, /*#__PURE__*/React.createElement("span", null, t.kb_final_external_tickets), /*#__PURE__*/React.createElement("strong", null, eind.ticketCounts.external))), "#9a7bb8"))), /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-display",

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.25.11
+- Read-only eindafrekening toegevoegd in `Kostenbeheer`.
+- Nieuwe berekening `berekenEindafrekening()` combineert definitieve Kassa-ledger, correcties, voorverkoop, zelfinbreng, zaalhuur, winkelkosten en manuele kosten.
+- Budgetcontrole wordt apart getoond: budget telt niet als werkelijke opbrengst in de eindafrekening.
+- Betaalcontrole toont cash/kaart/payconiq tegenover netto kassa en markeert eventuele verschillen.
+- ManiFiesta- en externe ticketregistraties worden informatief als aantallen getoond, zonder financiële impact.
+- Bestaande PDF's, rapporten, ledger-posting, importflow en opslag blijven ongewijzigd.
+- De uitleg onder "Werking/Fonctionnement" is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.10
 - Correctieboekingen toegevoegd aan `Kassa Bewegingen` voor definitief geboekte financiële Kassa-ledgerregels.
 - Correcties worden append-only opgeslagen onder `finance.corrections` met bedrag, reden, optionele opmerking en bronverwijzing naar de originele ledgerregel.
