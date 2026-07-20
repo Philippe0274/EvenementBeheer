@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.28";
+const APP_VERSION = "1.25.29";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -935,6 +935,8 @@ const T = {
     kx_show_old_exports: "Oude exports tonen",
     kx_hide_old_exports: "Oude exports verbergen",
     kx_latest_only_note: "Standaard worden alleen de meest recente exports per kassa getoond.",
+    kx_active_batches_note: "Standaard worden alleen open importbatches getoond.",
+    kx_no_active_batches: "Geen open importbatches. Definitief geboekte batches zitten onder Oude exports tonen.",
     kx_preimport_title: "Pre-import controle",
     kx_ready_later_import: "Klaar voor latere import",
     kx_has_warnings: "Waarschuwingen",
@@ -1974,6 +1976,8 @@ const T = {
     kx_show_old_exports: "Afficher anciens exports",
     kx_hide_old_exports: "Masquer anciens exports",
     kx_latest_only_note: "Par défaut, seuls les exports les plus récents par caisse sont affichés.",
+    kx_active_batches_note: "Par défaut, seuls les lots d'import ouverts sont affichés.",
+    kx_no_active_batches: "Aucun lot d'import ouvert. Les lots comptabilisés définitivement sont sous Afficher anciens exports.",
     kx_preimport_title: "Contrôle pré-import",
     kx_ready_later_import: "Prêt pour import ultérieur",
     kx_has_warnings: "Avertissements",
@@ -9377,6 +9381,11 @@ function KassaExportMonitorTab({
     };
   };
   const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId));
+  const postedBatchIds = new Set((data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : []).filter(item => item && item.source === "kassa-import" && item.sourceBatchId).map(item => item.sourceBatchId));
+  const isPostedImportBatch = batch => !!batch && (batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id));
+  const visibleImportBatches = showOldExports ? importBatches : importBatches.filter(batch => !isPostedImportBatch(batch));
+  const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
+  const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -9425,7 +9434,7 @@ function KassaExportMonitorTab({
     className: "btn btn-ghost btn-sm",
     onClick: () => eventToolGDriveConnect(),
     disabled: !drive.ready
-  }, drive.wantsConnection ? t.gdrive_reconnect : t.gdrive_connect), exportsFound.length > 0 && /*#__PURE__*/React.createElement("button", {
+  }, drive.wantsConnection ? t.gdrive_reconnect : t.gdrive_connect), hasHiddenExportsOrBatches && /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: () => setShowOldExports(value => !value)
   }, showOldExports ? t.kx_hide_old_exports : t.kx_show_old_exports), exportsFound.length > 0 && /*#__PURE__*/React.createElement("span", {
@@ -9434,7 +9443,7 @@ function KassaExportMonitorTab({
       alignSelf: "center",
       fontSize: "0.84rem"
     }
-  }, visibleExports.length, "/", exportsFound.length, " · ", t.kx_latest_only_note)), /*#__PURE__*/React.createElement("p", {
+  }, visibleExports.length, "/", exportsFound.length, " · ", t.kx_latest_only_note, hiddenImportBatchCount > 0 && !showOldExports ? ` · ${hiddenImportBatchCount} ${t.kx_ledger_posted}` : "")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0.8rem 0 0",
       color: message && message.startsWith("✓") ? "var(--green)" : "var(--ink-soft)"
@@ -9468,13 +9477,13 @@ function KassaExportMonitorTab({
       fontWeight: 900,
       fontSize: "0.75rem"
     }
-  }, importBatches.length)), importBatches.length ? /*#__PURE__*/React.createElement("div", {
+  }, visibleImportBatches.length, "/", importBatches.length)), visibleImportBatches.length ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
       gap: "0.5rem"
     }
-  }, importBatches.slice().reverse().map(batch => {
+  }, visibleImportBatches.slice().reverse().map(batch => {
     const validationBadge = validationBadgeFor(batch);
     const report = batch.validationReport;
     const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
@@ -9786,7 +9795,7 @@ function KassaExportMonitorTab({
       margin: 0,
       color: "var(--ink-soft)"
     }
-  }, t.kx_import_batch_none)), visibleExports.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, importBatches.length ? t.kx_no_active_batches : t.kx_import_batch_none)), visibleExports.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",

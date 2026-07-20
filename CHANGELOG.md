@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.29
+- Kassa Exports toont standaard alleen nog open/nog te verwerken importbatches.
+- Definitief geboekte importbatches blijven bewaard maar worden standaard verborgen achter `Oude exports tonen`.
+- De teller bij `Voorbereide importbatches` toont nu zichtbaar/aantal totaal, zodat duidelijk is dat oude batches niet verwijderd zijn.
+- Geen wijziging aan importdata, audittrail, kassaboekingen, Drive-bestanden of financiële rapporten.
+
 ## 1.25.28
 - Kassa Exports: de knop `Definitief boeken` is nu duidelijk statusbewust.
 - Zolang feiten nog niet uitgepakt zijn toont de knop `Eerst feiten uitpakken`; zolang er nog geen boekingsvoorstel is toont hij `Eerst boekingsvoorstel maken`.
