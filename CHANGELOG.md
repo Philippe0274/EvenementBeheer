@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.12
+- Eerste versie van `Eindrapport genereren` toegevoegd bij de read-only Eindafrekening in `Kostenbeheer`.
+- Nieuwe PDF-generator gebruikt dezelfde `berekenEindafrekening()` cijfers als het scherm.
+- Het Eindrapport toont eventnaam, datum, locatie, eindresultaat, inkomsten, kosten, betaalcontrole, budgetcontrole en ticketregistraties.
+- De affiche wordt in het Eindrapport klein naast de titel geplaatst en niet als watermerk gebruikt.
+- Bestaande Kostenbeheer-PDF en andere rapport-PDF's blijven ongewijzigd.
+- De uitleg onder "Werking/Fonctionnement" en de affiche-helptekst zijn bijgewerkt in Nederlands en Frans.
+
 ## 1.25.11
 - Read-only eindafrekening toegevoegd in `Kostenbeheer`.
 - Nieuwe berekening `berekenEindafrekening()` combineert definitieve Kassa-ledger, correcties, voorverkoop, zelfinbreng, zaalhuur, winkelkosten en manuele kosten.

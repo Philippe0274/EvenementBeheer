@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.11";
+const APP_VERSION = "1.25.12";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -721,6 +721,11 @@ const T = {
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Externe tickets",
     kb_final_no_ledger: "Nog geen definitieve Kassa-ledger geboekt.",
+    kb_final_report: "Eindrapport",
+    kb_final_report_button: "📄 Eindrapport genereren",
+    kb_final_report_ready: "✓ Eindrapport aangemaakt",
+    kb_final_report_intro: "Genereer een eerste eindrapport op basis van de gecontroleerde eindafrekening. De affiche staat klein naast de titel en wordt niet als watermerk gebruikt.",
+    kb_final_report_generated: "Gegenereerd op",
     kx_title: "Kassa-exportmonitor",
     kx_intro: "Lees hier de Kassa Tool-exportbestanden uit EventToolSync. Dit is alleen-lezen: er wordt nog niets geïmporteerd, geboekt of verwerkt.",
     kx_refresh: "Exports ophalen",
@@ -1311,7 +1316,7 @@ const T = {
     date: "Datum",
     description: "Beschrijving",
     event_flyer: "Affiche / flyer",
-    event_flyer_help: "Deze afbeelding wordt bewaard bij het evenement en automatisch als zacht watermerk gebruikt in rapport-PDF's.",
+    event_flyer_help: "Deze afbeelding wordt bewaard bij het evenement. In het nieuwe Eindrapport verschijnt ze klein naast de titel; bestaande rapport-PDF's kunnen ze nog als zacht watermerk gebruiken.",
     event_flyer_upload: "Affiche opladen",
     event_flyer_replace: "Affiche vervangen",
     event_flyer_remove: "Affiche verwijderen",
@@ -1711,6 +1716,11 @@ const T = {
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Tickets externes",
     kb_final_no_ledger: "Aucun ledger caisse définitif comptabilisé.",
+    kb_final_report: "Rapport final",
+    kb_final_report_button: "📄 Générer rapport final",
+    kb_final_report_ready: "✓ Rapport final créé",
+    kb_final_report_intro: "Générez un premier rapport final basé sur le décompte final contrôlé. L'affiche est placée en petit à côté du titre et n'est pas utilisée comme filigrane.",
+    kb_final_report_generated: "Généré le",
     kx_title: "Moniteur des exports caisse",
     kx_intro: "Consultez ici les exports de la Kassa Tool dans EventToolSync. Lecture seule: rien n'est encore importé, comptabilisé ou traité.",
     kx_refresh: "Charger les exports",
@@ -2301,7 +2311,7 @@ const T = {
     date: "Date",
     description: "Description",
     event_flyer: "Affiche / dépliant",
-    event_flyer_help: "Cette image est conservée avec l'événement et utilisée automatiquement comme filigrane discret dans les PDF de rapport.",
+    event_flyer_help: "Cette image est conservée avec l'événement. Dans le nouveau rapport final, elle apparaît en petit à côté du titre; les PDF de rapport existants peuvent encore l'utiliser comme filigrane discret.",
     event_flyer_upload: "Télécharger l'affiche",
     event_flyer_replace: "Remplacer l'affiche",
     event_flyer_remove: "Supprimer l'affiche",
@@ -4094,6 +4104,9 @@ const helpContentNl = [{
     naam: "Eindafrekening controleren",
     uitleg: "In Kostenbeheer toont de Hoofdapp een read-only eindafrekening. Die combineert definitieve Kassa-ledger, correcties, voorverkoop, zelfinbreng, winkelkosten, zaalhuur en manuele kosten. Budget wordt apart gecontroleerd en telt niet als echte opbrengst."
   }, {
+    naam: "Eindrapport genereren",
+    uitleg: "Gebruik de knop Eindrapport genereren bij de eindafrekening om een eerste PDF-samenvatting te maken. De affiche staat klein naast de titel en wordt in dit rapport niet als watermerk gebruikt."
+  }, {
     naam: "Waarschuwingen",
     uitleg: "Waarschuwingen zoals eventId verschilt, prijsverschil of prijslijstmutatie blokkeren niet automatisch. Ze tonen wat later bewust verwerkt of gecontroleerd moet worden."
   }, {
@@ -4215,6 +4228,9 @@ const helpContentFr = [{
   }, {
     naam: "Contrôler le décompte final",
     uitleg: "Dans Gestion des coûts, la Hoofdapp affiche un décompte final en lecture seule. Il combine ledger caisse définitif, corrections, prévente, apports, coûts en magasin, salle et coûts manuels. Le budget est contrôlé séparément et ne compte pas comme recette réelle."
+  }, {
+    naam: "Générer le rapport final",
+    uitleg: "Utilisez le bouton Générer rapport final près du décompte final pour créer un premier résumé PDF. L'affiche est placée en petit à côté du titre et n'est pas utilisée comme filigrane dans ce rapport."
   }, {
     naam: "Avertissements",
     uitleg: "Des avertissements comme eventId différent, différence de prix ou mutation de liste de prix ne bloquent pas automatiquement. Ils indiquent ce qui devra être traité ou contrôlé consciemment."
@@ -16584,6 +16600,179 @@ function KostenbeheerTab({
       setBezig(false);
     }
   };
+  const genereerEindrapportPDF = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) {
+      alert(t.kb_pdf_fout);
+      return null;
+    }
+    const doc = new jsPDFns.jsPDF({
+      unit: "mm",
+      format: "a4"
+    });
+    const pageW = 210,
+      pageH = 297,
+      marge = 14;
+    const ROOD = [211, 62, 62],
+      GROEN = [58, 125, 68],
+      DONKER = [26, 22, 18],
+      GRIJS = [110, 105, 96],
+      LIJN = [226, 215, 199],
+      ZACHT = [249, 245, 238];
+    let y = marge;
+    const ensure = nodig => {
+      if (y + nodig > pageH - marge) {
+        doc.addPage();
+        y = marge;
+      }
+    };
+    const money = cents => fmtCents(cents);
+    const sectionTitle = title => {
+      ensure(12);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(title, marge, y);
+      y += 3;
+      doc.setDrawColor(ROOD[0], ROOD[1], ROOD[2]);
+      doc.setLineWidth(0.5);
+      doc.line(marge, y, pageW - marge, y);
+      y += 6;
+    };
+    const row = (label, value, opts = {}) => {
+      ensure(8);
+      doc.setFont("helvetica", opts.strong ? "bold" : "normal");
+      doc.setFontSize(opts.strong ? 10.5 : 9.5);
+      const color = opts.color === "green" ? GROEN : opts.color === "red" ? ROOD : DONKER;
+      doc.setTextColor(color[0], color[1], color[2]);
+      doc.text(String(label || ""), marge, y);
+      doc.text(String(value || ""), pageW - marge, y, {
+        align: "right"
+      });
+      y += opts.strong ? 7 : 6;
+      if (opts.line) {
+        doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+        doc.setLineWidth(0.25);
+        doc.line(marge, y - 3.5, pageW - marge, y - 3.5);
+      }
+    };
+    const headerY = y;
+    const flyer = data.event && data.event.affiche;
+    let textX = marge;
+    if (flyer) {
+      try {
+        const props = doc.getImageProperties(flyer);
+        const maxW = 30;
+        const maxH = 38;
+        let w = maxW;
+        let h = props.height / props.width * w;
+        if (h > maxH) {
+          h = maxH;
+          w = props.width / props.height * h;
+        }
+        doc.addImage(flyer, "JPEG", marge, headerY, w, h);
+        textX = marge + maxW + 8;
+      } catch (e) {/* affiche overslaan als jsPDF ze niet kan lezen */}
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(ROOD[0], ROOD[1], ROOD[2]);
+    doc.text(t.kb_final_report, textX, y + 6);
+    doc.setFontSize(15);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.text(doc.splitTextToSize(data.event.naam || t.no_event, pageW - textX - marge), textX, y + 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+    const eventInfo = [data.event.datum ? formatDate(data.event.datum, lang) : "", buildAddressString(data.event)].filter(Boolean).join(" · ");
+    doc.text(doc.splitTextToSize(eventInfo || "—", pageW - textX - marge), textX, y + 25);
+    doc.text(`${t.kb_final_report_generated}: ${new Date().toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE")}`, textX, y + 33);
+    y = Math.max(headerY + 44, y + 42);
+    doc.setFillColor(ZACHT[0], ZACHT[1], ZACHT[2]);
+    doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+    doc.roundedRect(marge, y, pageW - marge * 2, 22, 2.5, 2.5, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.text(t.kb_final_result, marge + 5, y + 8);
+    doc.setFontSize(17);
+    doc.setTextColor(eind.resultCents < 0 ? ROOD[0] : GROEN[0], eind.resultCents < 0 ? ROOD[1] : GROEN[1], eind.resultCents < 0 ? ROOD[2] : GROEN[2]);
+    doc.text(money(eind.resultCents), pageW - marge - 5, y + 14, {
+      align: "right"
+    });
+    y += 32;
+    sectionTitle(t.kb_final_revenue);
+    row(t.kb_final_sales, money(eind.salesCents));
+    row(t.kb_final_donations, money(eind.donationsCents));
+    row(t.kb_final_ledger_corrections, money(eind.revenueCorrectionsCents));
+    row(t.kb_final_kassa_net, money(eind.kassaNetCents), {
+      strong: true,
+      color: "green",
+      line: true
+    });
+    row(t.kb_final_presale, money(eind.voorverkoopCents));
+    row(t.kb_final_other_income, money(eind.otherIncomeCents));
+    row(t.kb_final_revenue, money(eind.totalRevenueCents), {
+      strong: true,
+      color: "green",
+      line: true
+    });
+    sectionTitle(t.kb_final_costs);
+    row(t.kb_final_room, money(eind.roomCents));
+    row(t.kb_final_shop_costs, money(eind.shopCents));
+    row(t.kb_final_manual_costs, money(eind.manualCents));
+    row(t.kb_final_costs, money(eind.totalCostsCents), {
+      strong: true,
+      color: "red",
+      line: true
+    });
+    sectionTitle(t.kb_final_payment_control);
+    row(t.kb_total_cash, money(eind.cashCents));
+    row(t.kb_total_card, money(eind.cardCents));
+    row(t.kb_total_payconiq, money(eind.payconiqCents));
+    row(t.kb_final_payments, money(eind.paymentCents), {
+      strong: true,
+      line: true
+    });
+    row(t.kb_final_payment_diff, money(eind.paymentDifferenceCents), {
+      strong: true,
+      color: Math.abs(eind.paymentDifferenceCents) > 0 ? "red" : "green"
+    });
+    sectionTitle(t.kb_final_budget_control);
+    row(t.kb_final_budget_available, money(eind.budgetCents));
+    row(t.kb_final_costs, money(eind.totalCostsCents));
+    row(t.kb_final_budget_after_costs, money(eind.budgetAfterCostsCents), {
+      strong: true,
+      color: eind.budgetAfterCostsCents < 0 ? "red" : "green",
+      line: true
+    });
+    sectionTitle(t.kb_final_tickets_info);
+    row(t.kb_final_manifiesta_tickets, String(eind.ticketCounts.manifesta));
+    row(t.kb_final_external_tickets, String(eind.ticketCounts.external));
+    const totaalPaginas = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totaalPaginas; p++) {
+      doc.setPage(p);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.text(`${p} / ${totaalPaginas}`, pageW - marge, pageH - 6, {
+        align: "right"
+      });
+    }
+    return doc;
+  };
+  const downloadEindrapportPDF = () => {
+    setBezig(true);
+    try {
+      const doc = genereerEindrapportPDF();
+      if (!doc) return;
+      const naam = `eindrapport_${(data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      doc.save(naam);
+      showToast(t.kb_final_report_ready);
+    } finally {
+      setBezig(false);
+    }
+  };
 
   // Kasblad: eenvoudige papieren versie voor ter plekke invullen
   const downloadKasblad = () => {
@@ -17239,7 +17428,29 @@ function KostenbeheerTab({
       padding: "0.22rem 0",
       fontWeight: 700
     }
-  }, /*#__PURE__*/React.createElement("span", null, t.kb_final_external_tickets), /*#__PURE__*/React.createElement("strong", null, eind.ticketCounts.external))), "#9a7bb8"))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, t.kb_final_external_tickets), /*#__PURE__*/React.createElement("strong", null, eind.ticketCounts.external))), "#9a7bb8")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.9rem",
+      paddingTop: "0.9rem",
+      borderTop: "1px solid var(--line)",
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.75rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "var(--ink-soft)",
+      fontSize: "0.84rem",
+      margin: 0,
+      maxWidth: 680
+    }
+  }, t.kb_final_report_intro), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: downloadEindrapportPDF,
+    disabled: bezig
+  }, t.kb_final_report_button))), /*#__PURE__*/React.createElement("div", {
     className: "card"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-display",
