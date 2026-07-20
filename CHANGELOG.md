@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.24
+- Officiële beginprijslijst wordt bij publicatie nu ook als archiefkopie bewaard onder `EventToolSync / eventmap / 01-prijslijst`.
+- De bestaande root-publicatie `EventToolSync/kassa-tool-official-start-pricelist.json` blijft behouden voor de huidige Kassa Tool-flow.
+- Herpubliceren vervangt de vorige prijslijstkopie in `01-prijslijst`, zodat per event één actuele startprijslijst zichtbaar blijft.
+
 ## 1.25.23
 - Rapportarchief v1 toegevoegd op Google Drive: Eindrapporten worden nu bewaard onder `EventToolSync / eventmap / 03-rapporten`.
 - De eventmap wordt automatisch aangemaakt op basis van eventnaam, datum en locatie.

@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.23";
+const APP_VERSION = "1.25.24";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -516,9 +516,9 @@ async function eventToolGDriveDownloadJsonById(fileId) {
   return await r.json();
 }
 
-async function eventToolGDriveUploadJson(fileName, payload) {
+async function eventToolGDriveUploadJson(fileName, payload, parentId = EVENT_TOOL_SYNC_FOLDER_ID) {
   if (!eventToolGDriveIsTokenValid()) throw new Error("Google Drive is niet verbonden.");
-  const existing = await eventToolGDriveSearchFile(fileName);
+  const existing = await eventToolGDriveSearchFile(fileName, parentId);
   for (const file of existing) {
     try {
       await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}`, {
@@ -534,7 +534,7 @@ async function eventToolGDriveUploadJson(fileName, payload) {
   const form = new FormData();
   form.append("metadata", new Blob([JSON.stringify({
     name: fileName,
-    parents: [EVENT_TOOL_SYNC_FOLDER_ID]
+    parents: [parentId]
   })], {
     type: "application/json"
   }));
@@ -19079,6 +19079,10 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
     try {
       const payload = buildKassaToolStartPriceListExport();
       await eventToolGDriveUploadJson(EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME, payload);
+      const eventFolderName = [event && event.naam || "evenement", event && event.datum || "", event && (event.gemeente || event.locatieNaam) || ""].filter(Boolean).join("_").replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+      const eventFolder = await eventToolGDriveEnsureFolder(eventFolderName);
+      const priceListFolder = await eventToolGDriveEnsureFolder("01-prijslijst", eventFolder.id);
+      await eventToolGDriveUploadJson(EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME, payload, priceListFolder.id);
       localStorage.setItem("eventtool_gdrive_last_pricelist_publish", String(Date.now()));
       localStorage.removeItem("eventtool_gdrive_last_error");
       eventToolGDriveEmit();
