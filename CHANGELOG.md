@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.16
+- Regressie opgelost waarbij `Eindafrekening` en `Eindrapport` geen kassaboekingen toonden wanneer de Kassa Tool na reset een andere technische `eventId` had.
+- Definitieve kassaboekingen worden nu veilig gekoppeld via de goedgekeurde importbatch wanneer eventnaam en eventdatum overeenkomen met het actieve event.
+- Ticketregistraties en correcties volgen dezelfde batch-koppeling, zonder berekeningen of bestaande boekingen te wijzigen.
+
 ## 1.25.15
 - Eindrapport v2 toegevoegd met extra read-only detailblokken voor `Definitieve kassaboekingen`, gebruikte Kassa-imports en correctiesamenvatting.
 - Zichtbare eindrapport-taal verduidelijkt: gebruikers zien voortaan `kassaboekingen` in plaats van technische ledgerterminologie.

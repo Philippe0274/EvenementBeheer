@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.15";
+const APP_VERSION = "1.25.16";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -3057,9 +3057,33 @@ function berekenKosten(data) {
 function berekenEindafrekening(data) {
   const kosten = berekenKosten(data || {});
   const activeEventId = data && data.activeEventId || data && data.event && data.event.id || "";
-  const isCurrentEvent = item => !activeEventId || !item || !item.eventId || item.eventId === activeEventId;
+  const activeEventRecord = data && Array.isArray(data.events) ? data.events.find(event => event && event.id === activeEventId) : null;
+  const activeEventCandidates = [data && data.event || {}, activeEventRecord || {}, activeEventRecord && activeEventRecord.eventInfo || {}, activeEventRecord && activeEventRecord.snapshot && activeEventRecord.snapshot.eventInfo || {}].filter(Boolean);
+  const importBatches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const batchMatchesCurrentEvent = batch => {
+    if (!batch) return false;
+    if (!activeEventId) return true;
+    if (batch.eventId && batch.eventId === activeEventId) return true;
+    const batchName = normalizeKassaEventName(batch.eventName || "");
+    const batchDate = normalizeKassaEventDate(batch.eventDate || "");
+    return activeEventCandidates.some(candidate => {
+      const activeName = normalizeKassaEventName(getKassaEventNameCandidate(candidate));
+      const activeDate = normalizeKassaEventDate(getKassaEventDateCandidate(candidate));
+      return !!activeName && !!batchName && activeName === batchName && !!activeDate && !!batchDate && activeDate === batchDate;
+    });
+  };
+  const currentBatchIds = new Set(importBatches.filter(batchMatchesCurrentEvent).map(batch => batch.id).filter(Boolean));
+  const isCurrentEvent = item => {
+    if (!activeEventId) return true;
+    if (!item) return false;
+    if (item.eventId && item.eventId === activeEventId) return true;
+    const linkedBatchId = item.sourceBatchId || item.batchId || "";
+    if (linkedBatchId && currentBatchIds.has(linkedBatchId)) return true;
+    return !item.eventId && !linkedBatchId;
+  };
   const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(row => row && row.source === "kassa-import" && isCurrentEvent(row)) : [];
-  const corrections = data && data.finance && Array.isArray(data.finance.corrections) ? data.finance.corrections.filter(item => item && item.source === "kassa-ledger-correction" && isCurrentEvent(item)) : [];
+  const ledgerRowIds = new Set(ledgerRows.map(row => row && row.id).filter(Boolean));
+  const corrections = data && data.finance && Array.isArray(data.finance.corrections) ? data.finance.corrections.filter(item => item && item.source === "kassa-ledger-correction" && (isCurrentEvent(item) || item.sourceLedgerTransactionId && ledgerRowIds.has(item.sourceLedgerTransactionId))) : [];
   const sumRows = (rows, type) => rows.filter(row => row.type === type && !row.auditOnly).reduce((sum, row) => sum + getKassaPreviewCents(row.amountCents), 0);
   const sumCorrections = type => corrections.filter(item => item.type === type).reduce((sum, item) => sum + getKassaPreviewCents(item.amountCents), 0);
   const salesCents = sumRows(ledgerRows, "sales") + sumCorrections("sales");
@@ -3084,7 +3108,7 @@ function berekenEindafrekening(data) {
   const ticketCounts = facts.reduce((acc, fact) => {
     (fact.tickets || []).forEach(ticket => {
       const qty = parseInt(ticket.quantity, 10) || 0;
-      if (ticket.type === "manifiesta") acc.manifiesta += qty;else if (ticket.type === "external") acc.external += qty;
+      if (ticket.type === "manifiesta") acc.manifesta += qty;else if (ticket.type === "external") acc.external += qty;
     });
     return acc;
   }, {
