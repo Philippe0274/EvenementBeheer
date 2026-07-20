@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.13
+- Budgetcontrole in Eindafrekening verduidelijkt: `Budget na kosten` is hernoemd naar `Budgetruimte over` / `Marge budget restante`.
+- Er staat nu expliciet bij dat budget een controlebedrag is en niet meetelt als werkelijke opbrengst.
+- Het Eindrapport is visueel aangepast naar kaartstijl met afgeronde blokken en subtiele linkse accentbanden.
+- De berekening van eindresultaat, budgetcontrole en betaalcontrole is ongewijzigd.
+
 ## 1.25.12
 - Eerste versie van `Eindrapport genereren` toegevoegd bij de read-only Eindafrekening in `Kostenbeheer`.
 - Nieuwe PDF-generator gebruikt dezelfde `berekenEindafrekening()` cijfers als het scherm.

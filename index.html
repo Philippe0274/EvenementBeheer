@@ -271,7 +271,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.12";
+const APP_VERSION = "1.25.13";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -716,7 +716,8 @@ const T = {
     kb_final_payment_diff: "Verschil omzet/betalingen",
     kb_final_budget_control: "Budgetcontrole",
     kb_final_budget_available: "Budget beschikbaar",
-    kb_final_budget_after_costs: "Budget na kosten",
+    kb_final_budget_after_costs: "Budgetruimte over",
+    kb_final_budget_note: "Budget is een controlebedrag en telt niet mee als werkelijke opbrengst.",
     kb_final_tickets_info: "Ticketregistraties",
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Externe tickets",
@@ -1711,7 +1712,8 @@ const T = {
     kb_final_payment_diff: "Écart recettes/paiements",
     kb_final_budget_control: "Contrôle budget",
     kb_final_budget_available: "Budget disponible",
-    kb_final_budget_after_costs: "Budget après coûts",
+    kb_final_budget_after_costs: "Marge budget restante",
+    kb_final_budget_note: "Le budget est un montant de contrôle et ne compte pas comme recette réelle.",
     kb_final_tickets_info: "Enregistrements tickets",
     kb_final_manifiesta_tickets: "ManiFiesta",
     kb_final_external_tickets: "Tickets externes",
@@ -16656,6 +16658,49 @@ function KostenbeheerTab({
         doc.line(marge, y - 3.5, pageW - marge, y - 3.5);
       }
     };
+    const cardBlock = (title, rows, opts = {}) => {
+      const rowHeight = 6;
+      const noteHeight = opts.note ? 7 : 0;
+      const h = 12 + rows.length * rowHeight + noteHeight + 4;
+      ensure(h + 4);
+      const x = marge;
+      const w = pageW - marge * 2;
+      const top = y;
+      const accent = opts.accent || ROOD;
+      doc.setFillColor(255, 252, 247);
+      doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+      doc.roundedRect(x, top, w, h, 2.6, 2.6, "FD");
+      doc.setFillColor(accent[0], accent[1], accent[2]);
+      doc.roundedRect(x, top, 3, h, 2.6, 2.6, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11.5);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(title, x + 7, top + 8);
+      let yy = top + 16;
+      rows.forEach(item => {
+        const color = item.color === "green" ? GROEN : item.color === "red" ? ROOD : DONKER;
+        doc.setFont("helvetica", item.strong ? "bold" : "normal");
+        doc.setFontSize(item.strong ? 10.3 : 9.3);
+        doc.setTextColor(color[0], color[1], color[2]);
+        if (item.line) {
+          doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+          doc.setLineWidth(0.25);
+          doc.line(x + 7, yy - 4, x + w - 7, yy - 4);
+        }
+        doc.text(String(item.label || ""), x + 7, yy);
+        doc.text(String(item.value || ""), x + w - 7, yy, {
+          align: "right"
+        });
+        yy += rowHeight;
+      });
+      if (opts.note) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.1);
+        doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+        doc.text(doc.splitTextToSize(opts.note, w - 14), x + 7, yy + 1);
+      }
+      y = top + h + 6;
+    };
     const headerY = y;
     const flyer = data.event && data.event.affiche;
     let textX = marge;
@@ -16701,54 +16746,101 @@ function KostenbeheerTab({
       align: "right"
     });
     y += 32;
-    sectionTitle(t.kb_final_revenue);
-    row(t.kb_final_sales, money(eind.salesCents));
-    row(t.kb_final_donations, money(eind.donationsCents));
-    row(t.kb_final_ledger_corrections, money(eind.revenueCorrectionsCents));
-    row(t.kb_final_kassa_net, money(eind.kassaNetCents), {
+    cardBlock(t.kb_final_revenue, [{
+      label: t.kb_final_sales,
+      value: money(eind.salesCents)
+    }, {
+      label: t.kb_final_donations,
+      value: money(eind.donationsCents)
+    }, {
+      label: t.kb_final_ledger_corrections,
+      value: money(eind.revenueCorrectionsCents)
+    }, {
+      label: t.kb_final_kassa_net,
+      value: money(eind.kassaNetCents),
       strong: true,
       color: "green",
       line: true
-    });
-    row(t.kb_final_presale, money(eind.voorverkoopCents));
-    row(t.kb_final_other_income, money(eind.otherIncomeCents));
-    row(t.kb_final_revenue, money(eind.totalRevenueCents), {
+    }, {
+      label: t.kb_final_presale,
+      value: money(eind.voorverkoopCents)
+    }, {
+      label: t.kb_final_other_income,
+      value: money(eind.otherIncomeCents)
+    }, {
+      label: t.kb_final_revenue,
+      value: money(eind.totalRevenueCents),
       strong: true,
       color: "green",
       line: true
+    }], {
+      accent: [153, 173, 122]
     });
-    sectionTitle(t.kb_final_costs);
-    row(t.kb_final_room, money(eind.roomCents));
-    row(t.kb_final_shop_costs, money(eind.shopCents));
-    row(t.kb_final_manual_costs, money(eind.manualCents));
-    row(t.kb_final_costs, money(eind.totalCostsCents), {
+    cardBlock(t.kb_final_costs, [{
+      label: t.kb_final_room,
+      value: money(eind.roomCents)
+    }, {
+      label: t.kb_final_shop_costs,
+      value: money(eind.shopCents)
+    }, {
+      label: t.kb_final_manual_costs,
+      value: money(eind.manualCents)
+    }, {
+      label: t.kb_final_costs,
+      value: money(eind.totalCostsCents),
       strong: true,
       color: "red",
       line: true
+    }], {
+      accent: ROOD
     });
-    sectionTitle(t.kb_final_payment_control);
-    row(t.kb_total_cash, money(eind.cashCents));
-    row(t.kb_total_card, money(eind.cardCents));
-    row(t.kb_total_payconiq, money(eind.payconiqCents));
-    row(t.kb_final_payments, money(eind.paymentCents), {
+    cardBlock(t.kb_final_payment_control, [{
+      label: t.kb_total_cash,
+      value: money(eind.cashCents)
+    }, {
+      label: t.kb_total_card,
+      value: money(eind.cardCents)
+    }, {
+      label: t.kb_total_payconiq,
+      value: money(eind.payconiqCents)
+    }, {
+      label: t.kb_final_payments,
+      value: money(eind.paymentCents),
       strong: true,
       line: true
-    });
-    row(t.kb_final_payment_diff, money(eind.paymentDifferenceCents), {
+    }, {
+      label: t.kb_final_payment_diff,
+      value: money(eind.paymentDifferenceCents),
       strong: true,
       color: Math.abs(eind.paymentDifferenceCents) > 0 ? "red" : "green"
+    }], {
+      accent: [217, 155, 42]
     });
-    sectionTitle(t.kb_final_budget_control);
-    row(t.kb_final_budget_available, money(eind.budgetCents));
-    row(t.kb_final_costs, money(eind.totalCostsCents));
-    row(t.kb_final_budget_after_costs, money(eind.budgetAfterCostsCents), {
+    cardBlock(t.kb_final_budget_control, [{
+      label: t.kb_final_budget_available,
+      value: money(eind.budgetCents)
+    }, {
+      label: t.kb_final_costs,
+      value: money(eind.totalCostsCents)
+    }, {
+      label: t.kb_final_budget_after_costs,
+      value: money(eind.budgetAfterCostsCents),
       strong: true,
       color: eind.budgetAfterCostsCents < 0 ? "red" : "green",
       line: true
+    }], {
+      accent: [111, 137, 184],
+      note: t.kb_final_budget_note
     });
-    sectionTitle(t.kb_final_tickets_info);
-    row(t.kb_final_manifiesta_tickets, String(eind.ticketCounts.manifesta));
-    row(t.kb_final_external_tickets, String(eind.ticketCounts.external));
+    cardBlock(t.kb_final_tickets_info, [{
+      label: t.kb_final_manifiesta_tickets,
+      value: String(eind.ticketCounts.manifesta)
+    }, {
+      label: t.kb_final_external_tickets,
+      value: String(eind.ticketCounts.external)
+    }], {
+      accent: [154, 123, 184]
+    });
     const totaalPaginas = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totaalPaginas; p++) {
       doc.setPage(p);
@@ -17414,7 +17506,14 @@ function KostenbeheerTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
       gap: "0.75rem"
     }
-  }, eindCard(t.kb_final_revenue, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_sales, eind.salesCents), eindLine(t.kb_final_donations, eind.donationsCents), eindLine(t.kb_final_ledger_corrections, eind.revenueCorrectionsCents), eindLine(t.kb_final_kassa_net, eind.kassaNetCents, true, "var(--green)"), eindLine(t.kb_final_presale, eind.voorverkoopCents), eindLine(t.kb_final_other_income, eind.otherIncomeCents), eindLine(t.kb_final_revenue, eind.totalRevenueCents, true, "var(--green)")), "#99AD7A"), eindCard(t.kb_final_costs, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_room, eind.roomCents), eindLine(t.kb_final_shop_costs, eind.shopCents), eindLine(t.kb_final_manual_costs, eind.manualCents), eindLine(t.kb_final_costs, eind.totalCostsCents, true, "var(--accent)")), "#DE3E3E"), eindCard(t.kb_final_result, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_revenue, eind.totalRevenueCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_result, eind.resultCents, true, eind.resultCents < 0 ? "var(--accent)" : "var(--green)")), eind.resultCents < 0 ? "#DE3E3E" : "#99AD7A"), eindCard(t.kb_final_payment_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_total_cash, eind.cashCents), eindLine(t.kb_total_card, eind.cardCents), eindLine(t.kb_total_payconiq, eind.payconiqCents), eindLine(t.kb_final_payments, eind.paymentCents, true), eindLine(t.kb_final_payment_diff, eind.paymentDifferenceCents, true, Math.abs(eind.paymentDifferenceCents) > 0 ? "var(--amber)" : "var(--green)")), "#d99b2a"), eindCard(t.kb_final_budget_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_budget_available, eind.budgetCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_budget_after_costs, eind.budgetAfterCostsCents, true, eind.budgetAfterCostsCents < 0 ? "var(--accent)" : "var(--green)")), "#6f89b8"), eindCard(t.kb_final_tickets_info, /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, eindCard(t.kb_final_revenue, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_sales, eind.salesCents), eindLine(t.kb_final_donations, eind.donationsCents), eindLine(t.kb_final_ledger_corrections, eind.revenueCorrectionsCents), eindLine(t.kb_final_kassa_net, eind.kassaNetCents, true, "var(--green)"), eindLine(t.kb_final_presale, eind.voorverkoopCents), eindLine(t.kb_final_other_income, eind.otherIncomeCents), eindLine(t.kb_final_revenue, eind.totalRevenueCents, true, "var(--green)")), "#99AD7A"), eindCard(t.kb_final_costs, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_room, eind.roomCents), eindLine(t.kb_final_shop_costs, eind.shopCents), eindLine(t.kb_final_manual_costs, eind.manualCents), eindLine(t.kb_final_costs, eind.totalCostsCents, true, "var(--accent)")), "#DE3E3E"), eindCard(t.kb_final_result, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_revenue, eind.totalRevenueCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_result, eind.resultCents, true, eind.resultCents < 0 ? "var(--accent)" : "var(--green)")), eind.resultCents < 0 ? "#DE3E3E" : "#99AD7A"), eindCard(t.kb_final_payment_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_total_cash, eind.cashCents), eindLine(t.kb_total_card, eind.cardCents), eindLine(t.kb_total_payconiq, eind.payconiqCents), eindLine(t.kb_final_payments, eind.paymentCents, true), eindLine(t.kb_final_payment_diff, eind.paymentDifferenceCents, true, Math.abs(eind.paymentDifferenceCents) > 0 ? "var(--amber)" : "var(--green)")), "#d99b2a"), eindCard(t.kb_final_budget_control, /*#__PURE__*/React.createElement(React.Fragment, null, eindLine(t.kb_final_budget_available, eind.budgetCents), eindLine(t.kb_final_costs, eind.totalCostsCents), eindLine(t.kb_final_budget_after_costs, eind.budgetAfterCostsCents, true, eind.budgetAfterCostsCents < 0 ? "var(--accent)" : "var(--green)"), /*#__PURE__*/React.createElement("small", {
+    style: {
+      color: "var(--ink-soft)",
+      display: "block",
+      marginTop: "0.4rem",
+      lineHeight: 1.35
+    }
+  }, t.kb_final_budget_note)), "#6f89b8"), eindCard(t.kb_final_tickets_info, /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
