@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.36
+- Kassa Exports toont standaard nog slechts één effectief werkitem.
+- Als er een open importbatch bestaat, wordt alleen die batch getoond en worden ruwe exportkaarten standaard verborgen.
+- Als er geen open importbatch bestaat, toont de app alleen de nieuwste nog niet vastgelegde export om mee te starten.
+- `Oude exports tonen` blijft beschikbaar om alle ruwe exports en oudere batches te bekijken zonder data te verwijderen.
+- Geen wijziging aan Google Drive-bestanden, importdata, boekingslogica, kassaboekingen, correcties of rapportberekeningen.
+
 ## 1.25.35
 - Kassa Exports vereenvoudigd met één primaire knop `Verwerk volgende stap` per export/importbatch.
 - De knop kiest automatisch de juiste bestaande actie: import voorbereiden, valideren, feiten uitpakken, boekingsvoorstel maken of definitief boeken.

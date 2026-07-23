@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.35";
+const APP_VERSION = "1.25.36";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -9559,9 +9559,18 @@ function KassaExportMonitorTab({
     const exportId = item && item.payload && item.payload.export && item.payload.export.exportId || "";
     return importBatches.some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
   };
-  const visibleExports = showOldExports ? exportsFound : exportsFound.filter(item => latestFileIds.has(item.fileId) && !isExportAlreadyImported(item));
-  const visibleImportBatches = showOldExports ? importBatches : importBatches.filter(batch => !isPostedImportBatch(batch));
+  const openImportBatches = importBatches.filter(batch => !isPostedImportBatch(batch)).slice().sort((a, b) => {
+    const aTime = new Date(a.importedAt || a.createdAt || 0).getTime() || 0;
+    const bTime = new Date(b.importedAt || b.createdAt || 0).getTime() || 0;
+    return bTime - aTime;
+  });
+  const activeImportBatch = openImportBatches[0] || null;
+  const candidateExports = exportsFound.filter(item => latestFileIds.has(item.fileId) && !isExportAlreadyImported(item)).slice().sort((a, b) => (b.exportSortTime || 0) - (a.exportSortTime || 0));
+  const activeExport = activeImportBatch ? null : candidateExports[0] || null;
+  const visibleExports = showOldExports ? exportsFound : activeExport ? [activeExport] : [];
+  const visibleImportBatches = showOldExports ? importBatches : activeImportBatch ? [activeImportBatch] : [];
   const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
+  const hideRawExportArea = !showOldExports && visibleImportBatches.length > 0;
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -10036,7 +10045,7 @@ function KassaExportMonitorTab({
       margin: 0,
       color: "var(--ink-soft)"
     }
-  }, importBatches.length ? t.kx_no_active_batches : t.kx_import_batch_none)), visibleExports.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, importBatches.length ? t.kx_no_active_batches : t.kx_import_batch_none)), hideRawExportArea ? null : visibleExports.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "center",
