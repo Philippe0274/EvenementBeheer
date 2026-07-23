@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.36";
+const APP_VERSION = "1.25.37";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -907,6 +907,18 @@ const T = {
     dashboard_cockpit_fetch_exports: "Exports ophalen",
     dashboard_cockpit_process_button: "Verwerk export",
     dashboard_cockpit_report_button: "Maak eindrapport",
+    dashboard_final_title: "Event afsluiten",
+    dashboard_final_intro: "Eén knop begeleidt de eindverwerking. De app kiest telkens de eerstvolgende veilige stap.",
+    dashboard_final_button: "Eindverwerking starten",
+    dashboard_final_details: "Details bekijken",
+    dashboard_final_drive_needed: "Google Drive moet nog verbonden worden.",
+    dashboard_final_exports_needed: "Er is nog geen open Kassa-export. Haal eerst de export uit EventToolSync op.",
+    dashboard_final_validate: "Volgende stap: import controleren.",
+    dashboard_final_extract: "Volgende stap: kassa-feiten lezen.",
+    dashboard_final_preview: "Volgende stap: boekingsvoorstel maken.",
+    dashboard_final_post: "Volgende stap: definitief boeken.",
+    dashboard_final_report: "Kassa is verwerkt. Controleer nu eindafrekening en eindrapport.",
+    dashboard_final_done: "Kassa is definitief verwerkt.",
     kb_final_bookings_title: "Definitieve kassaboekingen",
     kb_final_bookings_intro: "De originele kassaboekingen worden nooit aangepast. Correcties worden apart toegevoegd.",
     kb_final_booking_entries: "Boekingsregels",
@@ -1981,6 +1993,18 @@ const T = {
     dashboard_cockpit_fetch_exports: "Charger exports",
     dashboard_cockpit_process_button: "Traiter export",
     dashboard_cockpit_report_button: "Créer rapport final",
+    dashboard_final_title: "Clôturer l'événement",
+    dashboard_final_intro: "Un seul bouton accompagne le traitement final. L'app choisit chaque fois la prochaine étape sûre.",
+    dashboard_final_button: "Démarrer le traitement final",
+    dashboard_final_details: "Voir détails",
+    dashboard_final_drive_needed: "Google Drive doit encore être connecté.",
+    dashboard_final_exports_needed: "Aucun export caisse ouvert. Chargez d'abord l'export depuis EventToolSync.",
+    dashboard_final_validate: "Étape suivante : contrôler l'import.",
+    dashboard_final_extract: "Étape suivante : lire les faits caisse.",
+    dashboard_final_preview: "Étape suivante : créer la proposition.",
+    dashboard_final_post: "Étape suivante : comptabiliser définitivement.",
+    dashboard_final_report: "La caisse est traitée. Contrôlez maintenant le décompte final et le rapport.",
+    dashboard_final_done: "La caisse est définitivement traitée.",
     kb_final_bookings_title: "Écritures caisse définitives",
     kb_final_bookings_intro: "Les écritures caisse originales ne sont jamais modifiées. Les corrections sont ajoutées séparément.",
     kb_final_booking_entries: "Écritures",
@@ -4392,6 +4416,9 @@ const helpContentNl = [{
     naam: "Kassa afsluiten",
     uitleg: "Sluit de kassa op de tablet af. Daarna wordt export naar Google Drive zichtbaar in de Kassa Tool. Als er toch nog een verkoop komt, kan de kassa opnieuw geopend worden."
   }, {
+    naam: "Eindverwerking starten",
+    uitleg: "Op het Dashboard kan je de knop Eindverwerking starten gebruiken. Die voert telkens de eerstvolgende veilige stap uit of opent het juiste tabblad. Definitief boeken blijft altijd met bevestiging."
+  }, {
     naam: "Exports ophalen",
     uitleg: "Ga in de Hoofdapp naar Kassa Exports en haal de bestanden uit EventToolSync op. Standaard toont de app alleen de meest recente export per event/kassa; oude exports kan je apart tonen. Gebruik daarna telkens Verwerk volgende stap: de app kiest zelf of ze moet voorbereiden, valideren, feiten lezen, een boekingsvoorstel maken of definitief boeken."
   }, {
@@ -4516,6 +4543,9 @@ const helpContentFr = [{
   items: [{
     naam: "Clôturer la caisse",
     uitleg: "Clôturez la caisse sur la tablette. L'export vers Google Drive devient alors visible dans la Kassa Tool. Si une vente arrive encore, la caisse peut être rouverte."
+  }, {
+    naam: "Démarrer le traitement final",
+    uitleg: "Sur le Dashboard, utilisez le bouton Démarrer le traitement final. Il exécute chaque fois la prochaine étape sûre ou ouvre le bon onglet. La comptabilisation définitive demande toujours confirmation."
   }, {
     naam: "Charger les exports",
     uitleg: "Dans la Hoofdapp, allez vers Exports caisse et chargez les fichiers depuis EventToolSync. Par défaut, seuls les exports les plus récents par événement/caisse sont affichés; les anciens exports peuvent être affichés séparément. Utilisez ensuite Traiter l'étape suivante: l'app choisit elle-même s'il faut préparer, valider, lire les faits, créer la proposition ou comptabiliser définitivement."
@@ -7461,6 +7491,10 @@ function App() {
     data: data,
     dagen: dagen,
     setTab: springNaarTab,
+    onValidateImport: validatePreparedKassaImport,
+    onExtractFacts: extractPreparedKassaImportFacts,
+    onCreateLedgerPreview: createKassaLedgerPreview,
+    onPostLedger: postKassaLedgerPreview,
     slaAandachtspuntOver: slaAandachtspuntOver,
     herstelAandachtspunten: herstelAandachtspunten,
     t: t
@@ -10430,6 +10464,10 @@ function KassaExportMonitorTab({
 function DashboardCockpit({
   data,
   setTab,
+  onValidateImport,
+  onExtractFacts,
+  onCreateLedgerPreview,
+  onPostLedger,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -10448,6 +10486,67 @@ function DashboardCockpit({
   const statusTodo = { label: t.dashboard_status_todo, color: "var(--ink-soft)", background: "rgba(80,70,60,0.08)" };
   const statusBusy = { label: t.dashboard_status_busy, color: "var(--amber)", background: "rgba(192,138,46,0.14)" };
   const statusDone = { label: t.dashboard_status_done, color: "var(--green)", background: "rgba(153,173,122,0.22)" };
+  const importFiles = data && data.kassaImports && Array.isArray(data.kassaImports.files) ? data.kassaImports.files : [];
+  const importedFacts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts : [];
+  const ledgerPreviews = data && data.kassaImports && Array.isArray(data.kassaImports.ledgerPreviews) ? data.kassaImports.ledgerPreviews : [];
+  const openBatches = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).slice().sort((a, b) => {
+    const aTime = new Date(a.importedAt || a.createdAt || 0).getTime() || 0;
+    const bTime = new Date(b.importedAt || b.createdAt || 0).getTime() || 0;
+    return bTime - aTime;
+  });
+  const activeBatch = openBatches[0] || null;
+  const activeBatchFacts = activeBatch ? importedFacts.find(item => item && item.batchId === activeBatch.id) : null;
+  const activeBatchPreview = activeBatch ? ledgerPreviews.find(item => item && item.batchId === activeBatch.id) : null;
+  const activeBatchFile = activeBatch ? importFiles.find(file => file && (file.id === activeBatch.fileRecordId || file.batchId === activeBatch.id)) : null;
+  const finalAction = (() => {
+    if (!drive.connected) return {
+      text: t.dashboard_final_drive_needed,
+      status: statusTodo,
+      run: () => eventToolGDriveConnect()
+    };
+    if (activeBatch) {
+      if (!activeBatchFile) return {
+        text: t.dashboard_final_exports_needed,
+        status: statusBusy,
+        run: () => setTab("kassaExports", 6)
+      };
+      if (!activeBatch.validationReport) return {
+        text: t.dashboard_final_validate,
+        status: statusBusy,
+        run: () => onValidateImport && onValidateImport(activeBatch.id)
+      };
+      if (activeBatch.validationReport.errors || activeBatch.status === "validation_failed" || activeBatch.validationStatus === "validation_failed") return {
+        text: t.dashboard_final_exports_needed,
+        status: statusBusy,
+        run: () => setTab("kassaExports", 7)
+      };
+      if (!activeBatchFacts) return {
+        text: t.dashboard_final_extract,
+        status: statusBusy,
+        run: () => onExtractFacts && onExtractFacts(activeBatch.id)
+      };
+      if (!activeBatchPreview) return {
+        text: t.dashboard_final_preview,
+        status: statusBusy,
+        run: () => onCreateLedgerPreview && onCreateLedgerPreview(activeBatch.id)
+      };
+      return {
+        text: t.dashboard_final_post,
+        status: statusBusy,
+        run: () => onPostLedger && onPostLedger(activeBatch.id)
+      };
+    }
+    if (!bookingCount) return {
+      text: t.dashboard_final_exports_needed,
+      status: statusTodo,
+      run: () => setTab("kassaExports", 6)
+    };
+    return {
+      text: t.dashboard_final_report,
+      status: statusDone,
+      run: () => setTab("kostenbeheer", 8)
+    };
+  })();
   const beforeSteps = [{
     nr: 1,
     title: t.dashboard_cockpit_pricelist,
@@ -10600,6 +10699,69 @@ function DashboardCockpit({
     }
   }, t.dashboard_cockpit_intro))), /*#__PURE__*/React.createElement("div", {
     style: {
+      border: "1px solid rgba(153,173,122,0.45)",
+      borderRadius: 10,
+      padding: "1rem",
+      background: "rgba(153,173,122,0.12)",
+      display: "grid",
+      gap: "0.85rem",
+      marginBottom: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.85rem",
+      alignItems: "flex-start",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: 0,
+      fontSize: "1.25rem"
+    }
+  }, "✅ ", t.dashboard_final_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.35rem 0 0",
+      color: "var(--ink-soft)",
+      maxWidth: 720
+    }
+  }, t.dashboard_final_intro)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.35rem 0.75rem",
+      fontWeight: 900,
+      color: finalAction.status.color,
+      background: finalAction.status.background
+    }
+  }, finalAction.status.label)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.75rem",
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary",
+    onClick: event => {
+      event.preventDefault();
+      if (typeof finalAction.run === "function") finalAction.run();
+    }
+  }, t.dashboard_final_button), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-ghost btn-sm",
+    onClick: event => {
+      event.preventDefault();
+      setTab("kassaExports", 7);
+    }
+  }, t.dashboard_final_details), /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: finalAction.status.color
+    }
+  }, finalAction.text))), /*#__PURE__*/React.createElement("div", {
+    style: {
       display: "grid",
       gap: "1rem"
     }
@@ -10688,6 +10850,10 @@ function Dashboard({
   data,
   dagen,
   setTab,
+  onValidateImport,
+  onExtractFacts,
+  onCreateLedgerPreview,
+  onPostLedger,
   slaAandachtspuntOver,
   herstelAandachtspunten,
   t
@@ -10905,6 +11071,10 @@ function Dashboard({
   }), /*#__PURE__*/React.createElement(DashboardCockpit, {
     data: data,
     setTab: setTab,
+    onValidateImport: onValidateImport,
+    onExtractFacts: onExtractFacts,
+    onCreateLedgerPreview: onCreateLedgerPreview,
+    onPostLedger: onPostLedger,
     t: t
   }), heeftData && /*#__PURE__*/React.createElement("div", {
     className: "card",

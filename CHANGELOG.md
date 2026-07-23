@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.25.37
+- Dashboard uitgebreid met één centrale knop `Eindverwerking starten`.
+- De knop kiest telkens de eerstvolgende veilige stap: Drive verbinden, Kassa Exports openen, import valideren, feiten uitpakken, boekingsvoorstel maken, definitief boeken of eindafrekening openen.
+- Definitief boeken blijft via de bestaande bevestiging verlopen; er is geen automatische stille ledger-posting toegevoegd.
+- De bestaande Kassa Exports-flow, boekingslogica, Google Drive-opslag, correcties en rapportberekeningen blijven ongewijzigd.
+- De uitleg onder `Werking` is bijgewerkt in Nederlands en Frans.
+
 ## 1.25.36
 - Kassa Exports toont standaard nog slechts één effectief werkitem.
 - Als er een open importbatch bestaat, wordt alleen die batch getoond en worden ruwe exportkaarten standaard verborgen.
