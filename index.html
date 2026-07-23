@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.34";
+const APP_VERSION = "1.25.35";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1012,6 +1012,10 @@ const T = {
     kx_imported_batches: "Voorbereide importbatches",
     kx_import_batch_status: "Status",
     kx_import_batch_ready: "Klaar voor validatie",
+    kx_next_action: "Verwerk volgende stap",
+    kx_next_done: "Volledig verwerkt",
+    kx_next_blocked: "Geen volgende stap beschikbaar",
+    kx_next_technical_details: "Technische details",
     kx_import_batch_readonly: "Immutable bewaard",
     kx_import_batch_none: "Nog geen Kassa-export als importbatch vastgelegd.",
     kx_validate_import: "Valideer import",
@@ -2082,6 +2086,10 @@ const T = {
     kx_imported_batches: "Lots d'import préparés",
     kx_import_batch_status: "Statut",
     kx_import_batch_ready: "Prêt pour validation",
+    kx_next_action: "Traiter l'étape suivante",
+    kx_next_done: "Entièrement traité",
+    kx_next_blocked: "Aucune étape suivante disponible",
+    kx_next_technical_details: "Détails techniques",
     kx_import_batch_readonly: "Conservé immuable",
     kx_import_batch_none: "Aucun export caisse n'est encore enregistré comme lot d'import.",
     kx_validate_import: "Valider l'import",
@@ -4385,7 +4393,7 @@ const helpContentNl = [{
     uitleg: "Sluit de kassa op de tablet af. Daarna wordt export naar Google Drive zichtbaar in de Kassa Tool. Als er toch nog een verkoop komt, kan de kassa opnieuw geopend worden."
   }, {
     naam: "Exports ophalen",
-    uitleg: "Ga in de Hoofdapp naar Kassa Exports en haal de bestanden uit EventToolSync op. Standaard toont de app alleen de meest recente export per event/kassa; oude exports kan je apart tonen."
+    uitleg: "Ga in de Hoofdapp naar Kassa Exports en haal de bestanden uit EventToolSync op. Standaard toont de app alleen de meest recente export per event/kassa; oude exports kan je apart tonen. Gebruik daarna telkens Verwerk volgende stap: de app kiest zelf of ze moet voorbereiden, valideren, feiten lezen, een boekingsvoorstel maken of definitief boeken."
   }, {
     naam: "Import voorbereiden",
     uitleg: "Een geschikte export kan als immutable importbatch worden vastgelegd. De batch bewaart gebruiker, kassapunt, bronbestand, aantallen transacties/tickets/prijslijstmutaties en de originele payload onder kassaImports.files. Dit boekt nog niets."
@@ -4510,7 +4518,7 @@ const helpContentFr = [{
     uitleg: "Clôturez la caisse sur la tablette. L'export vers Google Drive devient alors visible dans la Kassa Tool. Si une vente arrive encore, la caisse peut être rouverte."
   }, {
     naam: "Charger les exports",
-    uitleg: "Dans la Hoofdapp, allez vers Exports caisse et chargez les fichiers depuis EventToolSync. Par défaut, seuls les exports les plus récents par événement/caisse sont affichés; les anciens exports peuvent être affichés séparément."
+    uitleg: "Dans la Hoofdapp, allez vers Exports caisse et chargez les fichiers depuis EventToolSync. Par défaut, seuls les exports les plus récents par événement/caisse sont affichés; les anciens exports peuvent être affichés séparément. Utilisez ensuite Traiter l'étape suivante: l'app choisit elle-même s'il faut préparer, valider, lire les faits, créer la proposition ou comptabiliser définitivement."
   }, {
     naam: "Préparer l'import",
     uitleg: "Un export utilisable peut être enregistré comme lot d'import immuable. Le lot conserve utilisateur, point caisse, fichier source, nombres de transactions/tickets/mutations de prix et le payload original sous kassaImports.files. Rien n'est comptabilisé."
@@ -9660,11 +9668,45 @@ function KassaExportMonitorTab({
     const ledgerPreview = ledgerPreviews.find(item => item && item.batchId === batch.id);
     const ledgerTransactionsForBatch = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(item => item && item.source === "kassa-import" && item.sourceBatchId === batch.id) : [];
     const isLedgerPosted = batch.ledgerStatus === "posted" || ledgerTransactionsForBatch.length > 0;
+    const canValidateImport = hasPayload && typeof onValidateImport === "function";
     const canExtractFacts = hasPayload && report && !report.errors && !facts && typeof onExtractFacts === "function";
     const canCreateLedgerPreview = !!facts && !ledgerPreview && typeof onCreateLedgerPreview === "function";
     const canPostLedger = !!ledgerPreview && !isLedgerPosted && typeof onPostLedger === "function";
     const postLedgerLabel = isLedgerPosted ? t.kx_ledger_posted : !facts ? t.kx_post_ledger_need_facts : !ledgerPreview ? t.kx_post_ledger_need_preview : t.kx_post_ledger;
     const postLedgerTitle = isLedgerPosted ? t.kx_post_ledger_duplicate : !facts ? t.kx_post_ledger_need_facts : !ledgerPreview ? t.kx_post_ledger_blocked : t.kx_post_ledger;
+    const nextBatchAction = isLedgerPosted ? {
+      label: t.kx_next_done,
+      title: t.kx_post_ledger_duplicate,
+      disabled: true
+    } : !hasPayload ? {
+      label: t.kx_next_blocked,
+      title: t.kx_validation_no_file,
+      disabled: true
+    } : !report ? {
+      label: t.kx_validate_import,
+      title: t.kx_validate_import,
+      disabled: !canValidateImport,
+      onClick: () => onValidateImport && onValidateImport(batch.id)
+    } : report.errors ? {
+      label: t.kx_next_blocked,
+      title: t.kx_facts_blocked,
+      disabled: true
+    } : !facts ? {
+      label: t.kx_extract_facts,
+      title: t.kx_extract_facts,
+      disabled: !canExtractFacts,
+      onClick: () => onExtractFacts && onExtractFacts(batch.id)
+    } : !ledgerPreview ? {
+      label: t.kx_create_ledger_preview,
+      title: t.kx_create_ledger_preview,
+      disabled: !canCreateLedgerPreview,
+      onClick: () => onCreateLedgerPreview && onCreateLedgerPreview(batch.id)
+    } : {
+      label: t.kx_post_ledger,
+      title: t.kx_post_ledger,
+      disabled: !canPostLedger,
+      onClick: () => onPostLedger && onPostLedger(batch.id)
+    };
     return /*#__PURE__*/React.createElement("div", {
       key: batch.id,
       style: {
@@ -9775,6 +9817,36 @@ function KassaExportMonitorTab({
       }
     }, /*#__PURE__*/React.createElement("button", {
       className: "btn btn-primary btn-sm",
+      onClick: nextBatchAction.onClick,
+      disabled: nextBatchAction.disabled,
+      title: nextBatchAction.title,
+      style: nextBatchAction.disabled ? {
+        opacity: 0.72,
+        cursor: "not-allowed"
+      } : undefined
+    }, t.kx_next_action, " · ", nextBatchAction.label)), /*#__PURE__*/React.createElement("details", {
+      style: {
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.45rem 0.55rem",
+        background: "rgba(255,255,255,0.58)"
+      }
+    }, /*#__PURE__*/React.createElement("summary", {
+      style: {
+        cursor: "pointer",
+        fontWeight: 850,
+        color: "var(--ink-soft)",
+        fontSize: "0.78rem"
+      }
+    }, t.kx_next_technical_details), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "0.45rem",
+        flexWrap: "wrap",
+        marginTop: "0.55rem"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn btn-primary btn-sm",
       onClick: () => onValidateImport && onValidateImport(batch.id),
       disabled: !hasPayload || typeof onValidateImport !== "function"
     }, t.kx_validate_import), /*#__PURE__*/React.createElement("button", {
@@ -9796,7 +9868,7 @@ function KassaExportMonitorTab({
         opacity: 0.65,
         cursor: "not-allowed"
       } : undefined
-    }, postLedgerLabel)), facts && /*#__PURE__*/React.createElement("div", {
+    }, postLedgerLabel))), facts && /*#__PURE__*/React.createElement("div", {
       style: {
         border: "1px solid rgba(153,173,122,0.35)",
         borderRadius: 7,
@@ -10126,7 +10198,7 @@ function KassaExportMonitorTab({
       onClick: () => onPrepareImport(item, preImport, importPreview),
       disabled: !canPrepareImport,
       title: alreadyImported ? t.kx_import_duplicate : preImport.status === "error" ? t.kx_import_blocked : t.kx_prepare_import
-    }, alreadyImported ? t.kx_import_duplicate : t.kx_prepare_import), /*#__PURE__*/React.createElement("button", {
+    }, alreadyImported ? t.kx_import_duplicate : `${t.kx_next_action} · ${t.kx_prepare_import}`), /*#__PURE__*/React.createElement("button", {
       className: "btn btn-ghost btn-sm",
       onClick: () => setOpenFileId(isOpen ? "" : item.fileId)
     }, isOpen ? t.kx_close_details : t.kx_details), /*#__PURE__*/React.createElement("span", {

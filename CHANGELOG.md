@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.35
+- Kassa Exports vereenvoudigd met één primaire knop `Verwerk volgende stap` per export/importbatch.
+- De knop kiest automatisch de juiste bestaande actie: import voorbereiden, valideren, feiten uitpakken, boekingsvoorstel maken of definitief boeken.
+- De bestaande technische knoppen blijven behouden onder `Technische details`, zodat controle en herstel mogelijk blijven zonder de normale workflow te belasten.
+- Geen wijziging aan exportcontract, Google Drive-opslag, importdata, boekingslogica, kassaboekingen, correcties of rapportberekeningen.
+
 ## 1.25.34
 - Workflownavigatie toegevoegd voor `Stappen tot Integratie met Kassa Tool`.
 - Wanneer een workflowknop een tabblad opent, toont dat tabblad bovenaan de actieve stap met `Terug naar stappenplan` en `Volgende stap`.
