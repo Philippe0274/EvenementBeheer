@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.38
+- Dashboard verder vereenvoudigd: het 8-stappenblok staat standaard verborgen.
+- De kaart `Event afsluiten` toont nu primair alleen `Eindverwerking starten`, status en `Details bekijken`.
+- `Details bekijken` klapt de bestaande stappen open zonder functionaliteit te verwijderen.
+- Geen wijziging aan import, boekingen, Google Drive, rapporten, correcties of dataopslag.
+
 ## 1.25.37
 - Dashboard uitgebreid met één centrale knop `Eindverwerking starten`.
 - De knop kiest telkens de eerstvolgende veilige stap: Drive verbinden, Kassa Exports openen, import valideren, feiten uitpakken, boekingsvoorstel maken, definitief boeken of eindafrekening openen.
