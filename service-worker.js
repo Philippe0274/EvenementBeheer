@@ -1,4 +1,4 @@
-const APP_VERSION = "1.25.38";
+const APP_VERSION = "1.25.39";
 const CACHE_NAME = `hoofdapp-${APP_VERSION}`;
 const CACHE_PREFIXES = ['hoofdapp-', 'kassa-tool-'];
 const FALLBACK_DOCUMENTS = [

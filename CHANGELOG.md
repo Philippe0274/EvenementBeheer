@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.39
+- Bij het publiceren van de officiële beginprijslijst naar Google Drive wordt nu ook `eventtool-events-index.json` bijgewerkt.
+- Deze event-index bevat het actieve event, de eventmap en de verwijzing naar de officiële Kassa Tool-prijslijst.
+- Dit bereidt de latere Kassa Tool-eventselectie voor zonder de bestaande prijslijstpublicatie, imports, boekingen, rapporten of dataopslag te wijzigen.
+
 ## 1.25.38
 - Dashboard verder vereenvoudigd: het 8-stappenblok staat standaard verborgen.
 - De kaart `Event afsluiten` toont nu primair alleen `Eindverwerking starten`, status en `Details bekijken`.
