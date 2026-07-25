@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.52";
+const APP_VERSION = "1.25.53";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -11771,189 +11771,7 @@ function BeheercentrumTab({
     onPostLedger: onPostLedger,
     t: t,
     initialDetails: true
-  }), /*#__PURE__*/React.createElement("section", {
-    style: {
-      display: "grid",
-      gap: "0.75rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      margin: "0.3rem 0 0",
-      fontSize: "1.15rem"
-    }
-  }, t.center_status_title), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-      gap: "0.75rem"
-    }
-  }, centerStatuses.map(renderStatusCard))), /*#__PURE__*/React.createElement("section", {
-    className: "card",
-    style: {
-      borderLeft: `5px solid ${recommendedAction.status === "done" ? "#99AD7A" : recommendedAction.status === "attention" ? "#e0a227" : "#DE3E3E"}`,
-      background: recommendedAction.status === "done" ? "rgba(153,173,122,0.08)" : "#fffaf2",
-      display: "grid",
-      gridTemplateColumns: "minmax(0, 1fr) auto",
-      gap: "1rem",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "0.65rem",
-      flexWrap: "wrap",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      margin: 0,
-      fontSize: "1.2rem"
-    }
-  }, t.center_next_title), /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.25rem 0.62rem",
-      fontWeight: 900,
-      fontSize: "0.74rem",
-      color: recommendedStyle.color,
-      background: recommendedStyle.background,
-      border: recommendedStyle.border
-    }
-  }, recommendedAction.status === "done" ? t.dashboard_status_done : recommendedAction.status === "attention" ? t.center_attention : t.dashboard_status_todo)), /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: "0.35rem 0 0",
-      color: "var(--ink-soft)"
-    }
-  }, t.center_next_intro), /*#__PURE__*/React.createElement("strong", {
-    style: {
-      display: "block",
-      marginTop: "0.55rem",
-      color: recommendedStyle.color
-    }
-  }, recommendedAction.text)), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn btn-primary",
-    onClick: event => {
-      event.preventDefault();
-      if (typeof recommendedAction.run === "function") recommendedAction.run();
-    }
-  }, recommendedAction.button || t.center_next_button)), /*#__PURE__*/React.createElement("section", {
-    className: "card",
-    style: {
-      borderLeft: "5px solid #99AD7A",
-      background: "#fffaf2",
-      display: "grid",
-      gridTemplateColumns: "minmax(0, 1fr) auto",
-      gap: "1rem",
-      alignItems: "start"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      gap: "0.75rem",
-      flexWrap: "wrap",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: "var(--accent)",
-      fontWeight: 900,
-      textTransform: "uppercase",
-      letterSpacing: "0.08em",
-      fontSize: "0.75rem"
-    }
-  }, t.center_current_event), /*#__PURE__*/React.createElement("h2", {
-    className: "font-display",
-    style: {
-      margin: "0.15rem 0 0"
-    }
-  }, eventInfo.naam || t.no_event)), /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.32rem 0.75rem",
-      background: "rgba(153,173,122,0.22)",
-      color: "var(--green)",
-      fontWeight: 900
-    }
-  }, t.pl_actief)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "0.65rem",
-      marginTop: "0.9rem"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "mini-card"
-  }, /*#__PURE__*/React.createElement("span", null, t.date), /*#__PURE__*/React.createElement("strong", null, eventInfo.datum ? formatDate(eventInfo.datum, data.taal) : "-")), /*#__PURE__*/React.createElement("div", {
-    className: "mini-card"
-  }, /*#__PURE__*/React.createElement("span", null, t.location), /*#__PURE__*/React.createElement("strong", null, eventLocation || "-")), /*#__PURE__*/React.createElement("div", {
-    className: "mini-card"
-  }, /*#__PURE__*/React.createElement("span", null, t.event_flyer), /*#__PURE__*/React.createElement("strong", null, eventInfo.affiche ? t.center_event_flyer_present : t.center_event_flyer_missing))), eventMailInfo && /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: "0.85rem 0 0",
-      color: "var(--ink-soft)",
-      fontSize: "0.86rem"
-    }
-  }, eventMailInfo), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn btn-primary btn-sm",
-    style: {
-      marginTop: "0.9rem"
-    },
-    onClick: () => openTab("event")
-  }, t.center_event_open_details)), eventInfo.affiche && /*#__PURE__*/React.createElement("img", {
-    src: eventInfo.affiche,
-    alt: t.event_flyer,
-    style: {
-      width: 118,
-      height: 154,
-      objectFit: "cover",
-      borderRadius: 8,
-      border: "1px solid var(--line)",
-      boxShadow: "0 8px 22px rgba(67,48,28,0.14)"
-    }
-  })), /*#__PURE__*/React.createElement(GoogleDrivePanel, {
-    data: data,
-    t: t
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      borderLeft: "5px solid var(--amber)",
-      background: "rgba(192,138,46,0.08)"
-    }
-  }, /*#__PURE__*/React.createElement("strong", null, t.center_files_title), /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: "0.35rem 0 0.75rem",
-      color: "var(--ink-soft)"
-    }
-  }, t.center_backup_help), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "0.55rem",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-primary btn-sm",
-    onClick: onBackup
-  }, "💾 ", t.backup_knop), /*#__PURE__*/React.createElement("label", {
-    className: "btn btn-ghost btn-sm",
-    style: {
-      cursor: "pointer"
-    }
-  }, "⬆ ", t.center_restore_backup, /*#__PURE__*/React.createElement("input", {
-    type: "file",
-    accept: ".json,application/json",
-    style: {
-      display: "none"
-    },
-    onChange: event => {
-      if (typeof onRestoreBackup === "function") onRestoreBackup(event.target.files[0]);
-      event.target.value = "";
-    }
-  })))));
+  }));
 }
 function getKassaWorkflowSteps(t) {
   return [{
@@ -22631,4 +22449,6 @@ FASE 2 TOEGEVOEGD
   * export
   * statistieken
 ========================================================= -->
+
+
 

@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.53
+- Beheercentrum verder vereenvoudigd: dubbele technische status-, actie-, event-, Drive- en bestandsblokken worden niet meer standaard getoond.
+- De bestaande workflowkaarten blijven de normale route voor Voor Evenement en Na Evenement.
+- Onderliggende functies en technische schermen blijven bestaan; er is geen wijziging aan opslag, Drive, import, ledger of rapportberekening.
+
 ## 1.25.52
 - Beheercentrum-workflow visueel opgewaardeerd: `Voor Evenement` en `Na Evenement` tonen nu als duidelijke grote faseknoppen.
 - De stappenkaarten staan in een subtiele waaier en voelen meer als een kaartenset zonder de bestaande acties te wijzigen.
@@ -727,6 +732,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 
