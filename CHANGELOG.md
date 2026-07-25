@@ -1,5 +1,9 @@
-# Changelog
+﻿# Changelog
 
+## 1.25.41
+- In `Kassa Exports` is een zichtbare voortgangsbalk toegevoegd tijdens `Exports ophalen`.
+- De gebruiker ziet nu stap voor stap of de Hoofdapp Google Drive controleert, exportbestanden zoekt, bestanden leest, eventmappen bijwerkt en het resultaat toont.
+- De progressie is tweetalig en wijzigt niets aan import, ledger, Drive-contract, Kassa Tool-exportpayload of bestaande boekingslogica.
 ## 1.25.40
 - `eventtool-events-index.json` is voorbereid op meerdere lifecycle-events uit `data.events[]`.
 - Afgesloten en gearchiveerde events worden bewust niet gepubliceerd naar de Kassa Tool-eventkeuze.
@@ -662,3 +666,4 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
