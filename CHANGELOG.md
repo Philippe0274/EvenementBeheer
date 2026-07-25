@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.25.48
+- Afgewerkte workflowkaarten in het Beheercentrum tonen nu het PDM-logo op de omgedraaide kaartzijde.
+- De bestaande kaartstatussen, kliklogica en `Toch openen`-herstelknop blijven ongewijzigd.
+- Geen wijziging aan opslag, Google Drive, Kassa Tool-integratie, import, ledger of rapportberekeningen.
 ## 1.25.47
 - Beheercentrum toont de Kassa Tool-integratiecockpit nu bovenaan als eerste werkblok.
 - Afgewerkte workflowkaarten worden visueel omgedraaid als speelkaart en tonen duidelijk `GEDAAN`.
@@ -698,6 +702,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
