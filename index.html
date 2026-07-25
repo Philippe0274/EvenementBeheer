@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.41";
+const APP_VERSION = "1.25.42";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -773,6 +773,7 @@ const T = {
     backup_mislukt: "De automatische Excel-backup is niet gelukt. Toch doorgaan met het nieuwe evenement? (Niet aanbevolen zonder backup.)",
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard",
+    tab_beheercentrum: "Beheercentrum",
     tab_event: "Event",
     tab_vrijwilligers: "Vrijwilligers",
     weer_laden: "Weer ophalen…",
@@ -920,6 +921,35 @@ const T = {
     dashboard_final_post: "Volgende stap: definitief boeken.",
     dashboard_final_report: "Kassa is verwerkt. Controleer nu eindafrekening en eindrapport.",
     dashboard_final_done: "Kassa is definitief verwerkt.",
+    center_title: "Beheercentrum",
+    center_intro: "Eén centrale plek voor invoer, uploads, downloads, Drive, Kassa Tool en eindverwerking. De bestaande modules blijven beschikbaar voor detailwerk.",
+    center_status_title: "Status vandaag",
+    center_core_title: "Ingeven en beheren",
+    center_files_title: "Bestanden, uploads en downloads",
+    center_kassa_title: "Kassa Tool integratie",
+    center_reports_title: "Rapporten en communicatie",
+    center_open: "Openen",
+    center_action: "Actie",
+    center_done: "Klaar",
+    center_attention: "Aandacht",
+    center_available: "Beschikbaar",
+    center_not_ready: "Nog niet klaar",
+    center_event_data: "Eventgegevens",
+    center_event_data_help: "Naam, datum, locatie, affiche en mailontvangers.",
+    center_volunteers_help: "Vrijwilligers, partners, foto's, adressen en rekeningnummers.",
+    center_tasks_help: "Taken, subtaken, verantwoordelijken en planning.",
+    center_material_help: "Materiaal, oorsprongen, winkels en logo's.",
+    center_pricelist_help: "Officiële beginprijslijst voor het event.",
+    center_bc_help: "Papieren noodprocedure en administratieve invoer.",
+    center_drive_help: "Google Drive-koppeling en EventToolSync-map.",
+    center_backup_help: "Volledige verliesvrije JSON-backup of backup herstellen.",
+    center_exports_help: "Kassa Tool-exportbestanden ophalen en voorbereiden.",
+    center_ledger_help: "Definitieve kassaboekingen en correcties controleren.",
+    center_report_help: "Kostenbeheer, eindafrekening, eindrapport en mail.",
+    center_messages_help: "Berichten, bulk send en groepverzendingen.",
+    center_restore_backup: "Backup herstellen",
+    center_open_drive: "Drive-map openen",
+    center_connect_drive: "Verbinden / Herverbinden",
     kb_final_bookings_title: "Definitieve kassaboekingen",
     kb_final_bookings_intro: "De originele kassaboekingen worden nooit aangepast. Correcties worden apart toegevoegd.",
     kb_final_booking_entries: "Boekingsregels",
@@ -1870,6 +1900,7 @@ const T = {
     backup_mislukt: "La sauvegarde Excel automatique a échoué. Continuer quand même avec le nouvel événement ? (Déconseillé sans sauvegarde.)",
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord",
+    tab_beheercentrum: "Centre de gestion",
     tab_event: "Événement",
     tab_vrijwilligers: "Bénévoles",
     weer_laden: "Chargement de la météo…",
@@ -1977,6 +2008,35 @@ const T = {
     kb_final_mail_missing_recipients: "Saisissez au moins un destinataire.",
     kb_final_mail_attachment_hint: "Ajoutez le rapport final qui vient d'être téléchargé comme pièce jointe avant l'envoi.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
+    center_title: "Centre de gestion",
+    center_intro: "Un point central pour la saisie, les uploads, les téléchargements, Drive, la Kassa Tool et le traitement final. Les modules existants restent disponibles pour le travail détaillé.",
+    center_status_title: "Statut du jour",
+    center_core_title: "Saisir et gérer",
+    center_files_title: "Fichiers, uploads et téléchargements",
+    center_kassa_title: "Intégration Kassa Tool",
+    center_reports_title: "Rapports et communication",
+    center_open: "Ouvrir",
+    center_action: "Action",
+    center_done: "Prêt",
+    center_attention: "Attention",
+    center_available: "Disponible",
+    center_not_ready: "Pas encore prêt",
+    center_event_data: "Données événement",
+    center_event_data_help: "Nom, date, lieu, affiche et destinataires e-mail.",
+    center_volunteers_help: "Bénévoles, partenaires, photos, adresses et comptes bancaires.",
+    center_tasks_help: "Tâches, sous-tâches, responsables et planning.",
+    center_material_help: "Matériel, sources, magasins et logos.",
+    center_pricelist_help: "Liste de prix officielle de départ pour l'événement.",
+    center_bc_help: "Procédure papier de secours et saisie administrative.",
+    center_drive_help: "Connexion Google Drive et dossier EventToolSync.",
+    center_backup_help: "Sauvegarde JSON complète sans perte ou restauration.",
+    center_exports_help: "Charger et préparer les exports de la Kassa Tool.",
+    center_ledger_help: "Contrôler les écritures caisse définitives et corrections.",
+    center_report_help: "Gestion des coûts, décompte final, rapport final et e-mail.",
+    center_messages_help: "Messages, envoi groupé et groupes d'envoi.",
+    center_restore_backup: "Restaurer backup",
+    center_open_drive: "Ouvrir dossier Drive",
+    center_connect_drive: "Connecter / reconnecter",
     dashboard_cockpit_title: "Étapes jusqu'à l'intégration avec la Kassa Tool",
     dashboard_cockpit_intro: "Suivez ces étapes simples avant et après l'événement.",
     dashboard_cockpit_before_event: "Avant l'événement",
@@ -7488,7 +7548,7 @@ function App() {
     }
   }, "\u26A0\uFE0F"), t.reset)))), /*#__PURE__*/React.createElement("nav", {
     className: "tab-nav"
-  }, [["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["kassaExports", t.tab_kassa_exports], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
+  }, [["dashboard", t.tab_dashboard], ["beheercentrum", t.tab_beheercentrum], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["kassaExports", t.tab_kassa_exports], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
     key: k,
     className: `tab-btn ${tab === k ? "active" : ""}`,
     onClick: () => wisselTab(k)
@@ -7520,6 +7580,16 @@ function App() {
     onPostLedger: postKassaLedgerPreview,
     slaAandachtspuntOver: slaAandachtspuntOver,
     herstelAandachtspunten: herstelAandachtspunten,
+    t: t
+  }), tab === "beheercentrum" && /*#__PURE__*/React.createElement(BeheercentrumTab, {
+    data: data,
+    setTab: springNaarTab,
+    onValidateImport: validatePreparedKassaImport,
+    onExtractFacts: extractPreparedKassaImportFacts,
+    onCreateLedgerPreview: createKassaLedgerPreview,
+    onPostLedger: postKassaLedgerPreview,
+    onBackup: algemeneBackup,
+    onRestoreBackup: herstelBackup,
     t: t
   }), tab === "event" && /*#__PURE__*/React.createElement(EventTab, {
     event: data.event,
@@ -10594,10 +10664,11 @@ function DashboardCockpit({
   onExtractFacts,
   onCreateLedgerPreview,
   onPostLedger,
-  t
+  t,
+  initialDetails = false
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
-  const [showWorkflowDetails, setShowWorkflowDetails] = useState(false);
+  const [showWorkflowDetails, setShowWorkflowDetails] = useState(initialDetails);
   useEffect(() => {
     initEventToolGoogleDrive();
     return eventToolGDriveSubscribe(setDrive);
@@ -10893,6 +10964,197 @@ function DashboardCockpit({
       gap: "1rem"
     }
   }, renderSection(t.dashboard_cockpit_before_event, beforeSteps), renderSection(t.dashboard_cockpit_after_event, afterSteps)));
+}
+function BeheercentrumTab({
+  data,
+  setTab,
+  onValidateImport,
+  onExtractFacts,
+  onCreateLedgerPreview,
+  onPostLedger,
+  onBackup,
+  onRestoreBackup,
+  t
+}) {
+  const openTab = (tabName, stepNr = null) => typeof setTab === "function" && setTab(tabName, stepNr);
+  const count = value => Array.isArray(value) ? value.length : 0;
+  const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
+  const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
+  const quickLinks = [{
+    title: t.center_event_data,
+    help: t.center_event_data_help,
+    value: data.event && data.event.naam || "-",
+    action: () => openTab("event")
+  }, {
+    title: t.tab_vrijwilligers,
+    help: t.center_volunteers_help,
+    value: count(data.vrijwilligers),
+    action: () => openTab("vrijwilligers")
+  }, {
+    title: t.tab_taken,
+    help: t.center_tasks_help,
+    value: count(data.taken),
+    action: () => openTab("taken")
+  }, {
+    title: t.tab_materiaal,
+    help: t.center_material_help,
+    value: count(data.materiaal),
+    action: () => openTab("materiaal")
+  }, {
+    title: t.tab_prijslijst,
+    help: t.center_pricelist_help,
+    value: count(data.prijslijst),
+    action: () => openTab("prijslijst", 1)
+  }, {
+    title: t.tab_business_continuity,
+    help: t.center_bc_help,
+    value: data.businessContinuity && Array.isArray(data.businessContinuity.sheetSets) ? data.businessContinuity.sheetSets.length : 0,
+    action: () => openTab("businessContinuity")
+  }, {
+    title: t.tab_kassa_exports,
+    help: t.center_exports_help,
+    value: batches.length,
+    action: () => openTab("kassaExports", 6)
+  }, {
+    title: t.tab_kassabewegingen,
+    help: t.center_ledger_help,
+    value: ledgerRows.length,
+    action: () => openTab("kassabewegingen")
+  }, {
+    title: t.kb_final_report,
+    help: t.center_report_help,
+    value: ledgerRows.length ? t.center_available : t.center_not_ready,
+    action: () => openTab("kostenbeheer", 8)
+  }, {
+    title: t.tab_berichten,
+    help: t.center_messages_help,
+    value: count(data.sjablonen),
+    action: () => openTab("berichten")
+  }];
+  const renderQuickLink = item => /*#__PURE__*/React.createElement("div", {
+    key: item.title,
+    className: "card",
+    style: {
+      minHeight: 142,
+      display: "grid",
+      gap: "0.55rem",
+      borderLeft: "5px solid #99AD7A",
+      background: "#fffaf2"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "0.65rem",
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.25rem 0.62rem",
+      background: "rgba(153,173,122,0.2)",
+      color: "var(--green)",
+      fontWeight: 900,
+      fontSize: "0.74rem"
+    }
+  }, item.value)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: "var(--ink-soft)",
+      fontSize: "0.86rem",
+      lineHeight: 1.35
+    }
+  }, item.help), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary btn-sm",
+    onClick: item.action
+  }, t.center_open));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      borderLeft: "5px solid var(--accent)"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      marginTop: 0
+    }
+  }, "🧰 ", t.center_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: "var(--ink-soft)",
+      maxWidth: 880
+    }
+  }, t.center_intro)), /*#__PURE__*/React.createElement(GoogleDrivePanel, {
+    data: data,
+    t: t
+  }), /*#__PURE__*/React.createElement(DashboardCockpit, {
+    data: data,
+    setTab: setTab,
+    onValidateImport: onValidateImport,
+    onExtractFacts: onExtractFacts,
+    onCreateLedgerPreview: onCreateLedgerPreview,
+    onPostLedger: onPostLedger,
+    t: t,
+    initialDetails: true
+  }), /*#__PURE__*/React.createElement("section", {
+    style: {
+      display: "grid",
+      gap: "0.75rem"
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: "0.3rem 0 0",
+      fontSize: "1.15rem"
+    }
+  }, t.center_core_title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "0.85rem"
+    }
+  }, quickLinks.map(renderQuickLink))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      borderLeft: "5px solid var(--amber)",
+      background: "rgba(192,138,46,0.08)"
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, t.center_files_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.35rem 0 0.75rem",
+      color: "var(--ink-soft)"
+    }
+  }, t.center_backup_help), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.55rem",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-primary btn-sm",
+    onClick: onBackup
+  }, "💾 ", t.backup_knop), /*#__PURE__*/React.createElement("label", {
+    className: "btn btn-ghost btn-sm",
+    style: {
+      cursor: "pointer"
+    }
+  }, "⬆ ", t.center_restore_backup, /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".json,application/json",
+    style: {
+      display: "none"
+    },
+    onChange: event => {
+      if (typeof onRestoreBackup === "function") onRestoreBackup(event.target.files[0]);
+      event.target.value = "";
+    }
+  })))));
 }
 function getKassaWorkflowSteps(t) {
   return [{

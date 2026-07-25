@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.42
+- Nieuw centraal tabblad Beheercentrum toegevoegd als veilige startplek voor beheer, bestanden, Drive, Kassa Tool-integratie, eindverwerking en rapporten.
+- Het Beheercentrum gebruikt uitsluitend bestaande functies en opent bestaande modules; er is geen wijziging aan dataflow, import, ledger, rapportberekeningen, Google Drive-contract of Kassa Tool-exportpayload.
+- Backup/restore, Google Drive, Kassa Exports, Kassa Bewegingen, Business Continuity, eindrapporten en berichten blijven technisch ongewijzigd maar zijn centraler bereikbaar.
+
 ## 1.25.41
 - In `Kassa Exports` is een zichtbare voortgangsbalk toegevoegd tijdens `Exports ophalen`.
 - De gebruiker ziet nu stap voor stap of de Hoofdapp Google Drive controleert, exportbestanden zoekt, bestanden leest, eventmappen bijwerkt en het resultaat toont.
@@ -666,4 +671,5 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
