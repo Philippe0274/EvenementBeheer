@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.44
+- Beheercentrum uitgebreid met compacte statuskaarten voor Eventgegevens, Prijslijst, Google Drive, Kassa Exports/Kassaboekingen en Eindrapport.
+- De statuskaarten lezen alleen bestaande gegevens en openen bestaande modules; ze wijzigen geen data, import, ledger, rapportberekening of Google Drive-contract.
+- De statusweergave is tweetalig en maakt de centrale workflow duidelijker zonder technische details verplicht te tonen.
+
 ## 1.25.43
 - Beheercentrum staat nu als eerste tab en opent standaard als centrale startplek van de Hoofdapp.
 - In Beheercentrum is een read-only Eventgegevens-kaart toegevoegd met eventnaam, datum, locatie, status, affiche-indicatie, mailgegevens en affiche-preview.
@@ -676,6 +681,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
