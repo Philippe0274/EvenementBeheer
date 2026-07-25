@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.53";
+const APP_VERSION = "1.25.54";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -11057,9 +11057,9 @@ function DashboardCockpit({
       style: {
         ...panelBase,
         transform: "rotateY(180deg)",
-        border: "1px solid rgba(153,173,122,0.56)",
-        borderLeft: "5px solid #99AD7A",
-        background: "radial-gradient(circle at 50% 46%, rgba(255,250,242,0.95), rgba(153,173,122,0.2) 66%), repeating-linear-gradient(45deg, rgba(153,173,122,0.16) 0 6px, rgba(255,250,242,0.56) 6px 12px)",
+        border: "1px solid rgba(224,162,39,0.58)",
+        borderLeft: "5px solid var(--amber)",
+        background: "radial-gradient(circle at 50% 46%, rgba(255,250,242,0.96), rgba(224,162,39,0.32) 66%), repeating-linear-gradient(45deg, rgba(224,162,39,0.24) 0 6px, rgba(255,250,242,0.62) 6px 12px)",
         alignContent: "space-between",
         justifyItems: "center",
         textAlign: "center",
@@ -11098,14 +11098,14 @@ function DashboardCockpit({
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(153,173,122,0.28)",
-        color: "var(--green)",
+        background: "rgba(224,162,39,0.24)",
+        color: "var(--amber)",
         fontWeight: 950,
-        border: "1px solid rgba(153,173,122,0.42)"
+        border: "1px solid rgba(224,162,39,0.44)"
       }
     }, step.nr), /*#__PURE__*/React.createElement("strong", {
       style: {
-        color: "var(--green)",
+        color: "var(--amber)",
         fontSize: "1.04rem",
         letterSpacing: "0.02em"
       }
