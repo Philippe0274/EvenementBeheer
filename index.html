@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.49";
+const APP_VERSION = "1.25.50";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -437,6 +437,12 @@ function eventToolGDriveConnect() {
     login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
   });
   return true;
+}
+
+function eventToolGDriveReconnect() {
+  eventToolGDriveAccessToken = null;
+  eventToolGDriveTokenExpiry = 0;
+  return eventToolGDriveConnect();
 }
 
 function eventToolGDriveDisconnect() {
@@ -10890,7 +10896,7 @@ function DashboardCockpit({
     title: t.dashboard_cockpit_drive,
     status: drive.connected ? statusDone : statusTodo,
     action: t.dashboard_cockpit_connect_drive,
-    run: () => eventToolGDriveConnect()
+    run: () => eventToolGDriveReconnect()
   }, {
     nr: 3,
     title: t.dashboard_cockpit_publish,
@@ -10948,7 +10954,7 @@ function DashboardCockpit({
       padding: "0.8rem",
       display: "grid",
       gap: "0.7rem",
-      minHeight: 156,
+      minHeight: 176,
       backfaceVisibility: "hidden",
       WebkitBackfaceVisibility: "hidden",
       boxShadow: isCurrent ? "0 10px 24px rgba(222,62,62,0.12)" : "0 8px 18px rgba(67,48,28,0.08)"
@@ -10956,7 +10962,7 @@ function DashboardCockpit({
     return /*#__PURE__*/React.createElement("div", {
       key: step.nr,
       style: {
-        minHeight: 156,
+        minHeight: 176,
         perspective: 900
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -10968,7 +10974,7 @@ function DashboardCockpit({
       },
       style: {
         position: "relative",
-        minHeight: 156,
+        minHeight: 176,
         transformStyle: "preserve-3d",
         transition: "transform 260ms ease",
         transform: isDone ? "rotateY(180deg)" : "rotateY(0deg)",
@@ -11026,26 +11032,39 @@ function DashboardCockpit({
         ...panelBase,
         transform: "rotateY(180deg)",
         borderLeft: "5px solid #99AD7A",
-        background: "linear-gradient(135deg, rgba(153,173,122,0.22), #fffaf2 58%)",
-        alignContent: "center",
+        background: "linear-gradient(135deg, rgba(153,173,122,0.18), #fffaf2 62%)",
+        alignContent: "space-between",
         justifyItems: "center",
-        textAlign: "center"
+        textAlign: "center",
+        overflow: "hidden"
       }
     }, /*#__PURE__*/React.createElement("img", {
       src: "./assets/pdm-logo.png",
       alt: "PDM Philippe De Meersman",
       style: {
-        width: 76,
-        maxWidth: "58%",
-        height: 42,
+        position: "absolute",
+        inset: "0.65rem 0.65rem auto auto",
+        width: 86,
+        maxWidth: "48%",
+        height: 48,
         objectFit: "contain",
         borderRadius: 6,
-        boxShadow: "0 6px 14px rgba(67,48,28,0.12)"
+        opacity: 0.22,
+        pointerEvents: "none"
       }
     }), /*#__PURE__*/React.createElement("div", {
       style: {
-        width: 36,
-        height: 36,
+        display: "grid",
+        gap: "0.36rem",
+        justifyItems: "center",
+        position: "relative",
+        zIndex: 1,
+        paddingTop: "0.1rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 34,
+        height: 34,
         borderRadius: "50%",
         display: "inline-flex",
         alignItems: "center",
@@ -11058,18 +11077,25 @@ function DashboardCockpit({
     }, step.nr), /*#__PURE__*/React.createElement("strong", {
       style: {
         color: "var(--green)",
-        fontSize: "1.08rem",
+        fontSize: "1.04rem",
         letterSpacing: "0.02em"
       }
     }, t.dashboard_card_done), /*#__PURE__*/React.createElement("span", {
       style: {
         color: "var(--ink)",
         fontWeight: 850,
-        lineHeight: 1.22
+        lineHeight: 1.18,
+        fontSize: "0.86rem",
+        maxWidth: "92%"
       }
-    }, step.title), /*#__PURE__*/React.createElement("button", {
+    }, step.title)), /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn btn-ghost btn-sm",
+      style: {
+        position: "relative",
+        zIndex: 2,
+        alignSelf: "end"
+      },
       onClick: event => {
         event.stopPropagation();
         openStep(event);

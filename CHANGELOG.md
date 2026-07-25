@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.25.50
+- `Toch openen` op de Google Drive-connectiekaart start nu expliciet een herverbinding in plaats van alleen de bestaande status te verversen.
+- De achterkant van afgewerkte workflowkaarten is ruimer gemaakt en toont het PDM-logo als subtiel watermerk in de kaart.
+- De knop `Toch openen` wordt niet langer overlapt door het logo op de eerste rij kaarten.
+- Geen wijziging aan opslag, Drive-contract, import, ledger, rapportberekening of Kassa Tool-data.
+
 ## 1.25.49
 - De hoofdnavigatie is vereenvoudigd: dagelijkse werktabs blijven direct zichtbaar, technische/controle-tabs staan onder `Technische details`.
 - Beheercentrum blijft de centrale startplek en de volledige workflow blijft bereikbaar via de bestaande stappenkaarten.
@@ -709,6 +715,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 
