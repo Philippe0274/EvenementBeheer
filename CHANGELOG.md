@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.46
+- Beheercentrum visueel opgesplitst in twee grote hoofdblokken: Voor event en Na event.
+- De blokken bundelen bestaande veilige acties rond voorbereiding, tablet/Kassa Tool, exportverwerking, kostencontrole, rapportering, communicatie en backup.
+- Dit is een UI-herordening: bestaande tabs, opslag, Google Drive, import, ledger, rapportberekeningen en Kassa Tool-contract blijven ongewijzigd.
+
 ## 1.25.45
 - Beheercentrum uitgebreid met één duidelijke kaart Volgende aanbevolen actie.
 - De aanbevolen actie bepaalt op basis van bestaande data de veiligste volgende stap: event aanvullen, prijslijst klaarzetten/publiceren, Drive verbinden, Kassa-export openen, import valideren, feiten uitpakken, boekingsvoorstel maken, definitief boeken of eindrapport openen.
@@ -686,6 +691,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

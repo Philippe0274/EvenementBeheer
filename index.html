@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.45";
+const APP_VERSION = "1.25.46";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -972,6 +972,16 @@ const T = {
     center_next_preview: "Maak een boekingsvoorstel voor de import.",
     center_next_post: "Boek de gecontroleerde import definitief.",
     center_next_report: "Maak of open het eindrapport.",
+    center_before_title: "Voor event",
+    center_before_intro: "Alles wat klaar moet staan vóór de Kassa Tool op de tablet wordt gebruikt.",
+    center_after_title: "Na event",
+    center_after_intro: "Alles voor ophalen, controleren, verwerken, rapporteren en bewaren na het evenement.",
+    center_publish_pricelist: "Prijslijst publiceren",
+    center_tablet_ready: "Tablet klaarzetten",
+    center_tablet_ready_help: "Kassa Tool op tablet verbinden, event kiezen en prijslijst laden.",
+    center_costs_help: "Winkelbestellingen, kastickets, zaal, kosten en terugbetalingen controleren.",
+    center_backup_help_short: "Maak een volledige JSON-backup met alle data en afbeeldingen.",
+    center_archive_help: "Historiek en afgesloten events alleen-lezen controleren.",
     center_volunteers_help: "Vrijwilligers, partners, foto's, adressen en rekeningnummers.",
     center_tasks_help: "Taken, subtaken, verantwoordelijken en planning.",
     center_material_help: "Materiaal, oorsprongen, winkels en logo's.",
@@ -2095,6 +2105,16 @@ const T = {
     center_next_preview: "Créez une proposition de comptabilisation pour l'import.",
     center_next_post: "Comptabilisez définitivement l'import contrôlé.",
     center_next_report: "Créez ou ouvrez le rapport final.",
+    center_before_title: "Avant l'événement",
+    center_before_intro: "Tout ce qui doit être prêt avant l'utilisation de la Kassa Tool sur la tablette.",
+    center_after_title: "Après l'événement",
+    center_after_intro: "Tout pour charger, contrôler, traiter, rapporter et conserver après l'événement.",
+    center_publish_pricelist: "Publier liste de prix",
+    center_tablet_ready: "Préparer tablette",
+    center_tablet_ready_help: "Connecter la Kassa Tool sur tablette, choisir l'événement et charger la liste de prix.",
+    center_costs_help: "Contrôler commandes magasin, tickets, salle, coûts et remboursements.",
+    center_backup_help_short: "Créer une sauvegarde JSON complète avec toutes les données et images.",
+    center_archive_help: "Contrôler l'historique et les événements clôturés en lecture seule.",
     center_volunteers_help: "Bénévoles, partenaires, photos, adresses et comptes bancaires.",
     center_tasks_help: "Tâches, sous-tâches, responsables et planning.",
     center_material_help: "Matériel, sources, magasins et logos.",
@@ -11200,7 +11220,12 @@ function BeheercentrumTab({
       run: () => openTab("kostenbeheer", 8)
     };
   })();
-  const quickLinks = [{
+  const beforeEventCards = [{
+    title: t.center_event_data,
+    help: t.center_event_data_help,
+    value: eventComplete ? t.center_status_complete : t.center_status_incomplete,
+    action: () => openTab("event")
+  }, {
     title: t.tab_vrijwilligers,
     help: t.center_volunteers_help,
     value: count(data.vrijwilligers),
@@ -11216,11 +11241,83 @@ function BeheercentrumTab({
     value: count(data.materiaal),
     action: () => openTab("materiaal")
   }, {
+    title: `${t.tab_winkelgegevens} / ${t.tab_oorsprongsbeheer}`,
+    help: t.center_material_help,
+    value: count(data.winkels || data.winkelgegevens || []),
+    action: () => openTab("winkelgegevens")
+  }, {
     title: t.tab_prijslijst,
     help: t.center_pricelist_help,
     value: count(data.prijslijst),
     action: () => openTab("prijslijst", 1)
   }, {
+    title: "Google Drive",
+    help: t.center_status_drive_help,
+    value: driveConnected ? t.center_status_connected : t.center_status_disconnected,
+    action: () => eventToolGDriveConnect()
+  }, {
+    title: t.center_publish_pricelist,
+    help: t.center_status_pricelist_help,
+    value: priceListPublished ? t.center_status_published : t.center_status_not_published,
+    action: () => openTab("prijslijst", 3)
+  }, {
+    title: t.center_tablet_ready,
+    help: t.center_tablet_ready_help,
+    value: priceListPublished ? t.center_available : t.center_not_ready,
+    action: () => alert(t.dashboard_cockpit_tablet_load_help)
+  }, {
+    title: t.tab_business_continuity,
+    help: t.center_bc_help,
+    value: data.businessContinuity && Array.isArray(data.businessContinuity.sheetSets) ? data.businessContinuity.sheetSets.length : 0,
+    action: () => openTab("businessContinuity")
+  }, {
+    title: t.backup_knop,
+    help: t.center_backup_help_short,
+    value: t.center_available,
+    action: () => typeof onBackup === "function" && onBackup()
+  }];
+  const afterEventCards = [{
+    title: t.tab_kassa_exports,
+    help: t.center_exports_help,
+    value: batches.length,
+    action: () => openTab("kassaExports", 6)
+  }, {
+    title: t.dashboard_cockpit_process,
+    help: t.center_status_exports_help,
+    value: openBatchCount ? t.center_status_exports_ready : bookingReady ? t.center_status_booked : t.center_status_exports_missing,
+    action: () => recommendedAction && recommendedAction.run ? recommendedAction.run() : openTab("kassaExports", 6)
+  }, {
+    title: t.tab_kassabewegingen,
+    help: t.center_ledger_help,
+    value: ledgerRows.length,
+    action: () => openTab("kassabewegingen")
+  }, {
+    title: t.tab_kostenbeheer,
+    help: t.center_costs_help,
+    value: t.center_available,
+    action: () => openTab("kostenbeheer")
+  }, {
+    title: t.kb_final_report,
+    help: t.center_report_help,
+    value: ledgerRows.length ? t.center_available : t.center_not_ready,
+    action: () => openTab("kostenbeheer", 8)
+  }, {
+    title: t.tab_berichten,
+    help: t.center_messages_help,
+    value: count(data.sjablonen),
+    action: () => openTab("berichten")
+  }, {
+    title: t.tab_history || "Historiek",
+    help: t.center_archive_help,
+    value: count(data.eventHistory) + count(data.events && data.events.filter(event => event && event.status === "closed")),
+    action: () => openTab("history")
+  }, {
+    title: t.backup_knop,
+    help: t.center_backup_help_short,
+    value: t.center_available,
+    action: () => typeof onBackup === "function" && onBackup()
+  }];
+  const quickLinks = [{
     title: t.tab_business_continuity,
     help: t.center_bc_help,
     value: data.businessContinuity && Array.isArray(data.businessContinuity.sheetSets) ? data.businessContinuity.sheetSets.length : 0,
@@ -11333,6 +11430,47 @@ function BeheercentrumTab({
       }
     }, t.center_open));
   };
+  const renderPhase = (title, intro, items, color) => /*#__PURE__*/React.createElement("section", {
+    style: {
+      display: "grid",
+      gap: "0.75rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      alignItems: "end",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "font-display",
+    style: {
+      margin: "0.3rem 0 0",
+      fontSize: "1.32rem"
+    }
+  }, title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.25rem 0 0",
+      color: "var(--ink-soft)",
+      fontSize: "0.9rem"
+    }
+  }, intro)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.28rem 0.7rem",
+      fontSize: "0.74rem",
+      fontWeight: 900,
+      color: color,
+      background: "rgba(153,173,122,0.16)"
+    }
+  }, items.length, " ", t.center_action)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+      gap: "0.85rem"
+    }
+  }, items.map(renderQuickLink)));
   const recommendedStyle = statusStyle(recommendedAction.status);
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -11511,24 +11649,7 @@ function BeheercentrumTab({
     onPostLedger: onPostLedger,
     t: t,
     initialDetails: true
-  }), /*#__PURE__*/React.createElement("section", {
-    style: {
-      display: "grid",
-      gap: "0.75rem"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "font-display",
-    style: {
-      margin: "0.3rem 0 0",
-      fontSize: "1.15rem"
-    }
-  }, t.center_core_title), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-      gap: "0.85rem"
-    }
-  }, quickLinks.map(renderQuickLink))), /*#__PURE__*/React.createElement("div", {
+  }), renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "var(--green)"), renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "var(--accent)"), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       borderLeft: "5px solid var(--amber)",
