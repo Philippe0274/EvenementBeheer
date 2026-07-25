@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.39";
+const APP_VERSION = "1.25.40";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -7607,6 +7607,7 @@ function App() {
     showToast: showToast,
     t: t
   }), tab === "prijslijst" && /*#__PURE__*/React.createElement(PrijslijstTab, {
+    data: data,
     event: data.event || {},
     activeEventId: data.activeEventId || "",
     prijslijst: data.prijslijst || [],
@@ -19814,7 +19815,7 @@ function BusinessContinuityTab({
   })));
 }
 
-function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, showToast, t }) {
+function PrijslijstTab({ data, event, activeEventId, prijslijst, categorien, add, update, remove, addCategorie, showToast, t }) {
   const [bewerk, setBewerk] = React.useState(null);
   const [drivePublishBusy, setDrivePublishBusy] = React.useState(false);
   const [drivePublishMessage, setDrivePublishMessage] = React.useState("");
@@ -19933,11 +19934,90 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
       articles
     };
   };
-  const buildKassaToolEventsIndexExport = (priceListPayload, eventFolderName) => {
+  const eventFolderNameForIndexEvent = info => [info && info.naam || info && info.name || "evenement", info && info.datum || info && info.date || "", info && (info.gemeente || info.locatieNaam || info.location) || ""].filter(Boolean).join("_").replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+  const eventInfoForIndex = lifecycleEvent => {
+    const info = lifecycleEvent && lifecycleEvent.info ? lifecycleEvent.info : lifecycleEvent || {};
+    return {
+      id: lifecycleEvent && lifecycleEvent.id || info.id || "",
+      naam: info.naam || info.name || "",
+      datum: info.datum || info.date || "",
+      locatie: info.gemeente || info.locatieNaam || info.location || "",
+      status: lifecycleEvent && lifecycleEvent.status || info.status || ""
+    };
+  };
+  const buildKassaToolEventsIndexExport = (priceListPayload, activeEventFolderName) => {
     const exportedAt = new Date().toISOString();
-    const eventName = event && event.naam || "";
-    const eventDate = event && event.datum || "";
-    const eventLocation = event && (event.gemeente || event.locatieNaam) || "";
+    const syncedData = data ? syncActiveEventMirror(data) : null;
+    const lifecycleEvents = Array.isArray(syncedData && syncedData.events) ? syncedData.events : [];
+    const fallbackActiveInfo = eventInfoForIndex({
+      id: eventId,
+      status: "active",
+      info: event || {}
+    });
+    const activeId = syncedData && syncedData.activeEventId || activeEventId || eventId;
+    const indexEventsSource = lifecycleEvents.length ? lifecycleEvents : [fallbackActiveInfo];
+    const indexEvents = indexEventsSource
+      .map(item => {
+        const info = eventInfoForIndex(item);
+        const status = info.status || (info.id === activeId ? "active" : "planned");
+        return {
+          ...info,
+          status
+        };
+      })
+      .filter(item => item.id && !["closed", "archived"].includes(String(item.status || "").toLowerCase()))
+      .map(item => {
+        const isActive = item.id === activeId;
+        const folderName = isActive ? activeEventFolderName : eventFolderNameForIndexEvent(item);
+        const priceListInfo = isActive ? {
+          schemaName: priceListPayload && priceListPayload.schemaName || KASSA_START_PRICE_LIST_SCHEMA_NAME,
+          schemaVersion: priceListPayload && priceListPayload.schemaVersion || KASSA_START_PRICE_LIST_SCHEMA_VERSION,
+          fileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
+          rootFileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
+          path: `${folderName}/01-prijslijst/${EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME}`,
+          publishedAt: priceListPayload && priceListPayload.exportedAt || exportedAt,
+          categories: priceListPayload && priceListPayload.totals && priceListPayload.totals.categories || 0,
+          articles: priceListPayload && priceListPayload.totals && priceListPayload.totals.articles || 0,
+          activeArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.activeArticles || 0,
+          inactiveArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.inactiveArticles || 0,
+          available: true
+        } : {
+          available: false,
+          reason: "price-list-not-published-for-this-event"
+        };
+        return {
+          eventId: item.id,
+          name: item.naam,
+          date: item.datum,
+          location: item.locatie,
+          status: item.status,
+          active: isActive,
+          folderName,
+          priceList: priceListInfo
+        };
+      });
+    const finalIndexEvents = indexEvents.length ? indexEvents : [{
+      eventId,
+      name: fallbackActiveInfo.naam,
+      date: fallbackActiveInfo.datum,
+      location: fallbackActiveInfo.locatie,
+      status: "active",
+      active: true,
+      folderName: activeEventFolderName,
+      priceList: {
+        schemaName: priceListPayload && priceListPayload.schemaName || KASSA_START_PRICE_LIST_SCHEMA_NAME,
+        schemaVersion: priceListPayload && priceListPayload.schemaVersion || KASSA_START_PRICE_LIST_SCHEMA_VERSION,
+        fileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
+        rootFileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
+        path: `${activeEventFolderName}/01-prijslijst/${EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME}`,
+        publishedAt: priceListPayload && priceListPayload.exportedAt || exportedAt,
+        categories: priceListPayload && priceListPayload.totals && priceListPayload.totals.categories || 0,
+        articles: priceListPayload && priceListPayload.totals && priceListPayload.totals.articles || 0,
+        activeArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.activeArticles || 0,
+        inactiveArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.inactiveArticles || 0,
+        available: true
+      }
+    }];
     return {
       schemaName: "be.zomerfeest.eventtool-events-index",
       schemaVersion: "1.0.0",
@@ -19952,28 +20032,10 @@ function PrijslijstTab({ event, activeEventId, prijslijst, categorien, add, upda
         direction: "hoofdapp-to-kassa-tool"
       },
       totals: {
-        events: 1
+        events: finalIndexEvents.length,
+        publishedPriceLists: finalIndexEvents.filter(item => item && item.priceList && item.priceList.available === true).length
       },
-      events: [{
-        eventId,
-        name: eventName,
-        date: eventDate,
-        location: eventLocation,
-        status: "active",
-        folderName: eventFolderName,
-        priceList: {
-          schemaName: priceListPayload && priceListPayload.schemaName || KASSA_START_PRICE_LIST_SCHEMA_NAME,
-          schemaVersion: priceListPayload && priceListPayload.schemaVersion || KASSA_START_PRICE_LIST_SCHEMA_VERSION,
-          fileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
-          rootFileName: EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME,
-          path: `${eventFolderName}/01-prijslijst/${EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME}`,
-          publishedAt: priceListPayload && priceListPayload.exportedAt || exportedAt,
-          categories: priceListPayload && priceListPayload.totals && priceListPayload.totals.categories || 0,
-          articles: priceListPayload && priceListPayload.totals && priceListPayload.totals.articles || 0,
-          activeArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.activeArticles || 0,
-          inactiveArticles: priceListPayload && priceListPayload.totals && priceListPayload.totals.inactiveArticles || 0
-        }
-      }]
+      events: finalIndexEvents
     };
   };
   const exportKassaToolPriceList = () => {

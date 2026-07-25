@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.25.40
+- `eventtool-events-index.json` is voorbereid op meerdere lifecycle-events uit `data.events[]`.
+- Afgesloten en gearchiveerde events worden bewust niet gepubliceerd naar de Kassa Tool-eventkeuze.
+- Alleen het actieve event krijgt voorlopig een laadbare officiële beginprijslijstverwijzing; andere geplande events blijven zichtbaar als niet-gepubliceerde indexinformatie.
+- Geen wijziging aan eventselector, actieve eventdata, prijslijstinhoud, Kassa-imports, ledger, rapporten of bestaande workflow.
+
 ## 1.25.39
 - Bij het publiceren van de officiële beginprijslijst naar Google Drive wordt nu ook `eventtool-events-index.json` bijgewerkt.
 - Deze event-index bevat het actieve event, de eventmap en de verwijzing naar de officiële Kassa Tool-prijslijst.
