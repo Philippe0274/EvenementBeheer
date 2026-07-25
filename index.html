@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.48";
+const APP_VERSION = "1.25.49";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -774,6 +774,8 @@ const T = {
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard",
     tab_beheercentrum: "Beheercentrum",
+    nav_technical_details: "Technische details",
+    nav_technical_hint: "Controle en geavanceerde schermen",
     tab_event: "Event",
     tab_vrijwilligers: "Vrijwilligers",
     weer_laden: "Weer ophalen…",
@@ -1951,6 +1953,8 @@ const T = {
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord",
     tab_beheercentrum: "Centre de gestion",
+    nav_technical_details: "Détails techniques",
+    nav_technical_hint: "Contrôle et écrans avancés",
     tab_event: "Événement",
     tab_vrijwilligers: "Bénévoles",
     weer_laden: "Chargement de la météo…",
@@ -7525,6 +7529,16 @@ function App() {
     showToast(t.nieuw_evenement_klaar);
   };
   const dagen = daysUntil(data.event.datum);
+  const showWinkelbestellingenTab = (data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG);
+  const showHistoryTab = (data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed");
+  const mainTabs = [["beheercentrum", t.tab_beheercentrum], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...(showWinkelbestellingenTab ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["woordenboek", t.tab_woordenboek]];
+  const technicalTabs = [["dashboard", t.tab_dashboard], ["kassaExports", t.tab_kassa_exports], ["kassabewegingen", t.tab_kassabewegingen], ["businessContinuity", t.tab_business_continuity], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ...(showHistoryTab ? [["history", t.tab_history]] : [])];
+  const activeTechnicalTab = technicalTabs.some(([key]) => tab === key);
+  const renderNavButton = ([k, label]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    className: `tab-btn ${tab === k ? "active" : ""}`,
+    onClick: () => wisselTab(k)
+  }, label);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh"
@@ -7648,11 +7662,31 @@ function App() {
     }
   }, "\u26A0\uFE0F"), t.reset)))), /*#__PURE__*/React.createElement("nav", {
     className: "tab-nav"
-  }, [["beheercentrum", t.tab_beheercentrum], ["dashboard", t.tab_dashboard], ["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...((data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG) ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["kassabewegingen", t.tab_kassabewegingen], ["prijslijst", t.tab_prijslijst], ["kassaExports", t.tab_kassa_exports], ["businessContinuity", t.tab_business_continuity], ["berichten", t.tab_berichten], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ["woordenboek", t.tab_woordenboek], ...((data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed") ? [["history", t.tab_history]] : [])].map(([k, label]) => /*#__PURE__*/React.createElement("button", {
-    key: k,
-    className: `tab-btn ${tab === k ? "active" : ""}`,
-    onClick: () => wisselTab(k)
-  }, label))))), /*#__PURE__*/React.createElement("main", {
+  }, mainTabs.map(renderNavButton), /*#__PURE__*/React.createElement("details", {
+    open: activeTechnicalTab,
+    style: {
+      width: "100%",
+      borderTop: "1px solid rgba(222, 211, 196, 0.72)",
+      paddingTop: "0.45rem",
+      marginTop: "0.35rem"
+    }
+  }, /*#__PURE__*/React.createElement("summary", {
+    className: `tab-btn ${activeTechnicalTab ? "active" : ""}`,
+    style: {
+      display: "inline-flex",
+      listStyle: "none",
+      cursor: "pointer"
+    },
+    title: t.nav_technical_hint
+  }, t.nav_technical_details), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "0.32rem 0.42rem",
+      justifyContent: "center",
+      marginTop: "0.5rem"
+    }
+  }, technicalTabs.map(renderNavButton)))))), /*#__PURE__*/React.createElement("main", {
     style: {
       maxWidth: 1200,
       margin: "0 auto",
