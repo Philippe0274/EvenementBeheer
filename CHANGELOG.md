@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.43
+- Beheercentrum staat nu als eerste tab en opent standaard als centrale startplek van de Hoofdapp.
+- In Beheercentrum is een read-only Eventgegevens-kaart toegevoegd met eventnaam, datum, locatie, status, affiche-indicatie, mailgegevens en affiche-preview.
+- De kaart opent via de bestaande Event-tab voor bewerking; er is geen wijziging aan opslag, imports, ledger, rapporten of Google Drive-contract.
+
 ## 1.25.42
 - Nieuw centraal tabblad Beheercentrum toegevoegd als veilige startplek voor beheer, bestanden, Drive, Kassa Tool-integratie, eindverwerking en rapporten.
 - Het Beheercentrum gebruikt uitsluitend bestaande functies en opent bestaande modules; er is geen wijziging aan dataflow, import, ledger, rapportberekeningen, Google Drive-contract of Kassa Tool-exportpayload.
@@ -671,5 +676,6 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
