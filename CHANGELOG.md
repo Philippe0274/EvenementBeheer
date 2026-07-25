@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.25.51
+- Beheercentrum toont de workflow nu per actieve fase: `Voor Evenement` of `Na Evenement`, zodat niet alle stappen tegelijk zichtbaar zijn.
+- De app kiest automatisch de meest logische fase op basis van bestaande exports/boekingen, maar de gebruiker kan bewust wisselen.
+- De bestaande workflowkaarten, `GEDAAN`-kaartzijde, `Toch openen` en alle onderliggende acties blijven ongewijzigd.
+- Geen wijziging aan opslag, Google Drive, import, ledger, rapportberekening, Kassa Tool-contract of bestaande modules.
+
 ## 1.25.50
 - `Toch openen` op de Google Drive-connectiekaart start nu expliciet een herverbinding in plaats van alleen de bestaande status te verversen.
 - De achterkant van afgewerkte workflowkaarten is ruimer gemaakt en toont het PDM-logo als subtiel watermerk in de kaart.
@@ -715,6 +721,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 

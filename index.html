@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.50";
+const APP_VERSION = "1.25.51";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -10809,6 +10809,7 @@ function DashboardCockpit({
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
   const [showWorkflowDetails, setShowWorkflowDetails] = useState(initialDetails);
+  const [selectedWorkflowPhase, setSelectedWorkflowPhase] = useState(null);
   useEffect(() => {
     initEventToolGoogleDrive();
     return eventToolGDriveSubscribe(setDrive);
@@ -10935,6 +10936,21 @@ function DashboardCockpit({
     action: t.dashboard_cockpit_report_button,
     run: () => setTab("kassabewegingen", 8)
   }];
+  const suggestedWorkflowPhase = batches.length || bookingCount || openBatchCount ? "after" : "before";
+  const activeWorkflowPhase = selectedWorkflowPhase || suggestedWorkflowPhase;
+  const phaseDefinitions = [{
+    key: "before",
+    title: t.dashboard_cockpit_before_event,
+    steps: beforeSteps,
+    color: "#99AD7A"
+  }, {
+    key: "after",
+    title: t.dashboard_cockpit_after_event,
+    steps: afterSteps,
+    color: "#DE3E3E"
+  }];
+  const activePhase = phaseDefinitions.find(phase => phase.key === activeWorkflowPhase) || phaseDefinitions[0];
+  const phaseDoneCount = steps => steps.filter(step => step.status === statusDone).length;
   const renderStepCard = (step, index, steps) => {
     const firstOpenIndex = steps.findIndex(item => item.status !== statusDone);
     const isDone = step.status === statusDone;
@@ -11217,7 +11233,60 @@ function DashboardCockpit({
       display: "grid",
       gap: "1rem"
     }
-  }, renderSection(t.dashboard_cockpit_before_event, beforeSteps), renderSection(t.dashboard_cockpit_after_event, afterSteps)));
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+      gap: "0.75rem"
+    }
+  }, phaseDefinitions.map(phase => {
+    const isActivePhase = activePhase.key === phase.key;
+    const done = phaseDoneCount(phase.steps);
+    return /*#__PURE__*/React.createElement("button", {
+      key: phase.key,
+      type: "button",
+      className: "card",
+      onClick: event => {
+        event.preventDefault();
+        setSelectedWorkflowPhase(phase.key);
+      },
+      style: {
+        textAlign: "left",
+        display: "grid",
+        gap: "0.45rem",
+        borderLeft: `6px solid ${phase.color}`,
+        background: isActivePhase ? "rgba(153,173,122,0.14)" : "#fffaf2",
+        boxShadow: isActivePhase ? "0 0 0 2px rgba(153,173,122,0.24), var(--shadow-soft)" : "var(--shadow-soft)",
+        cursor: "pointer"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.75rem",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "1.02rem"
+      }
+    }, phase.title), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.25rem 0.65rem",
+        fontWeight: 900,
+        fontSize: "0.74rem",
+        color: done === phase.steps.length ? "var(--green)" : phase.color,
+        background: done === phase.steps.length ? "rgba(153,173,122,0.22)" : "rgba(222,62,62,0.1)"
+      }
+    }, done, "/", phase.steps.length)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.84rem",
+        fontWeight: 750
+      }
+    }, isActivePhase ? t.dashboard_card_current : t.center_open));
+  })), renderSection(activePhase.title, activePhase.steps)));
 }
 function BeheercentrumTab({
   data,
