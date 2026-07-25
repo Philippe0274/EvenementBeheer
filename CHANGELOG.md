@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.45
+- Beheercentrum uitgebreid met één duidelijke kaart Volgende aanbevolen actie.
+- De aanbevolen actie bepaalt op basis van bestaande data de veiligste volgende stap: event aanvullen, prijslijst klaarzetten/publiceren, Drive verbinden, Kassa-export openen, import valideren, feiten uitpakken, boekingsvoorstel maken, definitief boeken of eindrapport openen.
+- De kaart gebruikt uitsluitend bestaande functies en behoudt bestaande bevestigingen; er is geen nieuwe dataflow, importlogica, ledgerlogica of rapportberekening toegevoegd.
+
 ## 1.25.44
 - Beheercentrum uitgebreid met compacte statuskaarten voor Eventgegevens, Prijslijst, Google Drive, Kassa Exports/Kassaboekingen en Eindrapport.
 - De statuskaarten lezen alleen bestaande gegevens en openen bestaande modules; ze wijzigen geen data, import, ledger, rapportberekening of Google Drive-contract.
@@ -681,6 +686,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
