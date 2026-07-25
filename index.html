@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.46";
+const APP_VERSION = "1.25.47";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -888,6 +888,10 @@ const T = {
     dashboard_status_todo: "Te doen",
     dashboard_status_busy: "Bezig",
     dashboard_status_done: "Voltooid",
+    dashboard_card_done: "GEDAAN",
+    dashboard_card_current: "NU DOEN",
+    dashboard_card_locked: "GEBLOKKEERD",
+    dashboard_card_unlock: "Toch openen",
     dashboard_workflow_back: "Terug naar stappenplan",
     dashboard_workflow_next: "Volgende stap",
     dashboard_workflow_step_label: (nr, title) => `Stap ${nr} van 8: ${title}`,
@@ -2136,6 +2140,10 @@ const T = {
     dashboard_status_todo: "À faire",
     dashboard_status_busy: "En cours",
     dashboard_status_done: "Terminé",
+    dashboard_card_done: "TERMINÉ",
+    dashboard_card_current: "À FAIRE",
+    dashboard_card_locked: "BLOQUÉ",
+    dashboard_card_unlock: "Ouvrir quand même",
     dashboard_workflow_back: "Retour au plan d'étapes",
     dashboard_workflow_next: "Étape suivante",
     dashboard_workflow_step_label: (nr, title) => `Étape ${nr} sur 8 : ${title}`,
@@ -10887,59 +10895,142 @@ function DashboardCockpit({
     action: t.dashboard_cockpit_report_button,
     run: () => setTab("kassabewegingen", 8)
   }];
-  const renderStepCard = step => /*#__PURE__*/React.createElement("div", {
-    key: step.nr,
-    style: {
+  const renderStepCard = (step, index, steps) => {
+    const firstOpenIndex = steps.findIndex(item => item.status !== statusDone);
+    const isDone = step.status === statusDone;
+    const isCurrent = !isDone && (firstOpenIndex === -1 || index === firstOpenIndex);
+    const isLocked = !isDone && !isCurrent;
+    const cardLabel = isDone ? t.dashboard_card_done : isLocked ? t.dashboard_card_locked : t.dashboard_card_current;
+    const cardAccent = isDone ? "#99AD7A" : isCurrent ? "#DE3E3E" : "#d4c5b4";
+    const openStep = event => {
+      if (event) event.preventDefault();
+      if (typeof step.run === "function") step.run();
+    };
+    const panelBase = {
+      position: "absolute",
+      inset: 0,
       border: "1px solid var(--line)",
-      borderRadius: 8,
+      borderRadius: 10,
       padding: "0.8rem",
-      background: "#fffaf2",
       display: "grid",
       gap: "0.7rem",
-      minHeight: 148
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      gap: "0.55rem",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 28,
-      height: 28,
-      borderRadius: "50%",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "rgba(222,62,62,0.1)",
-      color: "var(--accent)",
-      fontWeight: 900,
-      border: "1px solid rgba(222,62,62,0.22)"
-    }
-  }, step.nr), /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.25rem 0.62rem",
-      fontSize: "0.74rem",
-      fontWeight: 900,
-      color: step.status.color,
-      background: step.status.background
-    }
-  }, step.status.label)), /*#__PURE__*/React.createElement("strong", {
-    style: {
-      fontSize: "0.98rem",
-      lineHeight: 1.22
-    }
-  }, step.title), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn btn-primary btn-sm",
-    onClick: event => {
-      event.preventDefault();
-      if (typeof step.run === "function") step.run();
-    }
-  }, step.action));
+      minHeight: 156,
+      backfaceVisibility: "hidden",
+      WebkitBackfaceVisibility: "hidden",
+      boxShadow: isCurrent ? "0 10px 24px rgba(222,62,62,0.12)" : "0 8px 18px rgba(67,48,28,0.08)"
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      key: step.nr,
+      style: {
+        minHeight: 156,
+        perspective: 900
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      role: isCurrent ? "button" : undefined,
+      tabIndex: isCurrent ? 0 : undefined,
+      onClick: isCurrent ? openStep : undefined,
+      onKeyDown: event => {
+        if (isCurrent && (event.key === "Enter" || event.key === " ")) openStep(event);
+      },
+      style: {
+        position: "relative",
+        minHeight: 156,
+        transformStyle: "preserve-3d",
+        transition: "transform 260ms ease",
+        transform: isDone ? "rotateY(180deg)" : "rotateY(0deg)",
+        cursor: isCurrent ? "pointer" : "default"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...panelBase,
+        borderLeft: `5px solid ${cardAccent}`,
+        background: isLocked ? "rgba(80,70,60,0.04)" : "#fffaf2"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "0.55rem",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 28,
+        height: 28,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(222,62,62,0.1)",
+        color: "var(--accent)",
+        fontWeight: 900,
+        border: "1px solid rgba(222,62,62,0.22)"
+      }
+    }, step.nr), /*#__PURE__*/React.createElement("span", {
+      style: {
+        borderRadius: 999,
+        padding: "0.25rem 0.62rem",
+        fontSize: "0.74rem",
+        fontWeight: 900,
+        color: isLocked ? "var(--ink-soft)" : step.status.color,
+        background: isLocked ? "rgba(80,70,60,0.08)" : step.status.background
+      }
+    }, cardLabel)), /*#__PURE__*/React.createElement("strong", {
+      style: {
+        fontSize: "0.98rem",
+        lineHeight: 1.22
+      }
+    }, step.title), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: isCurrent ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm",
+      onClick: event => {
+        event.stopPropagation();
+        openStep(event);
+      }
+    }, isLocked ? t.dashboard_card_unlock : step.action)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...panelBase,
+        transform: "rotateY(180deg)",
+        borderLeft: "5px solid #99AD7A",
+        background: "linear-gradient(135deg, rgba(153,173,122,0.22), #fffaf2 58%)",
+        alignContent: "center",
+        justifyItems: "center",
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(153,173,122,0.28)",
+        color: "var(--green)",
+        fontWeight: 950,
+        border: "1px solid rgba(153,173,122,0.42)"
+      }
+    }, step.nr), /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color: "var(--green)",
+        fontSize: "1.08rem",
+        letterSpacing: "0.02em"
+      }
+    }, t.dashboard_card_done), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--ink)",
+        fontWeight: 850,
+        lineHeight: 1.22
+      }
+    }, step.title), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn btn-ghost btn-sm",
+      onClick: event => {
+        event.stopPropagation();
+        openStep(event);
+      }
+    }, t.dashboard_card_unlock))));
+  };
   const renderSection = (title, steps) => /*#__PURE__*/React.createElement("section", {
     style: {
       display: "grid",
@@ -10959,7 +11050,7 @@ function DashboardCockpit({
       gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
       gap: "0.75rem"
     }
-  }, steps.map(renderStepCard)));
+  }, steps.map((step, index) => renderStepCard(step, index, steps))));
   return /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -11493,7 +11584,16 @@ function BeheercentrumTab({
       color: "var(--ink-soft)",
       maxWidth: 880
     }
-  }, t.center_intro)), /*#__PURE__*/React.createElement("section", {
+  }, t.center_intro)), /*#__PURE__*/React.createElement(DashboardCockpit, {
+    data: data,
+    setTab: setTab,
+    onValidateImport: onValidateImport,
+    onExtractFacts: onExtractFacts,
+    onCreateLedgerPreview: onCreateLedgerPreview,
+    onPostLedger: onPostLedger,
+    t: t,
+    initialDetails: true
+  }), /*#__PURE__*/React.createElement("section", {
     style: {
       display: "grid",
       gap: "0.75rem"
@@ -11640,16 +11740,7 @@ function BeheercentrumTab({
   })), /*#__PURE__*/React.createElement(GoogleDrivePanel, {
     data: data,
     t: t
-  }), /*#__PURE__*/React.createElement(DashboardCockpit, {
-    data: data,
-    setTab: setTab,
-    onValidateImport: onValidateImport,
-    onExtractFacts: onExtractFacts,
-    onCreateLedgerPreview: onCreateLedgerPreview,
-    onPostLedger: onPostLedger,
-    t: t,
-    initialDetails: true
-  }), renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "var(--green)"), renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "var(--accent)"), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       borderLeft: "5px solid var(--amber)",

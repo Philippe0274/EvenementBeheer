@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 1.25.47
+- Beheercentrum toont de Kassa Tool-integratiecockpit nu bovenaan als eerste werkblok.
+- Afgewerkte workflowkaarten worden visueel omgedraaid als speelkaart en tonen duidelijk `GEDAAN`.
+- Alleen de actuele stap is als volledige kaart aanklikbaar; afgewerkte of geblokkeerde stappen kunnen bewust via `Toch openen` geopend worden.
+- De dubbele brede Voor event / Na event-modulelijsten zijn uit de zichtbare Beheercentrum-flow gehaald om verwarring te vermijden.
+- Geen wijziging aan opslag, Google Drive-contract, Kassa Tool-export, import, ledger, rapportberekening of bestaande modulefuncties.
+
 ## 1.25.46
 - Beheercentrum visueel opgesplitst in twee grote hoofdblokken: Voor event en Na event.
 - De blokken bundelen bestaande veilige acties rond voorbereiding, tablet/Kassa Tool, exportverwerking, kostencontrole, rapportering, communicatie en backup.
@@ -691,6 +698,10 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
+
 
 
 
