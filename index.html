@@ -277,7 +277,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.51";
+const APP_VERSION = "1.25.52";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -10958,6 +10958,9 @@ function DashboardCockpit({
     const isLocked = !isDone && !isCurrent;
     const cardLabel = isDone ? t.dashboard_card_done : isLocked ? t.dashboard_card_locked : t.dashboard_card_current;
     const cardAccent = isDone ? "#99AD7A" : isCurrent ? "#DE3E3E" : "#d4c5b4";
+    const fanAngles = [-4, -1.5, 1.5, 4, -3, 0, 3, 5];
+    const fanLift = isCurrent ? -8 : isDone ? 0 : 4;
+    const fanRotate = fanAngles[index % fanAngles.length];
     const openStep = event => {
       if (event) event.preventDefault();
       if (typeof step.run === "function") step.run();
@@ -10970,16 +10973,23 @@ function DashboardCockpit({
       padding: "0.8rem",
       display: "grid",
       gap: "0.7rem",
-      minHeight: 176,
+      minHeight: 190,
       backfaceVisibility: "hidden",
       WebkitBackfaceVisibility: "hidden",
-      boxShadow: isCurrent ? "0 10px 24px rgba(222,62,62,0.12)" : "0 8px 18px rgba(67,48,28,0.08)"
+      boxShadow: isCurrent ? "0 18px 34px rgba(222,62,62,0.16)" : isDone ? "0 13px 24px rgba(67,48,28,0.13)" : "0 8px 18px rgba(67,48,28,0.08)"
     };
     return /*#__PURE__*/React.createElement("div", {
       key: step.nr,
       style: {
-        minHeight: 176,
-        perspective: 900
+        flex: "1 1 190px",
+        maxWidth: 246,
+        minWidth: 190,
+        minHeight: 212,
+        perspective: 1000,
+        transform: `rotate(${fanRotate}deg) translateY(${fanLift}px)`,
+        transformOrigin: "50% 100%",
+        transition: "transform 220ms ease, filter 220ms ease",
+        zIndex: isCurrent ? 3 : isDone ? 2 : 1
       }
     }, /*#__PURE__*/React.createElement("div", {
       role: isCurrent ? "button" : undefined,
@@ -10990,7 +11000,7 @@ function DashboardCockpit({
       },
       style: {
         position: "relative",
-        minHeight: 176,
+        minHeight: 190,
         transformStyle: "preserve-3d",
         transition: "transform 260ms ease",
         transform: isDone ? "rotateY(180deg)" : "rotateY(0deg)",
@@ -11000,7 +11010,7 @@ function DashboardCockpit({
       style: {
         ...panelBase,
         borderLeft: `5px solid ${cardAccent}`,
-        background: isLocked ? "rgba(80,70,60,0.04)" : "#fffaf2"
+        background: isLocked ? "linear-gradient(135deg, rgba(80,70,60,0.04), #fffaf2 70%)" : isCurrent ? "linear-gradient(135deg, #fffaf2, rgba(222,62,62,0.08))" : "#fffaf2"
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -11047,8 +11057,9 @@ function DashboardCockpit({
       style: {
         ...panelBase,
         transform: "rotateY(180deg)",
+        border: "1px solid rgba(153,173,122,0.56)",
         borderLeft: "5px solid #99AD7A",
-        background: "linear-gradient(135deg, rgba(153,173,122,0.18), #fffaf2 62%)",
+        background: "radial-gradient(circle at 50% 46%, rgba(255,250,242,0.95), rgba(153,173,122,0.2) 66%), repeating-linear-gradient(45deg, rgba(153,173,122,0.16) 0 6px, rgba(255,250,242,0.56) 6px 12px)",
         alignContent: "space-between",
         justifyItems: "center",
         textAlign: "center",
@@ -11059,13 +11070,15 @@ function DashboardCockpit({
       alt: "PDM Philippe De Meersman",
       style: {
         position: "absolute",
-        inset: "0.65rem 0.65rem auto auto",
-        width: 86,
-        maxWidth: "48%",
-        height: 48,
+        left: "50%",
+        top: "50%",
+        transform: "translate(-50%, -50%)",
+        width: 132,
+        maxWidth: "70%",
+        height: 76,
         objectFit: "contain",
         borderRadius: 6,
-        opacity: 0.22,
+        opacity: 0.2,
         pointerEvents: "none"
       }
     }), /*#__PURE__*/React.createElement("div", {
@@ -11121,7 +11134,7 @@ function DashboardCockpit({
   const renderSection = (title, steps) => /*#__PURE__*/React.createElement("section", {
     style: {
       display: "grid",
-      gap: "0.75rem"
+      gap: "0.85rem"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -11133,9 +11146,12 @@ function DashboardCockpit({
     }
   }, title), /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-      gap: "0.75rem"
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "0.35rem",
+      alignItems: "stretch",
+      justifyContent: "center",
+      padding: "0.75rem 0.25rem 0.25rem"
     }
   }, steps.map((step, index) => renderStepCard(step, index, steps))));
   return /*#__PURE__*/React.createElement("div", {
@@ -11236,12 +11252,13 @@ function DashboardCockpit({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-      gap: "0.75rem"
+      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gap: "1rem"
     }
   }, phaseDefinitions.map(phase => {
     const isActivePhase = activePhase.key === phase.key;
     const done = phaseDoneCount(phase.steps);
+    const isComplete = done === phase.steps.length;
     return /*#__PURE__*/React.createElement("button", {
       key: phase.key,
       type: "button",
@@ -11253,11 +11270,16 @@ function DashboardCockpit({
       style: {
         textAlign: "left",
         display: "grid",
-        gap: "0.45rem",
-        borderLeft: `6px solid ${phase.color}`,
-        background: isActivePhase ? "rgba(153,173,122,0.14)" : "#fffaf2",
-        boxShadow: isActivePhase ? "0 0 0 2px rgba(153,173,122,0.24), var(--shadow-soft)" : "var(--shadow-soft)",
-        cursor: "pointer"
+        gap: "0.65rem",
+        minHeight: 132,
+        alignContent: "space-between",
+        border: `1px solid ${isActivePhase ? phase.color : "var(--line)"}`,
+        borderLeft: `8px solid ${phase.color}`,
+        background: isActivePhase ? `linear-gradient(135deg, ${phase.color}24, #fffaf2 68%)` : "linear-gradient(135deg, #fffaf2, rgba(80,70,60,0.035))",
+        boxShadow: isActivePhase ? `0 0 0 3px ${phase.color}28, 0 16px 34px rgba(67,48,28,0.12)` : "0 8px 18px rgba(67,48,28,0.07)",
+        cursor: "pointer",
+        transform: isActivePhase ? "translateY(-2px)" : "translateY(0)",
+        transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease"
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -11268,24 +11290,40 @@ function DashboardCockpit({
       }
     }, /*#__PURE__*/React.createElement("strong", {
       style: {
-        fontSize: "1.02rem"
+        fontSize: "1.22rem",
+        lineHeight: 1.15
       }
     }, phase.title), /*#__PURE__*/React.createElement("span", {
       style: {
         borderRadius: 999,
-        padding: "0.25rem 0.65rem",
+        padding: "0.34rem 0.78rem",
         fontWeight: 900,
-        fontSize: "0.74rem",
-        color: done === phase.steps.length ? "var(--green)" : phase.color,
-        background: done === phase.steps.length ? "rgba(153,173,122,0.22)" : "rgba(222,62,62,0.1)"
+        fontSize: "0.78rem",
+        color: isComplete ? "var(--green)" : phase.color,
+        background: isComplete ? "rgba(153,173,122,0.22)" : "rgba(222,62,62,0.1)"
       }
     }, done, "/", phase.steps.length)), /*#__PURE__*/React.createElement("span", {
       style: {
-        color: "var(--ink-soft)",
-        fontSize: "0.84rem",
-        fontWeight: 750
+        color: isActivePhase ? phase.color : "var(--ink-soft)",
+        fontSize: "0.92rem",
+        fontWeight: 900,
+        textTransform: "uppercase"
       }
-    }, isActivePhase ? t.dashboard_card_current : t.center_open));
+    }, isActivePhase ? t.dashboard_card_current : t.center_open), /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: 8,
+        borderRadius: 999,
+        background: "rgba(80,70,60,0.08)",
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: "100%",
+        width: `${phase.steps.length ? Math.round(done / phase.steps.length * 100) : 0}%`,
+        borderRadius: 999,
+        background: phase.color
+      }
+    })));
   })), renderSection(activePhase.title, activePhase.steps)));
 }
 function BeheercentrumTab({

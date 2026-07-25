@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.25.52
+- Beheercentrum-workflow visueel opgewaardeerd: `Voor Evenement` en `Na Evenement` tonen nu als duidelijke grote faseknoppen.
+- De stappenkaarten staan in een subtiele waaier en voelen meer als een kaartenset zonder de bestaande acties te wijzigen.
+- De omgedraaide `GEDAAN`-kaartzijde is meer als speelkaart vormgegeven met het PDM-logo centraal.
+- Geen wijziging aan opslag, Google Drive, import, ledger, rapportberekening, Kassa Tool-contract of bestaande modules.
+
 ## 1.25.51
 - Beheercentrum toont de workflow nu per actieve fase: `Voor Evenement` of `Na Evenement`, zodat niet alle stappen tegelijk zichtbaar zijn.
 - De app kiest automatisch de meest logische fase op basis van bestaande exports/boekingen, maar de gebruiker kan bewust wisselen.
@@ -721,6 +727,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 
