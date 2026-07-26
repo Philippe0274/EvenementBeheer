@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.55
+- De belangrijkste workflowknoppen in het Beheercentrum kregen een glossy 3D-knopstijl met glaslaag, schaduw en ingedrukt klikgevoel.
+- De stijl is bewust beperkt tot de grote workflowacties zodat de rest van de app rustig blijft.
+- Geen wijziging aan opslag, workflowacties, Google Drive, import, ledger of rapportberekening.
+
 ## 1.25.54
 - De omgedraaide `GEDAAN`-kaarten in het Beheercentrum hebben nu een warm oranje speelkaart-uiterlijk.
 - Het PDM-logo blijft centraal op de kaartachterkant staan; alleen de visuele kleurstelling werd aangepast.
@@ -737,6 +742,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 

@@ -68,6 +68,67 @@
   .btn-whatsapp { background: var(--whatsapp); color: white; }
   .btn-whatsapp:hover { background: #1ebe57; }
   .btn-sm { padding: 0.42rem 0.72rem; font-size: 0.78rem; min-height: 2.15rem; display: inline-flex; align-items: center; justify-content: center; }
+  .workflow-glass-btn {
+    position: relative;
+    isolation: isolate;
+    min-height: 3rem;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255,255,255,0.58) !important;
+    background:
+      radial-gradient(circle at 26% 18%, rgba(255,255,255,0.92), rgba(255,255,255,0.18) 28%, transparent 42%),
+      linear-gradient(145deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.15) 34%, rgba(155,104,255,0.22) 64%, rgba(185,63,43,0.94) 100%),
+      linear-gradient(180deg, #d75035 0%, #b93f2b 60%, #8d2b1d 100%) !important;
+    color: #fffaf3 !important;
+    text-shadow: 0 1px 1px rgba(44, 22, 18, 0.45), 0 0 12px rgba(196, 160, 255, 0.36);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      inset 0 -12px 18px rgba(78,28,20,0.26),
+      0 9px 0 #7d281b,
+      0 16px 28px rgba(67,48,28,0.22);
+    overflow: hidden;
+    transform: translateY(0);
+    transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+  }
+  .workflow-glass-btn::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 3px 8px auto 8px;
+    height: 45%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.08));
+    pointer-events: none;
+  }
+  .workflow-glass-btn::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -26% auto auto -10%;
+    width: 56%;
+    height: 95%;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(212,184,255,0.48), transparent 68%);
+    transform: rotate(-16deg);
+    pointer-events: none;
+  }
+  .workflow-glass-btn:hover {
+    filter: saturate(1.08) brightness(1.04);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.94),
+      inset 0 -12px 18px rgba(78,28,20,0.24),
+      0 11px 0 #7d281b,
+      0 20px 34px rgba(67,48,28,0.24);
+  }
+  .workflow-glass-btn:active {
+    transform: translateY(6px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.78),
+      inset 0 -8px 12px rgba(78,28,20,0.24),
+      0 3px 0 #7d281b,
+      0 8px 16px rgba(67,48,28,0.18);
+  }
+  .workflow-glass-btn.btn-sm { min-height: 2.75rem; padding-left: 1rem; padding-right: 1rem; font-weight: 850; }
   .badge { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
   .badge-open { background: #ede4d3; color: var(--ink-soft); }
   .badge-bezig { background: #f4e4c5; color: var(--amber); }
@@ -277,7 +338,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.54";
+const APP_VERSION = "1.25.55";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -11048,7 +11109,7 @@ function DashboardCockpit({
       }
     }, step.title), /*#__PURE__*/React.createElement("button", {
       type: "button",
-      className: isCurrent ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm",
+      className: isCurrent ? "btn btn-primary btn-sm workflow-glass-btn" : "btn btn-ghost btn-sm",
       onClick: event => {
         event.stopPropagation();
         openStep(event);
@@ -11228,7 +11289,7 @@ function DashboardCockpit({
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn btn-primary",
+    className: "btn btn-primary workflow-glass-btn",
     onClick: event => {
       event.preventDefault();
       if (typeof finalAction.run === "function") finalAction.run();
