@@ -364,7 +364,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.58";
+const APP_VERSION = "1.25.59";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -980,7 +980,7 @@ const T = {
     kb_final_mail_attachment_hint: "Voeg het zojuist gedownloade eindrapport toe als bijlage vóór verzending.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
     dashboard_cockpit_title: "Stappen tot Integratie met Kassa Tool",
-    dashboard_cockpit_intro: "Volg deze eenvoudige stappen vóór en na het evenement.",
+    dashboard_cockpit_intro: "Werk van boven naar beneden: eerst vóór het evenement, daarna na het evenement.",
     dashboard_cockpit_before_event: "Voor Evenement",
     dashboard_cockpit_after_event: "Na Evenement",
     dashboard_status_todo: "Te doen",
@@ -1015,10 +1015,12 @@ const T = {
     dashboard_final_intro: "Eén knop begeleidt de eindverwerking. De app kiest telkens de eerstvolgende veilige stap.",
     dashboard_final_button: "Eindverwerking starten",
     dashboard_final_details: "Details bekijken",
-    dashboard_next_title: "Volgende stap uitvoeren",
-    dashboard_next_intro: "De app kiest automatisch de eerstvolgende veilige stap in de gekozen fase.",
+    dashboard_next_title: "Start hier",
+    dashboard_next_intro: "Klik op de grote knop. De app kiest automatisch de juiste veilige stap.",
     dashboard_next_button: "Start volgende stap",
     dashboard_next_open_report: "Open eindrapport",
+    dashboard_show_cards: "Kaarten tonen",
+    dashboard_hide_cards: "Kaarten verbergen",
     dashboard_final_drive_needed: "Google Drive moet nog verbonden worden.",
     dashboard_final_exports_needed: "Er is nog geen open Kassa-export. Haal eerst de export uit EventToolSync op.",
     dashboard_final_validate: "Volgende stap: import controleren.",
@@ -1028,7 +1030,7 @@ const T = {
     dashboard_final_report: "Kassa is verwerkt. Controleer nu eindafrekening en eindrapport.",
     dashboard_final_done: "Kassa is definitief verwerkt.",
     center_title: "Beheercentrum",
-    center_intro: "Eén centrale plek voor invoer, uploads, downloads, Drive, Kassa Tool en eindverwerking. De bestaande modules blijven beschikbaar voor detailwerk.",
+    center_intro: "De eenvoudige werkplek voor het hele evenement. Gebruik de grote knop of de kaarten; technische details blijven apart beschikbaar.",
     center_status_title: "Status vandaag",
     center_core_title: "Ingeven en beheren",
     center_files_title: "Bestanden, uploads en downloads",
@@ -2166,7 +2168,7 @@ const T = {
     kb_final_mail_attachment_hint: "Ajoutez le rapport final qui vient d'être téléchargé comme pièce jointe avant l'envoi.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
     center_title: "Centre de gestion",
-    center_intro: "Un point central pour la saisie, les uploads, les téléchargements, Drive, la Kassa Tool et le traitement final. Les modules existants restent disponibles pour le travail détaillé.",
+    center_intro: "L'espace de travail simple pour tout l'événement. Utilisez le grand bouton ou les cartes; les détails techniques restent disponibles séparément.",
     center_status_title: "Statut du jour",
     center_core_title: "Saisir et gérer",
     center_files_title: "Fichiers, uploads et téléchargements",
@@ -2241,7 +2243,7 @@ const T = {
     center_open_drive: "Ouvrir dossier Drive",
     center_connect_drive: "Connecter / reconnecter",
     dashboard_cockpit_title: "Étapes jusqu'à l'intégration avec la Kassa Tool",
-    dashboard_cockpit_intro: "Suivez ces étapes simples avant et après l'événement.",
+    dashboard_cockpit_intro: "Travaillez de haut en bas: d'abord avant l'événement, ensuite après l'événement.",
     dashboard_cockpit_before_event: "Avant l'événement",
     dashboard_cockpit_after_event: "Après l'événement",
     dashboard_status_todo: "À faire",
@@ -2276,10 +2278,12 @@ const T = {
     dashboard_final_intro: "Un seul bouton accompagne le traitement final. L'app choisit chaque fois la prochaine étape sûre.",
     dashboard_final_button: "Démarrer le traitement final",
     dashboard_final_details: "Voir détails",
-    dashboard_next_title: "Exécuter l'étape suivante",
-    dashboard_next_intro: "L'app choisit automatiquement la prochaine étape sûre dans la phase choisie.",
+    dashboard_next_title: "Commencer ici",
+    dashboard_next_intro: "Cliquez sur le grand bouton. L'app choisit automatiquement la bonne étape sûre.",
     dashboard_next_button: "Démarrer l'étape suivante",
     dashboard_next_open_report: "Ouvrir rapport final",
+    dashboard_show_cards: "Afficher les cartes",
+    dashboard_hide_cards: "Masquer les cartes",
     dashboard_final_drive_needed: "Google Drive doit encore être connecté.",
     dashboard_final_exports_needed: "Aucun export caisse ouvert. Chargez d'abord l'export depuis EventToolSync.",
     dashboard_final_validate: "Étape suivante : contrôler l'import.",
@@ -11403,7 +11407,7 @@ function DashboardCockpit({
       event.preventDefault();
       setShowWorkflowDetails(value => !value);
     }
-  }, showWorkflowDetails ? t.help_close : t.dashboard_final_details), /*#__PURE__*/React.createElement("strong", {
+  }, showWorkflowDetails ? t.dashboard_hide_cards : t.dashboard_show_cards), /*#__PURE__*/React.createElement("strong", {
     style: {
       color: mainWorkflowAction.status.color
     }
