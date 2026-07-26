@@ -1,4 +1,4 @@
-﻿const APP_VERSION = "1.25.55";
+﻿const APP_VERSION = "1.25.56";
 const CACHE_NAME = `hoofdapp-${APP_VERSION}`;
 const CACHE_PREFIXES = ['hoofdapp-', 'kassa-tool-'];
 const FALLBACK_DOCUMENTS = [
@@ -76,6 +76,7 @@ async function networkFirstDocument(request) {
         throw error;
     }
 }
+
 
 
 

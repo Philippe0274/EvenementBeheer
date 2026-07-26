@@ -338,7 +338,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.55";
+const APP_VERSION = "1.25.56";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -986,6 +986,9 @@ const T = {
     dashboard_final_intro: "Eén knop begeleidt de eindverwerking. De app kiest telkens de eerstvolgende veilige stap.",
     dashboard_final_button: "Eindverwerking starten",
     dashboard_final_details: "Details bekijken",
+    dashboard_next_title: "Volgende stap uitvoeren",
+    dashboard_next_intro: "De app kiest automatisch de eerstvolgende veilige stap in de gekozen fase.",
+    dashboard_next_button: "Start volgende stap",
     dashboard_final_drive_needed: "Google Drive moet nog verbonden worden.",
     dashboard_final_exports_needed: "Er is nog geen open Kassa-export. Haal eerst de export uit EventToolSync op.",
     dashboard_final_validate: "Volgende stap: import controleren.",
@@ -2240,6 +2243,9 @@ const T = {
     dashboard_final_intro: "Un seul bouton accompagne le traitement final. L'app choisit chaque fois la prochaine étape sûre.",
     dashboard_final_button: "Démarrer le traitement final",
     dashboard_final_details: "Voir détails",
+    dashboard_next_title: "Exécuter l'étape suivante",
+    dashboard_next_intro: "L'app choisit automatiquement la prochaine étape sûre dans la phase choisie.",
+    dashboard_next_button: "Démarrer l'étape suivante",
     dashboard_final_drive_needed: "Google Drive doit encore être connecté.",
     dashboard_final_exports_needed: "Aucun export caisse ouvert. Chargez d'abord l'export depuis EventToolSync.",
     dashboard_final_validate: "Étape suivante : contrôler l'import.",
@@ -11012,6 +11018,18 @@ function DashboardCockpit({
   }];
   const activePhase = phaseDefinitions.find(phase => phase.key === activeWorkflowPhase) || phaseDefinitions[0];
   const phaseDoneCount = steps => steps.filter(step => step.status === statusDone).length;
+  const activeOpenStep = activePhase.steps.find(step => step.status !== statusDone) || null;
+  const mainWorkflowAction = activeOpenStep ? {
+    text: activeOpenStep.title,
+    status: activeOpenStep.status,
+    button: activeOpenStep.action,
+    run: activeOpenStep.run
+  } : {
+    text: finalAction.text,
+    status: finalAction.status,
+    button: t.dashboard_next_button,
+    run: finalAction.run
+  };
   const renderStepCard = (step, index, steps) => {
     const firstOpenIndex = steps.findIndex(item => item.status !== statusDone);
     const isDone = step.status === statusDone;
@@ -11266,21 +11284,21 @@ function DashboardCockpit({
       margin: 0,
       fontSize: "1.25rem"
     }
-  }, "✅ ", t.dashboard_final_title), /*#__PURE__*/React.createElement("p", {
+  }, "▶ ", t.dashboard_next_title), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0.35rem 0 0",
       color: "var(--ink-soft)",
       maxWidth: 720
     }
-  }, t.dashboard_final_intro)), /*#__PURE__*/React.createElement("span", {
+  }, t.dashboard_next_intro)), /*#__PURE__*/React.createElement("span", {
     style: {
       borderRadius: 999,
       padding: "0.35rem 0.75rem",
       fontWeight: 900,
-      color: finalAction.status.color,
-      background: finalAction.status.background
+      color: mainWorkflowAction.status.color,
+      background: mainWorkflowAction.status.background
     }
-  }, finalAction.status.label)), /*#__PURE__*/React.createElement("div", {
+  }, mainWorkflowAction.status.label)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: "0.75rem",
@@ -11292,9 +11310,9 @@ function DashboardCockpit({
     className: "btn btn-primary workflow-glass-btn",
     onClick: event => {
       event.preventDefault();
-      if (typeof finalAction.run === "function") finalAction.run();
+      if (typeof mainWorkflowAction.run === "function") mainWorkflowAction.run();
     }
-  }, t.dashboard_final_button), /*#__PURE__*/React.createElement("button", {
+  }, mainWorkflowAction.button || t.dashboard_next_button), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-ghost btn-sm",
     onClick: event => {
@@ -11303,9 +11321,9 @@ function DashboardCockpit({
     }
   }, showWorkflowDetails ? t.help_close : t.dashboard_final_details), /*#__PURE__*/React.createElement("strong", {
     style: {
-      color: finalAction.status.color
+      color: mainWorkflowAction.status.color
     }
-  }, finalAction.text))), showWorkflowDetails && /*#__PURE__*/React.createElement("div", {
+  }, mainWorkflowAction.text))), showWorkflowDetails && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: "1rem"

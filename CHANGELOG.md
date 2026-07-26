@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.25.56
+- Beheercentrum toont nu boven de kaarten één centrale knop `Volgende stap uitvoeren`.
+- De knop kiest automatisch de eerstvolgende open stap in de actieve fase `Voor Evenement` of `Na Evenement` en gebruikt dezelfde bestaande acties als de kaarten.
+- Als alle kaarten in de fase klaar zijn, valt de knop terug op de bestaande eindverwerking/eindrapportactie.
+- Geen wijziging aan opslag, Google Drive, import, ledger of rapportberekening.
+
 ## 1.25.55
 - De belangrijkste workflowknoppen in het Beheercentrum kregen een glossy 3D-knopstijl met glaslaag, schaduw en ingedrukt klikgevoel.
 - De stijl is bewust beperkt tot de grote workflowacties zodat de rest van de app rustig blijft.
@@ -742,6 +748,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 
