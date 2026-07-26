@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.25.64
+- Cacheversie verhoogd zodat GitHub Pages en de service worker deze build duidelijk als nieuw ophalen.
+- Behoudt de `bookSales`-ondersteuning uit v1.25.63: boekenverkoop wordt apart herkend, getoond, gevalideerd en audit-only meegenomen.
+
 ## 1.25.63
 - Hoofdapp herkent nu `data.bookSales` uit Kassa Tool-exports als aparte boekenverkoop.
 - Kassa-exportkaarten, importpreview en voorbereide importbatches tonen boeken apart met aantal en bedrag.
