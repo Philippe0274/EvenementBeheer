@@ -364,7 +364,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.57";
+const APP_VERSION = "1.25.58";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -869,6 +869,9 @@ const T = {
     tab_beheercentrum: "Beheercentrum",
     nav_technical_details: "Technische details",
     nav_technical_hint: "Controle en geavanceerde schermen",
+    technical_detail_title: "Technisch detail",
+    technical_detail_intro: "Gebruik dit scherm alleen voor controle of uitzonderingen. De normale workflow start in het Beheercentrum.",
+    technical_detail_back: "Terug naar Beheercentrum",
     tab_event: "Event",
     tab_vrijwilligers: "Vrijwilligers",
     weer_laden: "Weer ophalen…",
@@ -2052,6 +2055,9 @@ const T = {
     tab_beheercentrum: "Centre de gestion",
     nav_technical_details: "Détails techniques",
     nav_technical_hint: "Contrôle et écrans avancés",
+    technical_detail_title: "Détail technique",
+    technical_detail_intro: "Utilisez cet écran uniquement pour le contrôle ou les exceptions. Le flux normal commence dans le Centre de gestion.",
+    technical_detail_back: "Retour au Centre de gestion",
     tab_event: "Événement",
     tab_vrijwilligers: "Bénévoles",
     weer_laden: "Chargement de la météo…",
@@ -7974,10 +7980,12 @@ function App() {
     onExtractFacts: extractPreparedKassaImportFacts,
     onCreateLedgerPreview: createKassaLedgerPreview,
     onPostLedger: postKassaLedgerPreview,
+    setTab: springNaarTab,
     t: t
   }), tab === "kassabewegingen" && /*#__PURE__*/React.createElement(KassaBewegingenTab, {
     data: data,
     onAddCorrection: addKassaLedgerCorrection,
+    setTab: springNaarTab,
     t: t
   }), tab === "history" && /*#__PURE__*/React.createElement(EventHistoryTab, {
     eventHistory: data.eventHistory || [],
@@ -9468,9 +9476,44 @@ function buildKassaLedgerTransactionsFromPreview(batch, ledgerPreview) {
   }));
 }
 
+function TechnicalDetailBanner({
+  t,
+  setTab
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      borderLeft: "5px solid var(--amber)",
+      background: "linear-gradient(135deg, rgba(224,162,39,0.12), #fffaf2 72%)",
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-display",
+    style: {
+      margin: 0,
+      fontSize: "1.2rem"
+    }
+  }, "🛠 ", t.technical_detail_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.3rem 0 0",
+      color: "var(--ink-soft)",
+      maxWidth: 760
+    }
+  }, t.technical_detail_intro)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary btn-sm workflow-glass-btn",
+    onClick: () => typeof setTab === "function" && setTab("beheercentrum")
+  }, t.technical_detail_back));
+}
+
 function KassaBewegingenTab({
   data,
   onAddCorrection,
+  setTab,
   t
 }) {
   const [batchFilter, setBatchFilter] = useState("");
@@ -9554,7 +9597,10 @@ function KassaBewegingenTab({
       display: "grid",
       gap: "1rem"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(TechnicalDetailBanner, {
+    t: t,
+    setTab: setTab
+  }), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       display: "flex",
@@ -9806,6 +9852,7 @@ function KassaExportMonitorTab({
   onExtractFacts,
   onCreateLedgerPreview,
   onPostLedger,
+  setTab,
   t
 }) {
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
@@ -9989,7 +10036,15 @@ function KassaExportMonitorTab({
   const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
   const hideRawExportArea = !showOldExports && visibleImportBatches.length > 0;
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement(TechnicalDetailBanner, {
+    t: t,
+    setTab: setTab
+  }), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       marginBottom: "1rem"

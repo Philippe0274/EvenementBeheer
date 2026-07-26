@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.25.58
+- `Kassa Exports` en `Kassa Bewegingen` tonen nu bovenaan duidelijk dat dit technische detailschermen zijn.
+- Beide technische kassaschermen kregen een directe knop `Terug naar Beheercentrum`, zodat de normale workflow opnieuw het vertrekpunt blijft.
+- Geen wijziging aan opslag, Google Drive, import, ledger, correcties of rapportberekening.
 ## 1.25.57
 - De centrale Beheercentrum-knop blijft rood/oranje zolang er nog een workflowstap open staat.
 - Zodra de actieve fase klaar is, wordt de knop groen en glasachtiger en toont hij `Open eindrapport`.
@@ -753,6 +757,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 
