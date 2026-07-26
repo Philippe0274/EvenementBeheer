@@ -1,4 +1,10 @@
 ﻿# Changelog
+## 1.25.67
+- Eindrapport uitgebreid met een professionele visuele samenvatting: pseudo-3D kostenverdeling, inkomsten/kosten/budgetbalken en een positief/negatief resultaatsicoon.
+- Eindrapport gebruikt nu de detailkosten uit Kostenbeheer, zodat het oude kostenoverzicht inhoudelijk in het eindrapport verwerkt wordt.
+- Boekenverkoop blijft apart zichtbaar zonder intern surplusdetail; technische import/ledger-status blijft buiten het secretariaatsrapport.
+- Rapporticonen toegevoegd als vaste assets en mee opgenomen in de service worker cache.
+- Geen wijziging aan import, ledger, boekingen, Drive-upload of mailflow.
 ## 1.25.66
 - Secretariaatsmail toont bij boekenverkoop geen intern detail meer over teveel betaald/surplus; alleen titel, aantal, prijs en totaal blijven zichtbaar.
 - Overbodige eindrapportkaart `Financieel eindrapport / Definitief verwerkt` verwijderd uit de PDF.
@@ -791,6 +797,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

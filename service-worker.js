@@ -1,4 +1,4 @@
-﻿const APP_VERSION = "1.25.66";
+﻿const APP_VERSION = "1.25.67";
 const CACHE_NAME = `hoofdapp-${APP_VERSION}`;
 const CACHE_PREFIXES = ['hoofdapp-', 'kassa-tool-'];
 const FALLBACK_DOCUMENTS = [
@@ -14,6 +14,8 @@ self.addEventListener('install', event => {
             './index.html',
             './index_EvenementBeheer.html',
             './assets/pdm-logo.png',
+            './assets/report-positive.png',
+            './assets/report-negative.png',
             './assets/volunteer-man.png',
             './assets/volunteer-woman.png',
             './assets/volunteer-question.png'
@@ -76,6 +78,7 @@ async function networkFirstDocument(request) {
         throw error;
     }
 }
+
 
 
 

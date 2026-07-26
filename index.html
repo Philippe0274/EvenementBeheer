@@ -37,6 +37,7 @@
   .app-topline > div:first-child { width: 100%; text-align: center; background: rgba(255, 253, 248, 0.88); border: 1px solid rgba(222, 211, 196, 0.78); border-radius: 8px; padding: 1rem 1.25rem 1.05rem; box-shadow: var(--shadow-soft); }
   .app-brand-panel { position: relative; min-height: 6.7rem; padding-right: 8.8rem !important; padding-left: 8.8rem !important; }
   .app-owner-logo { position: absolute; top: 0.8rem; right: 1rem; width: 7.2rem; max-width: 18vw; height: auto; border-radius: 6px; object-fit: contain; box-shadow: 0 4px 12px rgba(26, 22, 18, 0.14); background: #1a1612; }
+  .report-result-icon-preload { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; left: -9999px; top: -9999px; }
   .app-kicker { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 650; }
   .app-version-pill { display: inline-flex; align-items: center; min-height: 1.45rem; padding: 0 0.55rem; border-radius: 999px; border: 1px solid var(--line); background: var(--muted-panel); color: var(--ink-soft); letter-spacing: 0; text-transform: none; font-size: 0.68rem; font-weight: 650; }
   .event-title-row { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.25rem; }
@@ -364,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.66";
+const APP_VERSION = "1.25.67";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -7832,6 +7833,16 @@ function App() {
     className: "app-owner-logo",
     src: "./assets/pdm-logo.png",
     alt: "PDM Philippe De Meersman"
+  }), /*#__PURE__*/React.createElement("img", {
+    className: "report-result-icon-preload report-result-icon-positive",
+    src: "./assets/report-positive.png",
+    alt: "",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("img", {
+    className: "report-result-icon-preload report-result-icon-negative",
+    src: "./assets/report-negative.png",
+    alt: "",
+    "aria-hidden": "true"
   })), /*#__PURE__*/React.createElement("div", {
     className: "app-toolbar"
   }, /*#__PURE__*/React.createElement("div", {
@@ -19206,6 +19217,12 @@ function KostenbeheerTab({
       ensure(h + 4);
       const top = y;
       const accent = opts.accent || ROOD;
+      const fitText = (value, maxWidth) => {
+        let text = String(value || "");
+        if (doc.getTextWidth(text) <= maxWidth) return text;
+        while (text.length > 1 && doc.getTextWidth(text + "...") > maxWidth) text = text.slice(0, -1);
+        return `${text}...`;
+      };
       doc.setFillColor(255, 252, 247);
       doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
       doc.roundedRect(x, top, w, h, 2.6, 2.6, "FD");
@@ -19226,7 +19243,7 @@ function KostenbeheerTab({
           doc.setLineWidth(0.25);
           doc.line(x + 7, yy - 4, x + w - 7, yy - 4);
         }
-        doc.text(String(item.label || ""), x + 7, yy);
+        doc.text(fitText(item.label, w - 58), x + 7, yy);
         doc.text(String(item.value || ""), x + w - 7, yy, {
           align: "right"
         });
@@ -19239,6 +19256,116 @@ function KostenbeheerTab({
         doc.text(noteLines, x + 7, yy + 1);
       }
       y = top + h + 6;
+    };
+    const shade = (rgb, amount) => rgb.map(v => Math.max(0, Math.min(255, Math.round(v + amount))));
+    const addResultIcon = (x, yy, size) => {
+      const selector = eind.resultCents < 0 ? ".report-result-icon-negative" : ".report-result-icon-positive";
+      const icon = document.querySelector(selector);
+      if (!icon || !icon.complete) return;
+      try {
+        doc.addImage(icon, "PNG", x, yy, size, size);
+      } catch (e) {/* resultaaticoon overslaan als jsPDF het niet kan verwerken */}
+    };
+    const drawSlice = (cx, cy, r, startDeg, endDeg, rgb) => {
+      const steps = Math.max(8, Math.ceil(Math.abs(endDeg - startDeg) / 5));
+      for (let s = 0; s < steps; s++) {
+        const a1 = (startDeg + (endDeg - startDeg) * (s / steps)) * Math.PI / 180;
+        const a2 = (startDeg + (endDeg - startDeg) * ((s + 1) / steps)) * Math.PI / 180;
+        doc.triangle(cx, cy, cx + r * Math.cos(a1), cy + r * Math.sin(a1) * 0.68, cx + r * Math.cos(a2), cy + r * Math.sin(a2) * 0.68, "F");
+      }
+    };
+    const drawExplodedPie = (cx, cy, r, items) => {
+      const totaal = items.reduce((acc, item) => acc + Math.max(0, item.bedrag), 0);
+      if (!totaal) return false;
+      let hoek = -95;
+      items.forEach((item, index) => {
+        const deel = item.bedrag / totaal;
+        const eindHoek = hoek + deel * 360;
+        const midden = (hoek + eindHoek) / 2 * Math.PI / 180;
+        const offset = 3 + Math.min(4, deel * 8);
+        const sx = cx + Math.cos(midden) * offset;
+        const sy = cy + Math.sin(midden) * offset * 0.68;
+        const rgb = hexNaarRgb(item.kleur);
+        doc.setFillColor(...shade(rgb, -58));
+        drawSlice(sx + 1.3, sy + 4.2, r, hoek, eindHoek, shade(rgb, -58));
+        doc.setFillColor(...shade(rgb, -28));
+        drawSlice(sx + 0.7, sy + 2.2, r, hoek, eindHoek, shade(rgb, -28));
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        drawSlice(sx, sy, r, hoek, eindHoek, rgb);
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.35);
+        doc.line(sx, sy, sx + r * Math.cos(hoek * Math.PI / 180), sy + r * Math.sin(hoek * Math.PI / 180) * 0.68);
+        hoek = eindHoek;
+      });
+      doc.setFillColor(255, 255, 255);
+      doc.circle(cx, cy, r * 0.28, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(money(Math.round(totaal * 100)), cx, cy + 1.4, {
+        align: "center"
+      });
+      return true;
+    };
+    const addVisualSummary = () => {
+      ensure(96);
+      const top = y;
+      const w = pageW - marge * 2;
+      doc.setFillColor(255, 252, 247);
+      doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+      doc.roundedRect(marge, top, w, 90, 3, 3, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(t.kb_final_charts_title, marge + 7, top + 9);
+      const pieItems = posten.length ? posten : [{
+        label: t.kb_final_chart_no_costs,
+        bedrag: 1,
+        kleur: "#d8d0c3"
+      }];
+      drawExplodedPie(marge + 47, top + 48, 25, pieItems);
+      let legY = top + 22;
+      pieItems.slice(0, 6).forEach(item => {
+        const rgb = hexNaarRgb(item.kleur);
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        doc.roundedRect(marge + 82, legY - 3, 4.5, 4.5, 1, 1, "F");
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.text(String(item.label || ""), marge + 89, legY);
+        doc.setFont("helvetica", "bold");
+        doc.text(item.bedrag === 1 && !posten.length ? "-" : money(Math.round(item.bedrag * 100)), marge + 138, legY, {
+          align: "right"
+        });
+        legY += 7.2;
+      });
+      if (pieItems.length > 6) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(7);
+        doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+        doc.text(`+ ${pieItems.length - 6}`, marge + 89, legY);
+      }
+      const barX = marge + 148;
+      const barW = w - 155;
+      const drawBar = (label, value, max, yy, color) => {
+        const width = Math.max(1, Math.min(barW, max > 0 ? barW * value / max : 0));
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+        doc.text(label, barX, yy);
+        doc.text(money(value), barX + barW, yy, {
+          align: "right"
+        });
+        doc.setFillColor(232, 225, 213);
+        doc.roundedRect(barX, yy + 2, barW, 6, 2, 2, "F");
+        doc.setFillColor(color[0], color[1], color[2]);
+        doc.roundedRect(barX, yy + 2, width, 6, 2, 2, "F");
+      };
+      const maxBar = Math.max(eind.totalRevenueCents, eind.totalCostsCents, eind.budgetCents, 1);
+      drawBar(t.kb_final_revenue, eind.totalRevenueCents, maxBar, top + 22, GROEN);
+      drawBar(t.kb_final_costs, eind.totalCostsCents, maxBar, top + 42, ROOD);
+      drawBar(t.kb_final_budget_available, eind.budgetCents, maxBar, top + 62, [111, 137, 184]);
+      y = top + 98;
     };
     const headerY = y;
     const flyer = data.event && data.event.affiche;
@@ -19279,12 +19406,14 @@ function KostenbeheerTab({
     doc.setFontSize(11);
     doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
     doc.text(t.kb_final_result, marge + 5, y + 8);
+    addResultIcon(marge + 46, y + 2, 17);
     doc.setFontSize(17);
     doc.setTextColor(eind.resultCents < 0 ? ROOD[0] : GROEN[0], eind.resultCents < 0 ? ROOD[1] : GROEN[1], eind.resultCents < 0 ? ROOD[2] : GROEN[2]);
     doc.text(money(eind.resultCents), pageW - marge - 5, y + 14, {
       align: "right"
     });
     y += 32;
+    addVisualSummary();
     cardBlock(t.kb_final_revenue, [{
       label: t.kb_final_sales,
       value: money(eind.salesCents)
@@ -19315,22 +19444,36 @@ function KostenbeheerTab({
     }], {
       accent: [153, 173, 122]
     });
-    cardBlock(t.kb_final_costs, [{
+    const costRows = [];
+    if (eind.roomCents) costRows.push({
       label: t.kb_final_room,
       value: money(eind.roomCents)
-    }, {
-      label: t.kb_final_shop_costs,
-      value: money(eind.shopCents)
-    }, {
-      label: t.kb_final_manual_costs,
-      value: money(eind.manualCents)
-    }, {
+    });
+    Object.keys(k.winkelPerNaam || {}).sort().forEach(naam => {
+      costRows.push({
+        label: `${t.kb_final_shop_costs}: ${naam}`,
+        value: money(Math.round((k.winkelPerNaam[naam] || 0) * 100))
+      });
+    });
+    (kb.manueleKosten || []).forEach(mk => {
+      const bedrag = Math.round(parseBedragNum(mk.bedrag) * 100);
+      if (bedrag > 0) costRows.push({
+        label: `${t.kb_final_manual_costs}: ${mk.naam || t.kb_manueel}`,
+        value: money(bedrag)
+      });
+    });
+    if (!costRows.length) costRows.push({
+      label: t.kb_final_costs,
+      value: money(0)
+    });
+    costRows.push({
       label: t.kb_final_costs,
       value: money(eind.totalCostsCents),
       strong: true,
       color: "red",
       line: true
-    }], {
+    });
+    cardBlock(t.kb_final_costs, costRows, {
       accent: ROOD
     });
     cardBlock(t.kb_final_payment_control, [{
@@ -19392,12 +19535,6 @@ function KostenbeheerTab({
         color: "green",
         line: true
       });
-      if (eind.bookTotals.surplusCents > 0) {
-        bookRows.push({
-          label: t.kb_final_books_surplus,
-          value: money(eind.bookTotals.surplusCents)
-        });
-      }
       cardBlock(t.kb_final_book_sales_info, bookRows, {
         accent: [111, 137, 184],
         note: lang === "fr" ? t.kb_final_mail_special_follow_fr : t.kb_final_mail_special_follow_nl
@@ -20240,7 +20377,7 @@ function KostenbeheerTab({
     key: `${ticket.type}-${index}`
   }, specialLine(`${ticket.eventName || t.kb_final_external_tickets}${ticket.eventDate ? ` · ${formatDate(ticket.eventDate, lang)}` : ""}`, String(ticket.quantity))))), "#9a7bb8"), (eind.bookSummary || []).length > 0 && eindCard(t.kb_final_book_sales_info, /*#__PURE__*/React.createElement(React.Fragment, null, eind.bookSummary.map((book, index) => /*#__PURE__*/React.createElement(React.Fragment, {
     key: `${book.title}-${index}`
-  }, specialLine(`${book.title} · ${book.quantity} x ${fmtCents(book.unitPriceCents)}`, fmtCents(book.bookTotalCents)))), specialLine(t.kb_final_books_total, `${eind.bookTotals.quantity} · ${fmtCents(eind.bookTotals.bookTotalCents)}`), eind.bookTotals.surplusCents > 0 && specialLine(t.kb_final_books_surplus, fmtCents(eind.bookTotals.surplusCents))), "#6f89b8")), /*#__PURE__*/React.createElement("div", {
+  }, specialLine(`${book.title} · ${book.quantity} x ${fmtCents(book.unitPriceCents)}`, fmtCents(book.bookTotalCents)))), specialLine(t.kb_final_books_total, `${eind.bookTotals.quantity} · ${fmtCents(eind.bookTotals.bookTotalCents)}`)), "#6f89b8")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: "0.9rem",
       paddingTop: "0.9rem",
