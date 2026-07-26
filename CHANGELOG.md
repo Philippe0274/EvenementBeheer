@@ -1,4 +1,12 @@
 ﻿# Changelog
+## 1.25.70
+- Boekenverkoop in het eindrapport toont het aantal boeken en het totaalbedrag nu als twee aparte, duidelijke regels.
+- De vreemde notatie `aantal · bedrag` is verwijderd uit de PDF en uit de zichtbare eindrapportkaart.
+- Geen wijziging aan boekenberekening, import, ledger, Drive-upload of mailflow.
+## 1.25.69
+- Visuele samenvatting in het eindrapport ruimer gemaakt: taartgrafiek en legende staan bovenaan, financiële balken staan eronder over de volledige breedte.
+- Rechterlabels in de grafiek blijven leesbaar en overlappen niet meer met bedragen.
+- Geen wijziging aan berekeningen, import, ledger, Drive-upload of mailflow.
 ## 1.25.68
 - Eindrapportgrafiek verbeterd: kostenverdeling gebruikt nu een contrastrijke kleurenreeks in plaats van te veel groentinten.
 - Tekst in de visuele samenvatting wordt afgekapt op vaste breedte, zodat labels en bedragen rechts niet meer overlappen.
@@ -801,6 +809,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 

@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.68";
+const APP_VERSION = "1.25.70";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -19309,12 +19309,12 @@ function KostenbeheerTab({
       return true;
     };
     const addVisualSummary = () => {
-      ensure(96);
+      ensure(136);
       const top = y;
       const w = pageW - marge * 2;
       doc.setFillColor(255, 252, 247);
       doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
-      doc.roundedRect(marge, top, w, 90, 3, 3, "FD");
+      doc.roundedRect(marge, top, w, 126, 3, 3, "FD");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
@@ -19340,9 +19340,9 @@ function KostenbeheerTab({
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-        doc.text(fitPdfText(item.label, 33, 7.5), marge + 89, legY);
+        doc.text(fitPdfText(item.label, 48, 7.5), marge + 89, legY);
         doc.setFont("helvetica", "bold");
-        doc.text(item.bedrag === 1 && !posten.length ? "-" : money(Math.round(item.bedrag * 100)), marge + 138, legY, {
+        doc.text(item.bedrag === 1 && !posten.length ? "-" : money(Math.round(item.bedrag * 100)), pageW - marge - 10, legY, {
           align: "right"
         });
         legY += 7.2;
@@ -19353,27 +19353,27 @@ function KostenbeheerTab({
         doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
         doc.text(`+ ${pieItems.length - 6}`, marge + 89, legY);
       }
-      const barX = marge + 146;
-      const barW = w - 154;
+      const barX = marge + 10;
+      const barW = w - 20;
       const drawBar = (label, value, max, yy, color) => {
         const width = Math.max(1, Math.min(barW, max > 0 ? barW * value / max : 0));
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
+        doc.setFontSize(8);
         doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-        doc.text(fitPdfText(label, barW - 26, 7.5), barX, yy);
+        doc.text(fitPdfText(label, barW - 38, 8), barX, yy);
         doc.text(money(value), barX + barW, yy, {
           align: "right"
         });
         doc.setFillColor(232, 225, 213);
-        doc.roundedRect(barX, yy + 2, barW, 6, 2, 2, "F");
+        doc.roundedRect(barX, yy + 2.8, barW, 6, 2, 2, "F");
         doc.setFillColor(color[0], color[1], color[2]);
-        doc.roundedRect(barX, yy + 2, width, 6, 2, 2, "F");
+        doc.roundedRect(barX, yy + 2.8, width, 6, 2, 2, "F");
       };
       const maxBar = Math.max(eind.totalRevenueCents, eind.totalCostsCents, eind.budgetCents, 1);
-      drawBar(t.kb_final_revenue, eind.totalRevenueCents, maxBar, top + 22, GROEN);
-      drawBar(t.kb_final_costs, eind.totalCostsCents, maxBar, top + 42, ROOD);
-      drawBar(t.kb_final_budget_available, eind.budgetCents, maxBar, top + 62, [111, 137, 184]);
-      y = top + 98;
+      drawBar(t.kb_final_revenue, eind.totalRevenueCents, maxBar, top + 86, GROEN);
+      drawBar(t.kb_final_costs, eind.totalCostsCents, maxBar, top + 101, ROOD);
+      drawBar(t.kb_final_budget_available, eind.budgetCents, maxBar, top + 116, [111, 137, 184]);
+      y = top + 134;
     };
     const headerY = y;
     const flyer = data.event && data.event.affiche;
@@ -19537,11 +19537,16 @@ function KostenbeheerTab({
         value: money(book.bookTotalCents)
       }));
       bookRows.push({
-        label: t.kb_final_books_total,
-        value: `${eind.bookTotals.quantity} · ${money(eind.bookTotals.bookTotalCents)}`,
+        label: lang === "fr" ? "Nombre de livres" : "Aantal boeken",
+        value: String(eind.bookTotals.quantity),
         strong: true,
-        color: "green",
         line: true
+      });
+      bookRows.push({
+        label: t.kb_final_books_total,
+        value: money(eind.bookTotals.bookTotalCents),
+        strong: true,
+        color: "green"
       });
       cardBlock(t.kb_final_book_sales_info, bookRows, {
         accent: [111, 137, 184],
@@ -20385,7 +20390,7 @@ function KostenbeheerTab({
     key: `${ticket.type}-${index}`
   }, specialLine(`${ticket.eventName || t.kb_final_external_tickets}${ticket.eventDate ? ` · ${formatDate(ticket.eventDate, lang)}` : ""}`, String(ticket.quantity))))), "#9a7bb8"), (eind.bookSummary || []).length > 0 && eindCard(t.kb_final_book_sales_info, /*#__PURE__*/React.createElement(React.Fragment, null, eind.bookSummary.map((book, index) => /*#__PURE__*/React.createElement(React.Fragment, {
     key: `${book.title}-${index}`
-  }, specialLine(`${book.title} · ${book.quantity} x ${fmtCents(book.unitPriceCents)}`, fmtCents(book.bookTotalCents)))), specialLine(t.kb_final_books_total, `${eind.bookTotals.quantity} · ${fmtCents(eind.bookTotals.bookTotalCents)}`)), "#6f89b8")), /*#__PURE__*/React.createElement("div", {
+  }, specialLine(`${book.title} · ${book.quantity} x ${fmtCents(book.unitPriceCents)}`, fmtCents(book.bookTotalCents)))), specialLine(lang === "fr" ? "Nombre de livres" : "Aantal boeken", String(eind.bookTotals.quantity)), specialLine(t.kb_final_books_total, fmtCents(eind.bookTotals.bookTotalCents))), "#6f89b8")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: "0.9rem",
       paddingTop: "0.9rem",
