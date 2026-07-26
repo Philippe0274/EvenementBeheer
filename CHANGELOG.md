@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 1.25.63
+- Hoofdapp herkent nu `data.bookSales` uit Kassa Tool-exports als aparte boekenverkoop.
+- Kassa-exportkaarten, importpreview en voorbereide importbatches tonen boeken apart met aantal en bedrag.
+- `Feiten uitpakken` bewaart boekenverkoop immutable onder de read-only feitenlaag; ledger-preview toont boeken als audit-only en boekt ze niet als gewone eventopbrengst.
+- Validatie controleert boekenregistraties op titel, aantal en prijs; de werking-uitleg werd bijgewerkt in NL/FR.
+- Geen wijziging aan gewone verkooptransacties, Drive-sync, rapportgeneratie, correcties of bestaande eventdata.
+
 ## 1.25.61
 - `Mail eindrapport voorbereiden` opent de Gmail-compose nu betrouwbaarder door onmiddellijk bij de klik een mailvenster te reserveren en pas na de Drive-upload de definitieve mailtekst en downloadlink in te laden.
 - De knop opent geen rapportpreview; de rapportpreview blijft uitsluitend gekoppeld aan `Eindrapport maken` in het Beheercentrum.
