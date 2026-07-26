@@ -1,4 +1,8 @@
 ﻿# Changelog
+## 1.25.68
+- Eindrapportgrafiek verbeterd: kostenverdeling gebruikt nu een contrastrijke kleurenreeks in plaats van te veel groentinten.
+- Tekst in de visuele samenvatting wordt afgekapt op vaste breedte, zodat labels en bedragen rechts niet meer overlappen.
+- Geen wijziging aan rapportberekeningen, Drive-upload, mailflow, import of ledger.
 ## 1.25.67
 - Eindrapport uitgebreid met een professionele visuele samenvatting: pseudo-3D kostenverdeling, inkomsten/kosten/budgetbalken en een positief/negatief resultaatsicoon.
 - Eindrapport gebruikt nu de detailkosten uit Kostenbeheer, zodat het oude kostenoverzicht inhoudelijk in het eindrapport verwerkt wordt.
@@ -797,6 +801,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

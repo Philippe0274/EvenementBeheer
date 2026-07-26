@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.67";
+const APP_VERSION = "1.25.68";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -18531,25 +18531,26 @@ function KostenbeheerTab({
 
   // Grafiekdata: kostenposten
   const posten = [];
+  const reportChartPalette = ["#d3422f", "#2f7d4a", "#2f72c4", "#f2c230", "#8e4cc7", "#1fb7c9", "#f28c28", "#c23a7a", "#5f6fd8", "#83b547", "#7a4b2a", "#39424e"];
   if (k.zaalhuur > 0) posten.push({
     label: t.kb_zaal,
     bedrag: k.zaalhuur,
-    kleur: "#c4442a"
+    kleur: reportChartPalette[0]
   });
   Object.keys(k.winkelPerNaam).sort().forEach((naam, i) => {
-    const tinten = ["#3a7d44", "#4a9d54", "#5cb867", "#73c97e", "#8ad994"];
+    const offset = k.zaalhuur > 0 ? 1 : 0;
     posten.push({
       label: naam,
       bedrag: k.winkelPerNaam[naam],
-      kleur: tinten[i % tinten.length]
+      kleur: reportChartPalette[(i + offset) % reportChartPalette.length]
     });
   });
-  (kb.manueleKosten || []).forEach(mk => {
+  (kb.manueleKosten || []).forEach((mk, i) => {
     const bedrag = parseBedragNum(mk.bedrag);
     if (bedrag > 0) posten.push({
       label: mk.naam || t.kb_manueel,
       bedrag,
-      kleur: "#d99b2a"
+      kleur: reportChartPalette[(posten.length + i + 3) % reportChartPalette.length]
     });
   });
   const maxWaarde = Math.max(k.budget, k.totaalUitgegeven, 1);
@@ -19325,6 +19326,13 @@ function KostenbeheerTab({
       }];
       drawExplodedPie(marge + 47, top + 48, 25, pieItems);
       let legY = top + 22;
+      const fitPdfText = (value, maxWidth, fontSize = 7.5) => {
+        let text = String(value || "");
+        doc.setFontSize(fontSize);
+        if (doc.getTextWidth(text) <= maxWidth) return text;
+        while (text.length > 1 && doc.getTextWidth(text + "...") > maxWidth) text = text.slice(0, -1);
+        return `${text}...`;
+      };
       pieItems.slice(0, 6).forEach(item => {
         const rgb = hexNaarRgb(item.kleur);
         doc.setFillColor(rgb[0], rgb[1], rgb[2]);
@@ -19332,7 +19340,7 @@ function KostenbeheerTab({
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-        doc.text(String(item.label || ""), marge + 89, legY);
+        doc.text(fitPdfText(item.label, 33, 7.5), marge + 89, legY);
         doc.setFont("helvetica", "bold");
         doc.text(item.bedrag === 1 && !posten.length ? "-" : money(Math.round(item.bedrag * 100)), marge + 138, legY, {
           align: "right"
@@ -19345,14 +19353,14 @@ function KostenbeheerTab({
         doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
         doc.text(`+ ${pieItems.length - 6}`, marge + 89, legY);
       }
-      const barX = marge + 148;
-      const barW = w - 155;
+      const barX = marge + 146;
+      const barW = w - 154;
       const drawBar = (label, value, max, yy, color) => {
         const width = Math.max(1, Math.min(barW, max > 0 ? barW * value / max : 0));
         doc.setFont("helvetica", "bold");
         doc.setFontSize(7.5);
         doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
-        doc.text(label, barX, yy);
+        doc.text(fitPdfText(label, barW - 26, 7.5), barX, yy);
         doc.text(money(value), barX + barW, yy, {
           align: "right"
         });
