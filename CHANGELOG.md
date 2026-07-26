@@ -1,5 +1,9 @@
 ﻿# Changelog
-
+## 1.25.65
+- Eindafrekening groepeert geïmporteerde ticketregistraties en boekenverkoop nu uit de immutable Kassa-feitenlaag.
+- Eindrapport toont tickets en boeken alleen wanneer ze effectief bestaan; boeken blijven apart van gewone eventopbrengst en winstberekening.
+- Mail `Eindrapport voorbereiden` vermeldt dynamisch boeken en/of tickets met een kort overzicht in NL/FR.
+- `book_sales_audit` krijgt in Kassa Bewegingen een duidelijke gebruikersnaam in plaats van een technische code.
 ## 1.25.64
 - Cacheversie verhoogd zodat GitHub Pages en de service worker deze build duidelijk als nieuw ophalen.
 - Behoudt de `bookSales`-ondersteuning uit v1.25.63: boekenverkoop wordt apart herkend, getoond, gevalideerd en audit-only meegenomen.
@@ -782,6 +786,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
