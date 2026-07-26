@@ -364,7 +364,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.61";
+const APP_VERSION = "1.25.63";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -975,6 +975,20 @@ const T = {
     kb_final_report_intro: "Genereer een officieel financieel eindrapport voor secretariaat of bestuur. Technische kassacontrole blijft beschikbaar in Kassa Bewegingen en wordt niet in dit rapport opgenomen.",
     kb_final_report_generated: "Gegenereerd op",
     kb_final_secretariat_note: "Kassagegevens verwerkt via gecontroleerde Kassa Tool-export. Technische importdetails blijven intern beschikbaar in de Hoofdapp.",
+    kb_final_secretariat_report: "Secretariaatsrapport",
+    kb_final_kpi_income: "Inkomsten",
+    kb_final_kpi_costs: "Kosten",
+    kb_final_kpi_result: "Resultaat",
+    kb_final_kpi_budget: "Budgetruimte",
+    kb_final_charts_title: "Visuele samenvatting",
+    kb_final_chart_cost_distribution: "Kostenverdeling",
+    kb_final_chart_income_costs: "Inkomsten tegenover kosten",
+    kb_final_chart_budget_meter: "Budgetmeter",
+    kb_final_chart_budget_used: "Budget gebruikt",
+    kb_final_chart_budget_remaining: "Budget over",
+    kb_final_chart_no_costs: "Geen kosten geregistreerd",
+    kb_final_page_finance: "Financieel overzicht",
+    kb_final_page_charts: "Grafieken",
     kb_final_mail_recipients: "Ontvangers eindrapport",
     kb_final_mail_recipients_help: "Eén of meerdere e-mailadressen, gescheiden met komma, puntkomma of nieuwe regel. Gmail opent via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Vul minstens één ontvanger in.",
@@ -1153,6 +1167,9 @@ const T = {
     kx_transactions: "Transacties",
     kx_manifiesta: "ManiFiesta tickets",
     kx_external: "Externe tickets",
+    kx_books: "Boeken",
+    kx_book_sales: "Boekenverkoop",
+    kx_book_amount: "Boekenbedrag",
     kx_export_time: "Exporttijd",
     kx_cash_status: "Kassa status",
     kx_operator: "Gebruiker",
@@ -1192,8 +1209,8 @@ const T = {
     kx_check_operator_warn: "Gebruiker onbekend",
     kx_check_terminal_ok: "Kassapunt ingevuld",
     kx_check_terminal_warn: "Kassapunt onbekend",
-    kx_check_content_ok: "Transacties/tickets aanwezig",
-    kx_check_content_warn: "Geen transacties of tickets gevonden",
+    kx_check_content_ok: "Transacties/tickets/boeken aanwezig",
+    kx_check_content_warn: "Geen transacties, tickets of boeken gevonden",
     kx_import_preview: "Import preview",
     kx_preview_readonly: "Preview alleen-lezen: er wordt niets geïmporteerd, geboekt of opgeslagen.",
     kx_preview_financial_facts: "Verwachte financiële feiten",
@@ -1206,6 +1223,7 @@ const T = {
     kx_preview_total: "Preview totaal",
     kx_preview_transactions: "Transactiepreview",
     kx_preview_tickets: "Ticketregistraties",
+    kx_preview_books: "Boekenregistraties",
     kx_preview_price_changes: "Prijslijstmutaties",
     kx_preview_duplicate_key: "Import-sleutel",
     kx_preview_no_rows: "Geen previewregels gevonden.",
@@ -1294,6 +1312,8 @@ const T = {
     kx_validation_line_price_diff: "Prijsverschil tegenover beginprijslijst",
     kx_validation_tickets_ok: "Ticketregistraties geldig",
     kx_validation_tickets_warn: "Ticketregistratie met ontbrekende naam/datum/aantal",
+    kx_validation_books_ok: "Boekenregistraties geldig",
+    kx_validation_books_warn: "Boekenregistratie met ontbrekende titel/aantal/prijs",
     kx_validation_price_changes: "Prijslijstmutaties in export",
     kx_validation_no_price_list: "Hoofdapp-prijslijst is leeg of niet bruikbaar",
     kx_validation_ledger_safe: "Geen ledger-posting uitgevoerd",
@@ -2164,6 +2184,20 @@ const T = {
     kb_final_report_intro: "Générez un rapport financier officiel pour le secrétariat ou la direction. Le contrôle technique de la caisse reste disponible dans Mouvements de Caisse et n'est pas repris dans ce rapport.",
     kb_final_report_generated: "Généré le",
     kb_final_secretariat_note: "Données de caisse traitées via un export contrôlé de la Kassa Tool. Les détails techniques d'import restent disponibles en interne dans la Hoofdapp.",
+    kb_final_secretariat_report: "Rapport secrétariat",
+    kb_final_kpi_income: "Recettes",
+    kb_final_kpi_costs: "Dépenses",
+    kb_final_kpi_result: "Résultat",
+    kb_final_kpi_budget: "Marge budget",
+    kb_final_charts_title: "Résumé visuel",
+    kb_final_chart_cost_distribution: "Répartition des coûts",
+    kb_final_chart_income_costs: "Recettes face aux dépenses",
+    kb_final_chart_budget_meter: "Jauge budget",
+    kb_final_chart_budget_used: "Budget utilisé",
+    kb_final_chart_budget_remaining: "Budget restant",
+    kb_final_chart_no_costs: "Aucun coût enregistré",
+    kb_final_page_finance: "Aperçu financier",
+    kb_final_page_charts: "Graphiques",
     kb_final_mail_recipients: "Destinataires rapport final",
     kb_final_mail_recipients_help: "Une ou plusieurs adresses e-mail, séparées par une virgule, un point-virgule ou une nouvelle ligne. Gmail s'ouvre via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Saisissez au moins un destinataire.",
@@ -2342,6 +2376,9 @@ const T = {
     kx_transactions: "Transactions",
     kx_manifiesta: "Tickets ManiFiesta",
     kx_external: "Tickets externes",
+    kx_books: "Livres",
+    kx_book_sales: "Vente de livres",
+    kx_book_amount: "Montant livres",
     kx_export_time: "Heure d'export",
     kx_cash_status: "Statut caisse",
     kx_operator: "Utilisateur",
@@ -2381,8 +2418,8 @@ const T = {
     kx_check_operator_warn: "Utilisateur inconnu",
     kx_check_terminal_ok: "Point caisse renseigné",
     kx_check_terminal_warn: "Point caisse inconnu",
-    kx_check_content_ok: "Transactions/tickets présents",
-    kx_check_content_warn: "Aucune transaction ni ticket trouvé",
+    kx_check_content_ok: "Transactions/tickets/livres présents",
+    kx_check_content_warn: "Aucune transaction, ticket ni livre trouvé",
     kx_import_preview: "Aperçu d'import",
     kx_preview_readonly: "Aperçu en lecture seule : rien n'est importé, comptabilisé ou enregistré.",
     kx_preview_financial_facts: "Faits financiers attendus",
@@ -2395,6 +2432,7 @@ const T = {
     kx_preview_total: "Total aperçu",
     kx_preview_transactions: "Aperçu transactions",
     kx_preview_tickets: "Enregistrements tickets",
+    kx_preview_books: "Enregistrements livres",
     kx_preview_price_changes: "Mutations liste de prix",
     kx_preview_duplicate_key: "Clé d'import",
     kx_preview_no_rows: "Aucune ligne d'aperçu trouvée.",
@@ -2483,6 +2521,8 @@ const T = {
     kx_validation_line_price_diff: "Différence de prix avec la liste de départ",
     kx_validation_tickets_ok: "Enregistrements tickets valides",
     kx_validation_tickets_warn: "Enregistrement ticket avec nom/date/quantité manquant",
+    kx_validation_books_ok: "Enregistrements livres valides",
+    kx_validation_books_warn: "Enregistrement livre avec titre/quantité/prix manquant",
     kx_validation_price_changes: "Mutations de liste de prix dans l'export",
     kx_validation_no_price_list: "La liste de prix Hoofdapp est vide ou inutilisable",
     kx_validation_ledger_safe: "Aucune comptabilisation ledger effectuée",
@@ -4669,7 +4709,7 @@ const helpContentNl = [{
     uitleg: "Beheert evenementen, vrijwilligers, taken, materiaal, winkels, oorsprongen, kosten, prijslijst, Business Continuity, berichten, Google Drive-sync, Kassa-exportcontrole en historiek."
   }, {
     naam: "Kassa Tool",
-    uitleg: "Draait op tablet en is de officiële bron voor verkopen, giften, betaalmethodes, kassatransacties, prijswijzigingen tijdens het evenement en ticketregistraties."
+    uitleg: "Draait op tablet en is de officiële bron voor verkopen, giften, betaalmethodes, kassatransacties, prijswijzigingen tijdens het evenement, ticketregistraties en aparte boekenverkoop."
   }, {
     naam: "Nog niet doen",
     uitleg: "Een Kassa-export is na validatie nog niet financieel geboekt. Ledger-posting en definitieve rapportering volgen pas in een latere stap."
@@ -4726,10 +4766,10 @@ const helpContentNl = [{
     uitleg: "Een geschikte export kan als immutable importbatch worden vastgelegd. De batch bewaart gebruiker, kassapunt, bronbestand, aantallen transacties/tickets/prijslijstmutaties en de originele payload onder kassaImports.files. Dit boekt nog niets."
   }, {
     naam: "Import valideren",
-    uitleg: "Klik Valideer import op een voorbereide batch. De Hoofdapp controleert schemaVersion 1.0.0, eventmatch, kassa-afsluiting, duplicaten, transacties, artikels, prijsverschillen, prijslijstmutaties en ticketregistraties."
+    uitleg: "Klik Valideer import op een voorbereide batch. De Hoofdapp controleert schemaVersion 1.0.0, eventmatch, kassa-afsluiting, duplicaten, transacties, artikels, prijsverschillen, prijslijstmutaties, ticketregistraties en boekenverkoop."
   }, {
     naam: "Feiten uitpakken",
-    uitleg: "Na een geslaagde validatie kan de batch worden uitgepakt naar een read-only feitenlaag onder kassaImports.importedFacts. Daarin staan transacties, verkoopregels, betaalfeiten, ticketregistraties en prijslijstmutaties. Ook dit boekt nog niets in het ledger."
+    uitleg: "Na een geslaagde validatie kan de batch worden uitgepakt naar een read-only feitenlaag onder kassaImports.importedFacts. Daarin staan transacties, verkoopregels, betaalfeiten, ticketregistraties, boekenverkoop en prijslijstmutaties. Ook dit boekt nog niets in het ledger."
   }, {
     naam: "Ledger-preview",
     uitleg: "Vanuit de uitgepakte feiten kan de Hoofdapp een boekingsvoorstel tonen. Dit laat verkoop, giften, cash, kaart, Payconiq en auditinfo zien, maar schrijft nog niets naar finance.ledgerTransactions."
@@ -4797,7 +4837,7 @@ const helpContentFr = [{
     uitleg: "Gère événements, bénévoles, tâches, matériel, magasins, origines, coûts, liste de prix, Business Continuity, messages, synchronisation Google Drive, contrôle des exports caisse et historique."
   }, {
     naam: "Kassa Tool",
-    uitleg: "Fonctionne sur tablette et est la source officielle pour ventes, dons, modes de paiement, transactions caisse, changements de prix pendant l'événement et enregistrements de tickets."
+    uitleg: "Fonctionne sur tablette et est la source officielle pour ventes, dons, modes de paiement, transactions caisse, changements de prix pendant l'événement, enregistrements de tickets et vente de livres séparée."
   }, {
     naam: "À ne pas encore faire",
     uitleg: "Un export caisse validé n'est pas encore comptabilisé financièrement. La comptabilisation ledger et le reporting définitif suivront dans une étape ultérieure."
@@ -4854,10 +4894,10 @@ const helpContentFr = [{
     uitleg: "Un export utilisable peut être enregistré comme lot d'import immuable. Le lot conserve utilisateur, point caisse, fichier source, nombres de transactions/tickets/mutations de prix et le payload original sous kassaImports.files. Rien n'est comptabilisé."
   }, {
     naam: "Valider l'import",
-    uitleg: "Cliquez Valider l'import sur un lot préparé. La Hoofdapp contrôle schemaVersion 1.0.0, correspondance événement, clôture caisse, doublons, transactions, articles, différences de prix, mutations de liste de prix et enregistrements de tickets."
+    uitleg: "Cliquez Valider l'import sur un lot préparé. La Hoofdapp contrôle schemaVersion 1.0.0, correspondance événement, clôture caisse, doublons, transactions, articles, différences de prix, mutations de liste de prix, enregistrements de tickets et vente de livres."
   }, {
     naam: "Extraire les faits",
-    uitleg: "Après une validation réussie, le lot peut être extrait vers une couche de faits en lecture seule sous kassaImports.importedFacts. Elle contient transactions, lignes de vente, faits de paiement, tickets et mutations de liste de prix. Cela ne comptabilise toujours rien dans le ledger."
+    uitleg: "Après une validation réussie, le lot peut être extrait vers une couche de faits en lecture seule sous kassaImports.importedFacts. Elle contient transactions, lignes de vente, faits de paiement, tickets, ventes de livres et mutations de liste de prix. Cela ne comptabilise toujours rien dans le ledger."
   }, {
     naam: "Aperçu ledger",
     uitleg: "À partir des faits extraits, la Hoofdapp peut afficher une proposition de comptabilisation. Elle montre ventes, dons, cash, carte, Payconiq et informations d'audit, mais n'écrit encore rien dans finance.ledgerTransactions."
@@ -6633,11 +6673,19 @@ function App() {
         source: "google-drive",
         transactionCount: importPreview.rows.length,
         ticketCount: importPreview.ticketRows.length,
+        bookSalesCount: importPreview.bookRows.length,
+        bookSalesQuantity: importPreview.bookTotals.quantity,
+        bookSalesAmountCents: importPreview.bookTotals.bookTotalCents,
+        bookSalesReceivedCents: importPreview.bookTotals.receivedCents,
         priceChangeCount: importPreview.priceChangeRows.length,
         preImport: deepClone(preImport),
         preview: {
           transactionCount: importPreview.rows.length,
           ticketCount: importPreview.ticketRows.length,
+          bookSalesCount: importPreview.bookRows.length,
+          bookSalesQuantity: importPreview.bookTotals.quantity,
+          bookSalesAmountCents: importPreview.bookTotals.bookTotalCents,
+          bookSalesReceivedCents: importPreview.bookTotals.receivedCents,
           priceChangeCount: importPreview.priceChangeRows.length,
           totals: deepClone(importPreview.totals)
         },
@@ -8886,6 +8934,7 @@ function summarizeKassaExportFile(file, payload, t, lang) {
   const transactions = Array.isArray(data.transactions) ? data.transactions : [];
   const manifestaRegs = Array.isArray(data.manifiestaTicketRegistrations) ? data.manifiestaTicketRegistrations : [];
   const externalRegs = Array.isArray(data.externalTicketRegistrations) ? data.externalTicketRegistrations : [];
+  const bookSales = Array.isArray(data.bookSales) ? data.bookSales : [];
   const exportedAt = payload && payload.export && payload.export.exportedAt || "";
   const modifiedAt = file && file.modifiedTime || "";
   const dateLocale = lang === "fr" ? "fr-BE" : "nl-BE";
@@ -8915,8 +8964,12 @@ function summarizeKassaExportFile(file, payload, t, lang) {
     transactionCount: Number.isFinite(integrity.transactionCount) ? integrity.transactionCount : transactions.length,
     manifestaTicketCount: Number.isFinite(integrity.manifiestaTicketCount) ? integrity.manifiestaTicketCount : manifestaRegs.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
     externalTicketCount: Number.isFinite(integrity.externalTicketCount) ? integrity.externalTicketCount : externalRegs.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
+    bookSalesCount: Number.isFinite(integrity.bookSalesCount) ? integrity.bookSalesCount : bookSales.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
+    bookSalesAmountCents: Number.isFinite(integrity.bookSalesAmountCents) ? integrity.bookSalesAmountCents : bookSales.reduce((sum, item) => sum + getKassaPreviewCents(item && item.bookTotalCents), 0),
+    bookSalesReceivedCents: Number.isFinite(integrity.bookSalesReceivedCents) ? integrity.bookSalesReceivedCents : bookSales.reduce((sum, item) => sum + getKassaPreviewCents(item && item.receivedCents), 0),
     manifestaRegs,
     externalRegs,
+    bookSales,
     transactions
   };
 }
@@ -8945,7 +8998,7 @@ function buildKassaPreImportChecks(item, isLatestExport, data, t) {
   if (String(item.cashStatus || "").toLowerCase() === "closed") add("ok", t.kx_check_closed_ok);else add("error", t.kx_check_closed_bad);
   if (item.operator && item.operator !== t.kx_unknown) add("ok", t.kx_check_operator_ok);else add("warn", t.kx_check_operator_warn);
   if (item.terminal && item.terminal !== t.kx_unknown) add("ok", t.kx_check_terminal_ok);else add("warn", t.kx_check_terminal_warn);
-  const contentCount = (item.transactionCount || 0) + (item.manifestaTicketCount || 0) + (item.externalTicketCount || 0);
+  const contentCount = (item.transactionCount || 0) + (item.manifestaTicketCount || 0) + (item.externalTicketCount || 0) + (item.bookSalesCount || 0);
   if (contentCount > 0) add("ok", t.kx_check_content_ok);else add("warn", t.kx_check_content_warn);
   const hasErrors = checks.some(check => check.level === "error");
   const hasWarnings = checks.some(check => check.level === "warn");
@@ -9001,6 +9054,7 @@ function getKassaPreviewPaymentLabel(method, t) {
 
 function buildKassaImportPreview(item, t) {
   const transactions = Array.isArray(item && item.transactions) ? item.transactions : [];
+  const bookSales = Array.isArray(item && item.bookSales) ? item.bookSales : [];
   const priceArticles = item && item.payload && item.payload.data && item.payload.data.masterData && Array.isArray(item.payload.data.masterData.articles) ? item.payload.data.masterData.articles : [];
   const changedArticles = priceArticles.filter(article => article && (article.createdOnTablet || article.priceChangedOnTablet || article.statusChangedOnTablet || article.nameChangedOnTablet));
   const rows = transactions.map((transaction, index) => {
@@ -9055,11 +9109,35 @@ function buildKassaImportPreview(item, t) {
     quantity: parseInt(ticket.quantity, 10) || 0,
     note: ticket.note || ""
   }));
+  const bookRows = bookSales.map((book, index) => ({
+    key: book.registrationId || `book-${book.title || ""}-${index}`,
+    registrationId: book.registrationId || "",
+    title: book.title || t.kx_book_sales,
+    time: book.time || "",
+    quantity: parseInt(book.quantity, 10) || 0,
+    unitPriceCents: getKassaPreviewCents(book.unitPriceCents),
+    bookTotalCents: getKassaPreviewCents(book.bookTotalCents),
+    receivedCents: getKassaPreviewCents(book.receivedCents),
+    paymentMethod: book.paymentMethod || "",
+    surplusCents: getKassaPreviewCents(book.surplusCents),
+    surplusHandling: book.surplusHandling || "",
+    donationCents: getKassaPreviewCents(book.donationCents),
+    regularizationCents: getKassaPreviewCents(book.regularizationCents),
+    note: book.note || ""
+  }));
   return {
     importKey: [item && item.payload && item.payload.schemaVersion || "", item && item.eventId || "", item && item.deviceId || item && item.terminal || "", item && item.exportedAt || "", item && item.fileName || ""].filter(Boolean).join(" | "),
     rows,
     totals,
     ticketRows: [...manifestaRows, ...externalRows],
+    bookRows,
+    bookTotals: {
+      quantity: bookRows.reduce((sum, row) => sum + (parseInt(row.quantity, 10) || 0), 0),
+      bookTotalCents: bookRows.reduce((sum, row) => sum + getKassaPreviewCents(row.bookTotalCents), 0),
+      receivedCents: bookRows.reduce((sum, row) => sum + getKassaPreviewCents(row.receivedCents), 0),
+      donationCents: bookRows.reduce((sum, row) => sum + getKassaPreviewCents(row.donationCents), 0),
+      regularizationCents: bookRows.reduce((sum, row) => sum + getKassaPreviewCents(row.regularizationCents), 0)
+    },
     priceChangeRows: changedArticles.map(article => ({
       key: article.articleId || article.articleNumber || article.name,
       articleNumber: article.articleNumber || "",
@@ -9218,6 +9296,16 @@ function buildKassaImportValidationReport(batch, fileRecord, data, t) {
   if (badTickets.length) add("warn", `${t.kx_validation_tickets_warn}: ${badTickets.length}`);else add("ok", t.kx_validation_tickets_ok, {
     ticketRegistrationCount: ticketRows.length
   });
+  const bookRows = payload && payload.data && Array.isArray(payload.data.bookSales) ? payload.data.bookSales : [];
+  const badBooks = bookRows.filter(book => {
+    const quantity = parseInt(book && book.quantity, 10) || 0;
+    const unitPriceCents = getKassaPreviewCents(book && book.unitPriceCents);
+    const bookTotalCents = getKassaPreviewCents(book && book.bookTotalCents);
+    return !String(book && book.title || "").trim() || quantity <= 0 || unitPriceCents < 0 || bookTotalCents < 0;
+  });
+  if (badBooks.length) add("warn", `${t.kx_validation_books_warn}: ${badBooks.length}`);else add("ok", t.kx_validation_books_ok, {
+    bookSalesCount: bookRows.length
+  });
   add("ok", t.kx_validation_ledger_safe);
   const errors = checks.filter(check => check.level === "error").length;
   const warnings = checks.filter(check => check.level === "warn").length;
@@ -9234,6 +9322,9 @@ function buildKassaImportValidationReport(batch, fileRecord, data, t) {
     checkCount: checks.length,
     transactionCount: transactions.length,
     ticketRegistrationCount: ticketRows.length,
+    bookSalesCount: bookRows.length,
+    bookSalesQuantity: bookRows.reduce((sum, book) => sum + (parseInt(book && book.quantity, 10) || 0), 0),
+    bookSalesAmountCents: bookRows.reduce((sum, book) => sum + getKassaPreviewCents(book && book.bookTotalCents), 0),
     priceChangeCount: changedArticles.length,
     checks,
     immutablePayloadPreserved: true,
@@ -9322,6 +9413,7 @@ function buildKassaImportedFacts(batch, fileRecord) {
   });
   const manifestaTickets = Array.isArray(exportData.manifiestaTicketRegistrations) ? exportData.manifiestaTicketRegistrations : [];
   const externalTickets = Array.isArray(exportData.externalTicketRegistrations) ? exportData.externalTicketRegistrations : [];
+  const bookSales = Array.isArray(exportData.bookSales) ? exportData.bookSales : [];
   const ticketFacts = [...manifestaTickets.map((ticket, index) => ({
     id: `kif_ticket_${uid()}`,
     batchId: batch.id,
@@ -9349,6 +9441,33 @@ function buildKassaImportedFacts(batch, fileRecord) {
     note: ticket.note || "",
     immutable: true
   }))];
+  const bookFacts = bookSales.map((book, index) => ({
+    id: `kif_book_${uid()}`,
+    batchId: batch.id,
+    exportId: batch.exportId || "",
+    sequence: index + 1,
+    registrationId: book.registrationId || "",
+    eventId: book.eventId || batch.eventId || "",
+    deviceId: book.deviceId || batch.deviceId || "",
+    sourceEventDate: book.sourceEventDate || "",
+    time: book.time || "",
+    title: book.title || "",
+    quantity: parseInt(book.quantity, 10) || 0,
+    unitPriceCents: getKassaPreviewCents(book.unitPriceCents),
+    bookTotalCents: getKassaPreviewCents(book.bookTotalCents),
+    receivedCents: getKassaPreviewCents(book.receivedCents),
+    paymentMethod: book.paymentMethod || "",
+    surplusCents: getKassaPreviewCents(book.surplusCents),
+    surplusHandling: book.surplusHandling || "",
+    donationCents: getKassaPreviewCents(book.donationCents),
+    regularizationCents: getKassaPreviewCents(book.regularizationCents),
+    financialImpact: book.financialImpact || "separate_book_sales",
+    affectsCashControl: book.affectsCashControl !== false,
+    affectsEventRevenue: book.affectsEventRevenue === true,
+    affectsRepayment: book.affectsRepayment === true,
+    note: book.note || "",
+    immutable: true
+  }));
   return {
     id: `kifacts_${uid()}`,
     batchId: batch.id,
@@ -9365,12 +9484,15 @@ function buildKassaImportedFacts(batch, fileRecord) {
       salesLines: salesLines.length,
       payments: payments.length,
       tickets: ticketFacts.length,
+      bookSales: bookFacts.length,
+      books: bookFacts.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0),
       priceChanges: priceChanges.length
     },
     transactions: transactionFacts,
     salesLines,
     payments,
     tickets: ticketFacts,
+    bookSales: bookFacts,
     priceChanges
   };
 }
@@ -9417,6 +9539,13 @@ function buildKassaLedgerPreview(batch, facts, t) {
     sourceCount: facts.tickets.length,
     auditOnly: true
   });
+  if ((facts.bookSales || []).length) addEntry("book_sales_audit", t.kx_preview_books, sumCents(facts.bookSales || [], book => book.bookTotalCents), {
+    sourceCount: facts.bookSales.length,
+    bookQuantity: facts.counts && facts.counts.books || 0,
+    receivedCents: sumCents(facts.bookSales || [], book => book.receivedCents),
+    auditOnly: true,
+    financialImpact: "separate_book_sales"
+  });
   if ((facts.priceChanges || []).length) addEntry("price_change_audit", t.kx_facts_price_changes, 0, {
     sourceCount: facts.priceChanges.length,
     auditOnly: true
@@ -9447,6 +9576,8 @@ function buildKassaLedgerPreview(batch, facts, t) {
       salesLines: facts.counts && facts.counts.salesLines || 0,
       payments: facts.counts && facts.counts.payments || 0,
       tickets: facts.counts && facts.counts.tickets || 0,
+      bookSales: facts.counts && facts.counts.bookSales || 0,
+      books: facts.counts && facts.counts.books || 0,
       priceChanges: facts.counts && facts.counts.priceChanges || 0
     },
     entries
@@ -10198,7 +10329,11 @@ function KassaExportMonitorTab({
   }, visibleImportBatches.slice().reverse().map(batch => {
     const validationBadge = validationBadgeFor(batch);
     const report = batch.validationReport;
-    const hasPayload = importFiles.some(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+    const fileRecordForBatch = importFiles.find(file => file && (file.id === batch.fileRecordId || file.batchId === batch.id));
+    const hasPayload = !!fileRecordForBatch;
+    const batchPayloadBookSales = fileRecordForBatch && fileRecordForBatch.payload && fileRecordForBatch.payload.data && Array.isArray(fileRecordForBatch.payload.data.bookSales) ? fileRecordForBatch.payload.data.bookSales : [];
+    const batchBookSalesQuantity = batch.bookSalesQuantity ?? (batch.preview && batch.preview.bookSalesQuantity) ?? batchPayloadBookSales.reduce((sum, book) => sum + (parseInt(book && book.quantity, 10) || 0), 0);
+    const batchBookSalesAmountCents = batch.bookSalesAmountCents ?? (batch.preview && batch.preview.bookSalesAmountCents) ?? batchPayloadBookSales.reduce((sum, book) => sum + getKassaPreviewCents(book && book.bookTotalCents), 0);
     const facts = importedFacts.find(item => item && item.batchId === batch.id);
     const ledgerPreview = ledgerPreviews.find(item => item && item.batchId === batch.id);
     const ledgerTransactionsForBatch = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions.filter(item => item && item.source === "kassa-import" && item.sourceBatchId === batch.id) : [];
@@ -10318,7 +10453,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: "0.35rem"
       }
-    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_facts_status, facts ? t.kx_facts_extracted_badge : t.kx_facts_not_extracted], [t.kx_batch_ledger_status, isLedgerPosted ? t.kx_ledger_posted : t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_operator, batch.operator || t.kx_unknown], [t.kx_batch_source, batch.source || "google-drive"], [t.kx_batch_transactions, batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0], [t.kx_batch_tickets, batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0], [t.kx_books, batchBookSalesQuantity], [t.kx_book_amount, formatKassaPreviewMoney(batchBookSalesAmountCents)], [t.kx_batch_price_changes, batch.priceChangeCount ?? (batch.preview && batch.preview.priceChangeCount) ?? 0], [t.kx_facts_status, facts ? t.kx_facts_extracted_badge : t.kx_facts_not_extracted], [t.kx_batch_ledger_status, isLedgerPosted ? t.kx_ledger_posted : t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -10422,7 +10557,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
         gap: "0.35rem"
       }
-    }, [[t.kx_facts_transactions, facts.counts && facts.counts.transactions || 0], [t.kx_facts_sales_lines, facts.counts && facts.counts.salesLines || 0], [t.kx_facts_payments, facts.counts && facts.counts.payments || 0], [t.kx_facts_tickets, facts.counts && facts.counts.tickets || 0], [t.kx_facts_price_changes, facts.counts && facts.counts.priceChanges || 0], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_facts_transactions, facts.counts && facts.counts.transactions || 0], [t.kx_facts_sales_lines, facts.counts && facts.counts.salesLines || 0], [t.kx_facts_payments, facts.counts && facts.counts.payments || 0], [t.kx_facts_tickets, facts.counts && facts.counts.tickets || 0], [t.kx_preview_books, facts.counts && facts.counts.books || 0], [t.kx_facts_price_changes, facts.counts && facts.counts.priceChanges || 0], [t.kx_batch_ledger_status, t.kx_batch_not_posted]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -10659,7 +10794,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: "0.5rem"
       }
-    }, [[t.kx_event, `${item.eventName}${item.eventDate ? ` · ${formatDate(item.eventDate, lang)}` : ""}`], [t.kx_export_time, item.exportedLabel], [t.kx_transactions, item.transactionCount], [t.kx_cash_status, item.cashStatus], [t.kx_manifiesta, item.manifestaTicketCount], [t.kx_external, item.externalTicketCount]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_event, `${item.eventName}${item.eventDate ? ` · ${formatDate(item.eventDate, lang)}` : ""}`], [t.kx_export_time, item.exportedLabel], [t.kx_transactions, item.transactionCount], [t.kx_cash_status, item.cashStatus], [t.kx_manifiesta, item.manifestaTicketCount], [t.kx_external, item.externalTicketCount], [t.kx_books, item.bookSalesCount || 0], [t.kx_book_amount, formatKassaPreviewMoney(item.bookSalesAmountCents || 0)]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -10791,7 +10926,7 @@ function KassaExportMonitorTab({
         gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
         gap: "0.45rem"
       }
-    }, [[t.kx_preview_sales, formatKassaPreviewMoney(importPreview.totals.salesCents)], [t.kx_preview_donations, formatKassaPreviewMoney(importPreview.totals.donationCents)], [t.kx_preview_cash, formatKassaPreviewMoney(importPreview.totals.cashCents)], [t.kx_preview_card, formatKassaPreviewMoney(importPreview.totals.cardCents)], [t.kx_preview_payconiq, formatKassaPreviewMoney(importPreview.totals.payconiqCents)], [t.kx_preview_mixed, formatKassaPreviewMoney(importPreview.totals.mixedCents)]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
+    }, [[t.kx_preview_sales, formatKassaPreviewMoney(importPreview.totals.salesCents)], [t.kx_preview_donations, formatKassaPreviewMoney(importPreview.totals.donationCents)], [t.kx_preview_cash, formatKassaPreviewMoney(importPreview.totals.cashCents)], [t.kx_preview_card, formatKassaPreviewMoney(importPreview.totals.cardCents)], [t.kx_preview_payconiq, formatKassaPreviewMoney(importPreview.totals.payconiqCents)], [t.kx_preview_mixed, formatKassaPreviewMoney(importPreview.totals.mixedCents)], [t.kx_book_sales, `${importPreview.bookTotals.quantity} · ${formatKassaPreviewMoney(importPreview.bookTotals.bookTotalCents)}`]].map(([label, value]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         border: "1px solid var(--line)",
@@ -10884,6 +11019,45 @@ function KassaExportMonitorTab({
         fontSize: "0.76rem"
       }
     }, t.kx_preview_quantity, ": ", row.quantity, row.date ? ` · ${row.date}` : "", row.time ? ` · ${row.time}` : "", row.note ? ` · ${row.note}` : ""))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)"
+      }
+    }, t.kx_preview_no_rows)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gap: "0.45rem"
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, t.kx_preview_books, " · ", importPreview.bookRows.length), importPreview.bookRows.length ? importPreview.bookRows.map(row => /*#__PURE__*/React.createElement("div", {
+      key: row.key,
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1fr auto auto",
+        gap: "0.5rem",
+        alignItems: "center",
+        border: "1px solid var(--line)",
+        borderRadius: 7,
+        padding: "0.5rem",
+        background: "rgba(251,255,246,0.9)"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, row.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.76rem"
+      }
+    }, t.kx_preview_quantity, ": ", row.quantity, row.time ? ` · ${row.time}` : "", row.paymentMethod ? ` · ${row.paymentMethod}` : "", row.note ? ` · ${row.note}` : "")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 850
+      }
+    }, formatKassaPreviewMoney(row.bookTotalCents)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontWeight: 850
+      }
+    }, formatKassaPreviewMoney(row.receivedCents)))) : /*#__PURE__*/React.createElement("div", {
       style: {
         color: "var(--ink-soft)"
       }
