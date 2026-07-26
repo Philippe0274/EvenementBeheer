@@ -1,4 +1,9 @@
 ﻿# Changelog
+## 1.25.71
+- Nieuw intern controlerapport toegevoegd naast het secretariaatsrapport.
+- Het interne rapport bundelt bestaande gegevens read-only: financiële samenvatting, kassa-imports, ledgerregels, correcties, ticketregistraties, boekenverkoop en aandachtspunten.
+- Nieuwe knop `Intern rapport maken` toegevoegd in de rapportzone van Kostenbeheer; de PDF opent en wordt in de bestaande eventmap onder `03-rapporten` bewaard.
+- Geen wijziging aan import, ledger-posting, correcties, secretariaatsrapport, secretariaatsmail of financiële berekeningen.
 ## 1.25.70
 - Boekenverkoop in het eindrapport toont het aantal boeken en het totaalbedrag nu als twee aparte, duidelijke regels.
 - De vreemde notatie `aantal · bedrag` is verwijderd uit de PDF en uit de zichtbare eindrapportkaart.
@@ -809,6 +814,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

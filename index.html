@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.70";
+const APP_VERSION = "1.25.71";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -971,6 +971,17 @@ const T = {
     kb_final_report: "Financieel eindrapport",
     kb_final_report_button: "📄 Eindrapport genereren",
     kb_final_report_mail_button: "✉️ Mail eindrapport voorbereiden",
+    kb_internal_report_button: "🧾 Intern rapport maken",
+    kb_internal_report_title: "Intern controlerapport",
+    kb_internal_report_intro: "Volledig intern controledossier met kassa-imports, ledger, correcties, tickets en boeken.",
+    kb_internal_report_ready: "✓ Intern rapport aangemaakt",
+    kb_internal_report_drive_ready: "✓ Intern rapport geopend en opgeslagen op Google Drive.",
+    kb_internal_report_drive_uploading: "Intern rapport opslaan op Google Drive...",
+    kb_internal_report_drive_error: "Intern rapport kon niet op Google Drive worden opgeslagen",
+    kb_internal_report_attention: "Aandachtspunten",
+    kb_internal_report_imports: "Kassa-imports",
+    kb_internal_report_ledger: "Ledgercontrole",
+    kb_internal_report_no_issues: "Geen aandachtspunten gevonden.",
     kb_final_report_ready: "✓ Eindrapport aangemaakt",
     kb_final_report_mail_ready: "✓ PDF gedownload en Gmail geopend. Voeg de PDF toe als bijlage vóór verzending.",
     kb_final_report_drive_ready: "✓ PDF gedownload, opgeslagen op Google Drive en Gmail geopend met downloadlink.",
@@ -2193,6 +2204,17 @@ const T = {
     kb_final_report: "Rapport financier final",
     kb_final_report_button: "📄 Générer rapport final",
     kb_final_report_mail_button: "✉️ Préparer e-mail rapport final",
+    kb_internal_report_button: "🧾 Créer rapport interne",
+    kb_internal_report_title: "Rapport de contrôle interne",
+    kb_internal_report_intro: "Dossier de contrôle interne complet avec imports caisse, ledger, corrections, tickets et livres.",
+    kb_internal_report_ready: "✓ Rapport interne créé",
+    kb_internal_report_drive_ready: "✓ Rapport interne ouvert et enregistré sur Google Drive.",
+    kb_internal_report_drive_uploading: "Enregistrement du rapport interne sur Google Drive...",
+    kb_internal_report_drive_error: "Le rapport interne n'a pas pu être enregistré sur Google Drive",
+    kb_internal_report_attention: "Points d'attention",
+    kb_internal_report_imports: "Imports caisse",
+    kb_internal_report_ledger: "Contrôle ledger",
+    kb_internal_report_no_issues: "Aucun point d'attention trouvé.",
     kb_final_report_ready: "✓ Rapport final créé",
     kb_final_report_mail_ready: "✓ PDF téléchargé et Gmail ouvert. Ajoutez le PDF en pièce jointe avant l'envoi.",
     kb_final_report_drive_ready: "✓ PDF téléchargé, enregistré sur Google Drive et Gmail ouvert avec lien de téléchargement.",
@@ -19649,12 +19671,12 @@ function KostenbeheerTab({
     const linkLines = driveLink ? ["", `${t.kb_final_mail_drive_link_label}:`, driveLink] : [];
     return [`${greeting.nl}`, "", `Gelieve hierbij het finaal financieel overzicht te vinden van het evenement ${eventNaam}.`, "", `Het betreft het overzicht van de inkomsten, uitgaven en het eindresultaat van het evenement${eventDate ? ` dat plaatsvond op ${eventDate}` : ""}${nlPlace}.`, "", "De kassagegevens werden verwerkt op basis van de gecontroleerde export uit de Kassa Tool.", ...buildFinalReportSpecialMailLines("nl"), "", "Alvast bedankt.", "", "Met kameraadschappelijke groeten,", "", "Angela Janett Flores", "", "----------------------------------------", "", `${greeting.fr}`, "", `Veuillez trouver ci-joint le résumé financier final de l'événement ${eventNaam}.`, "", `Il s'agit de l'aperçu des recettes, des dépenses et du résultat final de l'événement${eventDateFr ? ` qui a eu lieu le ${eventDateFr}` : ""}${frPlace}.`, "", "Les données de caisse ont été traitées sur la base de l'export contrôlé de la Kassa Tool.", ...buildFinalReportSpecialMailLines("fr"), "", "Merci d'avance.", "", "Salutations camarades,", "", "Angela Janett Flores", ...linkLines].join("\n");
   };
-  const uploadFinalReportToDrive = async (doc, fileName) => {
+  const uploadFinalReportToDrive = async (doc, fileName, uploadingMessage = "") => {
     if (!eventToolGDriveIsTokenValid()) {
       eventToolGDriveConnect();
       throw new Error(t.kb_final_report_drive_not_connected);
     }
-    showToast(t.kb_final_report_drive_uploading);
+    showToast(uploadingMessage || t.kb_final_report_drive_uploading);
     const blob = doc.output("blob");
     const eventFolder = await eventToolGDriveEnsureFolder(finalReportEventFolderName());
     const reportFolder = await eventToolGDriveEnsureFolder("03-rapporten", eventFolder.id);
@@ -19662,6 +19684,310 @@ function KostenbeheerTab({
     localStorage.removeItem("eventtool_gdrive_last_error");
     eventToolGDriveEmit();
   return file.webContentLink || file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+  };
+  const internalReportFileName = () => {
+    const safeEvent = (data.event.naam || "evenement").replace(/[^a-z0-9]/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+    return `eventtool-intern-rapport-${safeEvent}.pdf`;
+  };
+  const genereerInternRapportPDF = () => {
+    const jsPDFns = window.jspdf;
+    if (!jsPDFns || !jsPDFns.jsPDF) {
+      alert(t.kb_pdf_fout);
+      return null;
+    }
+    const doc = new jsPDFns.jsPDF({
+      unit: "mm",
+      format: "a4"
+    });
+    const pageW = 210;
+    const pageH = 297;
+    const marge = 14;
+    const ROOD = [211, 62, 62];
+    const GROEN = [58, 125, 68];
+    const ORANJE = [217, 155, 42];
+    const BLAUW = [70, 112, 184];
+    const DONKER = [26, 22, 18];
+    const GRIJS = [110, 105, 96];
+    const LIJN = [226, 215, 199];
+    let y = marge;
+    const money = cents => fmtCents(cents);
+    const ensure = nodig => {
+      if (y + nodig > pageH - marge) {
+        doc.addPage();
+        y = marge;
+      }
+    };
+    const short = (value, maxWidth, fontSize = 8.5) => {
+      let text = String(value || "");
+      doc.setFontSize(fontSize);
+      if (doc.getTextWidth(text) <= maxWidth) return text;
+      while (text.length > 1 && doc.getTextWidth(text + "...") > maxWidth) text = text.slice(0, -1);
+      return `${text}...`;
+    };
+    const line = (label, value, opts = {}) => {
+      ensure(6);
+      const color = opts.color === "green" ? GROEN : opts.color === "red" ? ROOD : opts.color === "orange" ? ORANJE : DONKER;
+      doc.setFont("helvetica", opts.strong ? "bold" : "normal");
+      doc.setFontSize(opts.strong ? 9.5 : 8.4);
+      doc.setTextColor(color[0], color[1], color[2]);
+      doc.text(short(label, 126, opts.strong ? 9.5 : 8.4), marge + 6, y);
+      doc.text(String(value ?? "-"), pageW - marge - 6, y, {
+        align: "right"
+      });
+      y += opts.strong ? 6.4 : 5.4;
+      if (opts.line) {
+        doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+        doc.line(marge + 6, y - 3.1, pageW - marge - 6, y - 3.1);
+      }
+    };
+    const block = (title, rows, accent = BLAUW, note = "") => {
+      const cleanRows = rows.filter(Boolean);
+      const noteLines = note ? doc.splitTextToSize(note, pageW - marge * 2 - 14) : [];
+      const h = 13 + cleanRows.length * 5.6 + (noteLines.length ? noteLines.length * 4 + 4 : 0) + 5;
+      ensure(h + 5);
+      const top = y;
+      doc.setFillColor(255, 252, 247);
+      doc.setDrawColor(LIJN[0], LIJN[1], LIJN[2]);
+      doc.roundedRect(marge, top, pageW - marge * 2, h, 2.6, 2.6, "FD");
+      doc.setFillColor(accent[0], accent[1], accent[2]);
+      doc.roundedRect(marge, top, 3, h, 2.6, 2.6, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11.5);
+      doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+      doc.text(title, marge + 7, top + 8);
+      y = top + 16;
+      cleanRows.forEach(row => line(row.label, row.value, row));
+      if (noteLines.length) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(7.8);
+        doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+        doc.text(noteLines, marge + 7, y + 1);
+      }
+      y = top + h + 6;
+    };
+    const imports = data && data.kassaImports || {};
+    const batches = Array.isArray(imports.batches) ? imports.batches : [];
+    const files = Array.isArray(imports.files) ? imports.files : [];
+    const facts = Array.isArray(imports.importedFacts) ? imports.importedFacts : [];
+    const previews = Array.isArray(imports.ledgerPreviews) ? imports.ledgerPreviews : [];
+    const ledgerRows = eind.ledgerRows || [];
+    const corrections = eind.corrections || [];
+    const issues = [];
+    if (!ledgerRows.length) issues.push(t.kb_final_no_ledger);
+    if (Math.abs(eind.paymentDifferenceCents || 0) > 0) issues.push(`${t.kb_final_payment_diff}: ${money(eind.paymentDifferenceCents)}`);
+    if ((eind.corrections || []).length) issues.push(`${t.kb_corrections}: ${eind.corrections.length}`);
+    if (!batches.length) issues.push(lang === "fr" ? "Aucun lot d'import caisse enregistré." : "Geen kassa-importbatch geregistreerd.");
+    const titleY = y;
+    const flyer = data.event && data.event.affiche;
+    let textX = marge;
+    if (flyer) {
+      try {
+        const props = doc.getImageProperties(flyer);
+        const maxW = 28;
+        const maxH = 36;
+        let w = maxW;
+        let h = props.height / props.width * w;
+        if (h > maxH) {
+          h = maxH;
+          w = props.width / props.height * h;
+        }
+        doc.addImage(flyer, "JPEG", marge, titleY, w, h);
+        textX = marge + maxW + 8;
+      } catch (e) {/* affiche overslaan */}
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(19);
+    doc.setTextColor(ROOD[0], ROOD[1], ROOD[2]);
+    doc.text(t.kb_internal_report_title, textX, y + 6);
+    doc.setFontSize(14);
+    doc.setTextColor(DONKER[0], DONKER[1], DONKER[2]);
+    doc.text(doc.splitTextToSize(data.event.naam || t.no_event, pageW - textX - marge), textX, y + 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+    const eventInfo = [data.event.datum ? formatDate(data.event.datum, lang) : "", buildAddressString(data.event)].filter(Boolean).join(" · ");
+    doc.text(doc.splitTextToSize(eventInfo || "-", pageW - textX - marge), textX, y + 24);
+    doc.text(`${t.kb_final_report_generated}: ${new Date().toLocaleString(lang === "fr" ? "fr-BE" : "nl-BE")}`, textX, y + 32);
+    y = Math.max(titleY + 42, y + 40);
+    block(t.kb_final_result, [{
+      label: t.kb_final_revenue,
+      value: money(eind.totalRevenueCents)
+    }, {
+      label: t.kb_final_costs,
+      value: money(eind.totalCostsCents)
+    }, {
+      label: t.kb_final_result,
+      value: money(eind.resultCents),
+      strong: true,
+      color: eind.resultCents < 0 ? "red" : "green",
+      line: true
+    }, {
+      label: t.kb_final_payment_diff,
+      value: money(eind.paymentDifferenceCents),
+      strong: true,
+      color: Math.abs(eind.paymentDifferenceCents) > 0 ? "orange" : "green"
+    }], eind.resultCents < 0 ? ROOD : GROEN, t.kb_internal_report_intro);
+    block(t.kb_internal_report_imports, [{
+      label: "Importbatches",
+      value: String(batches.length)
+    }, {
+      label: "Bronbestanden",
+      value: String(files.length)
+    }, {
+      label: "Feitenlagen",
+      value: String(facts.length)
+    }, {
+      label: "Ledger-previews",
+      value: String(previews.length)
+    }], BLAUW);
+    batches.slice().reverse().slice(0, 8).forEach((batch, index) => {
+      block(`${t.kb_internal_report_imports} ${index + 1}`, [{
+        label: t.kx_operator,
+        value: batch.operator || t.kx_unknown
+      }, {
+        label: t.kx_event,
+        value: `${batch.eventName || "-"}${batch.eventDate ? ` · ${formatDate(batch.eventDate, lang)}` : ""}`
+      }, {
+        label: t.kx_batch_transactions,
+        value: String(batch.transactionCount ?? (batch.preview && batch.preview.transactionCount) ?? 0)
+      }, {
+        label: t.kx_batch_tickets,
+        value: String(batch.ticketCount ?? (batch.preview && batch.preview.ticketCount) ?? 0)
+      }, {
+        label: t.kx_books,
+        value: String(batch.bookSalesQuantity ?? (batch.preview && batch.preview.bookSalesQuantity) ?? 0)
+      }, {
+        label: t.kx_batch_ledger_status,
+        value: ledgerRows.some(row => row.sourceBatchId === batch.id) ? t.kx_ledger_posted : t.kx_batch_not_posted,
+        strong: true,
+        color: ledgerRows.some(row => row.sourceBatchId === batch.id) ? "green" : "orange"
+      }], BLAUW, batch.sourceFileName || "");
+    });
+    block(t.kb_internal_report_ledger, [{
+      label: t.kb_total_sales,
+      value: money(eind.salesCents)
+    }, {
+      label: t.kb_total_donations,
+      value: money(eind.donationsCents)
+    }, {
+      label: t.kb_total_cash,
+      value: money(eind.cashCents)
+    }, {
+      label: t.kb_total_card,
+      value: money(eind.cardCents)
+    }, {
+      label: t.kb_total_payconiq,
+      value: money(eind.payconiqCents)
+    }, {
+      label: t.kb_ledger_entries,
+      value: String(ledgerRows.length),
+      strong: true,
+      line: true
+    }, {
+      label: t.kb_corrections,
+      value: String(corrections.length),
+      strong: true,
+      color: corrections.length ? "orange" : "green"
+    }], ORANJE);
+    ledgerRows.slice().reverse().slice(0, 12).forEach(row => {
+      block(row.label || row.type || t.kb_ledger_entries, [{
+        label: t.kb_type,
+        value: row.type || "-"
+      }, {
+        label: t.kb_batch,
+        value: row.sourceBatchId || "-"
+      }, {
+        label: t.kb_source_file,
+        value: row.sourceFileName || "-"
+      }, {
+        label: t.kb_amount,
+        value: money(row.amountCents),
+        strong: true,
+        color: row.auditOnly ? "orange" : "green"
+      }], row.auditOnly ? ORANJE : GROEN, row.auditOnly ? t.kb_audit_only : t.kb_immutable);
+    });
+    if (corrections.length) {
+      block(t.kb_final_corrections_title, corrections.slice().reverse().map(item => ({
+        label: item.reason || item.type || t.kb_corrections,
+        value: money(item.amountCents),
+        color: "orange"
+      })), ORANJE, lang === "fr" ? t.kb_final_audit_note : t.kb_final_audit_note);
+    }
+    if ((eind.ticketDetails || []).length) {
+      block(t.kb_final_tickets_info, eind.ticketDetails.map(ticket => ({
+        label: `${ticket.eventName || t.kb_final_external_tickets}${ticket.eventDate ? ` · ${formatDate(ticket.eventDate, lang)}` : ""}`,
+        value: String(ticket.quantity)
+      })), [154, 123, 184]);
+    }
+    if ((eind.bookSummary || []).length) {
+      const rows = eind.bookSummary.map(book => ({
+        label: `${book.title} · ${book.quantity} x ${money(book.unitPriceCents)}`,
+        value: money(book.bookTotalCents)
+      }));
+      rows.push({
+        label: lang === "fr" ? "Nombre de livres" : "Aantal boeken",
+        value: String(eind.bookTotals.quantity),
+        strong: true,
+        line: true
+      }, {
+        label: t.kb_final_books_total,
+        value: money(eind.bookTotals.bookTotalCents),
+        strong: true,
+        color: "green"
+      }, {
+        label: t.kb_final_received_books,
+        value: money(eind.bookTotals.receivedCents)
+      }, {
+        label: t.kb_final_books_surplus,
+        value: money(eind.bookTotals.surplusCents),
+        color: eind.bookTotals.surplusCents ? "orange" : "green"
+      });
+      block(t.kb_final_book_sales_info, rows, [111, 137, 184]);
+    }
+    block(t.kb_internal_report_attention, issues.length ? issues.map(issue => ({
+      label: issue,
+      value: "!"
+    })) : [{
+      label: t.kb_internal_report_no_issues,
+      value: "✓",
+      color: "green"
+    }], issues.length ? ORANJE : GROEN);
+    const pdmLogo = document.querySelector(".app-owner-logo");
+    const pages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pages; p++) {
+      doc.setPage(p);
+      if (pdmLogo && pdmLogo.complete) {
+        try {
+          doc.addImage(pdmLogo, "PNG", marge, pageH - 15, 18, 10);
+        } catch (e) {/* logo overslaan */}
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(GRIJS[0], GRIJS[1], GRIJS[2]);
+      doc.text(`${p} / ${pages}`, pageW - marge, pageH - 6, {
+        align: "right"
+      });
+    }
+    return doc;
+  };
+  const openAndUploadInternRapportPDF = async () => {
+    setBezig(true);
+    try {
+      const doc = genereerInternRapportPDF();
+      if (!doc) return;
+      const fileName = internalReportFileName();
+      const blobUrl = URL.createObjectURL(doc.output("blob"));
+      window.open(blobUrl, "_blank", "noopener");
+      await uploadFinalReportToDrive(doc, fileName, t.kb_internal_report_drive_uploading);
+      showToast(t.kb_internal_report_drive_ready);
+    } catch (e) {
+      const msg = e && e.message || String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      eventToolGDriveEmit();
+      alert(`${t.kb_internal_report_drive_error}: ${msg}`);
+    } finally {
+      setBezig(false);
+    }
   };
   const openAndUploadEindrapportPDF = async () => {
     setBezig(true);
@@ -20443,6 +20769,10 @@ function KostenbeheerTab({
     onClick: downloadEindrapportPDF,
     disabled: bezig
   }, t.kb_final_report_button), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-ghost btn-sm",
+    onClick: openAndUploadInternRapportPDF,
+    disabled: bezig
+  }, t.kb_internal_report_button), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-ghost btn-sm",
     onClick: prepareFinalReportEmail,
     disabled: bezig
