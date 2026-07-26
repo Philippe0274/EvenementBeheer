@@ -128,6 +128,32 @@
       0 3px 0 #7d281b,
       0 8px 16px rgba(67,48,28,0.18);
   }
+  .workflow-glass-btn.workflow-glass-green {
+    background:
+      radial-gradient(circle at 26% 18%, rgba(255,255,255,0.96), rgba(255,255,255,0.23) 30%, transparent 45%),
+      linear-gradient(145deg, rgba(255,255,255,0.54) 0%, rgba(255,255,255,0.2) 35%, rgba(206,255,190,0.36) 64%, rgba(74,107,58,0.96) 100%),
+      linear-gradient(180deg, #7fa85f 0%, #4a6b3a 62%, #314d24 100%) !important;
+    text-shadow: 0 1px 1px rgba(21, 48, 18, 0.48), 0 0 13px rgba(210, 255, 190, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.94),
+      inset 0 -12px 18px rgba(29,72,24,0.24),
+      0 9px 0 #2f481f,
+      0 16px 28px rgba(43,73,34,0.24);
+  }
+  .workflow-glass-btn.workflow-glass-green:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.96),
+      inset 0 -12px 18px rgba(29,72,24,0.22),
+      0 11px 0 #2f481f,
+      0 20px 34px rgba(43,73,34,0.26);
+  }
+  .workflow-glass-btn.workflow-glass-green:active {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.82),
+      inset 0 -8px 12px rgba(29,72,24,0.22),
+      0 3px 0 #2f481f,
+      0 8px 16px rgba(43,73,34,0.18);
+  }
   .workflow-glass-btn.btn-sm { min-height: 2.75rem; padding-left: 1rem; padding-right: 1rem; font-weight: 850; }
   .badge { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
   .badge-open { background: #ede4d3; color: var(--ink-soft); }
@@ -338,7 +364,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.56";
+const APP_VERSION = "1.25.57";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -989,6 +1015,7 @@ const T = {
     dashboard_next_title: "Volgende stap uitvoeren",
     dashboard_next_intro: "De app kiest automatisch de eerstvolgende veilige stap in de gekozen fase.",
     dashboard_next_button: "Start volgende stap",
+    dashboard_next_open_report: "Open eindrapport",
     dashboard_final_drive_needed: "Google Drive moet nog verbonden worden.",
     dashboard_final_exports_needed: "Er is nog geen open Kassa-export. Haal eerst de export uit EventToolSync op.",
     dashboard_final_validate: "Volgende stap: import controleren.",
@@ -2246,6 +2273,7 @@ const T = {
     dashboard_next_title: "Exécuter l'étape suivante",
     dashboard_next_intro: "L'app choisit automatiquement la prochaine étape sûre dans la phase choisie.",
     dashboard_next_button: "Démarrer l'étape suivante",
+    dashboard_next_open_report: "Ouvrir rapport final",
     dashboard_final_drive_needed: "Google Drive doit encore être connecté.",
     dashboard_final_exports_needed: "Aucun export caisse ouvert. Chargez d'abord l'export depuis EventToolSync.",
     dashboard_final_validate: "Étape suivante : contrôler l'import.",
@@ -11027,9 +11055,10 @@ function DashboardCockpit({
   } : {
     text: finalAction.text,
     status: finalAction.status,
-    button: t.dashboard_next_button,
+    button: finalAction.status === statusDone ? t.dashboard_next_open_report : t.dashboard_next_button,
     run: finalAction.run
   };
+  const mainWorkflowButtonClass = `btn btn-primary workflow-glass-btn${mainWorkflowAction.status === statusDone ? " workflow-glass-green" : ""}`;
   const renderStepCard = (step, index, steps) => {
     const firstOpenIndex = steps.findIndex(item => item.status !== statusDone);
     const isDone = step.status === statusDone;
@@ -11307,7 +11336,7 @@ function DashboardCockpit({
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "btn btn-primary workflow-glass-btn",
+    className: mainWorkflowButtonClass,
     onClick: event => {
       event.preventDefault();
       if (typeof mainWorkflowAction.run === "function") mainWorkflowAction.run();

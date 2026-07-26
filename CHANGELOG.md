@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.25.57
+- De centrale Beheercentrum-knop blijft rood/oranje zolang er nog een workflowstap open staat.
+- Zodra de actieve fase klaar is, wordt de knop groen en glasachtiger en toont hij `Open eindrapport`.
+- Geen wijziging aan opslag, workflowacties, Google Drive, import, ledger of rapportberekening.
+
 ## 1.25.56
 - Beheercentrum toont nu boven de kaarten één centrale knop `Volgende stap uitvoeren`.
 - De knop kiest automatisch de eerstvolgende open stap in de actieve fase `Voor Evenement` of `Na Evenement` en gebruikt dezelfde bestaande acties als de kaarten.
@@ -748,6 +753,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 
