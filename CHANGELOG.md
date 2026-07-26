@@ -1,4 +1,9 @@
 ﻿# Changelog
+## 1.25.66
+- Secretariaatsmail toont bij boekenverkoop geen intern detail meer over teveel betaald/surplus; alleen titel, aantal, prijs en totaal blijven zichtbaar.
+- Overbodige eindrapportkaart `Financieel eindrapport / Definitief verwerkt` verwijderd uit de PDF.
+- Geen wijziging aan ledger, import, boekdata of financiële berekeningen.
+
 ## 1.25.65
 - Eindafrekening groepeert geïmporteerde ticketregistraties en boekenverkoop nu uit de immutable Kassa-feitenlaag.
 - Eindrapport toont tickets en boeken alleen wanneer ze effectief bestaan; boeken blijven apart van gewone eventopbrengst en winstberekening.
@@ -786,6 +791,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 
