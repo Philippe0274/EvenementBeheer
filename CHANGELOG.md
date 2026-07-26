@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.25.61
+- `Mail eindrapport voorbereiden` opent de Gmail-compose nu betrouwbaarder door onmiddellijk bij de klik een mailvenster te reserveren en pas na de Drive-upload de definitieve mailtekst en downloadlink in te laden.
+- De knop opent geen rapportpreview; de rapportpreview blijft uitsluitend gekoppeld aan `Eindrapport maken` in het Beheercentrum.
+- Geen wijziging aan rapportberekening, Drive-eventmap, ledger, import of bestaande eventdata.
 ## 1.25.60
 - De Beheercentrumknop `Eindrapport maken` genereert nu rechtstreeks het eindrapport, opent de PDF automatisch en bewaart dezelfde PDF in de Drive-eventmap onder `03-rapporten`.
 - De bestaande knop `Mail eindrapport voorbereiden` in Kostenbeheer blijft behouden en blijft de bestaande Gmail/Drive-link-flow gebruiken.
@@ -767,6 +771,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
