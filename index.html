@@ -364,7 +364,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.59";
+const APP_VERSION = "1.25.60";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -968,6 +968,7 @@ const T = {
     kb_final_report_ready: "✓ Eindrapport aangemaakt",
     kb_final_report_mail_ready: "✓ PDF gedownload en Gmail geopend. Voeg de PDF toe als bijlage vóór verzending.",
     kb_final_report_drive_ready: "✓ PDF gedownload, opgeslagen op Google Drive en Gmail geopend met downloadlink.",
+    kb_final_report_open_drive_ready: "✓ Eindrapport geopend en opgeslagen op Google Drive.",
     kb_final_report_drive_uploading: "Eindrapport opslaan op Google Drive...",
     kb_final_report_drive_not_connected: "Google Drive is niet verbonden. Verbind eerst via het Dashboard.",
     kb_final_report_drive_error: "Eindrapport kon niet op Google Drive worden opgeslagen",
@@ -1018,7 +1019,7 @@ const T = {
     dashboard_next_title: "Start hier",
     dashboard_next_intro: "Klik op de grote knop. De app kiest automatisch de juiste veilige stap.",
     dashboard_next_button: "Start volgende stap",
-    dashboard_next_open_report: "Open eindrapport",
+    dashboard_next_open_report: "Eindrapport maken",
     dashboard_show_cards: "Kaarten tonen",
     dashboard_hide_cards: "Kaarten verbergen",
     dashboard_final_drive_needed: "Google Drive moet nog verbonden worden.",
@@ -2156,6 +2157,7 @@ const T = {
     kb_final_report_ready: "✓ Rapport final créé",
     kb_final_report_mail_ready: "✓ PDF téléchargé et Gmail ouvert. Ajoutez le PDF en pièce jointe avant l'envoi.",
     kb_final_report_drive_ready: "✓ PDF téléchargé, enregistré sur Google Drive et Gmail ouvert avec lien de téléchargement.",
+    kb_final_report_open_drive_ready: "✓ Rapport final ouvert et enregistré sur Google Drive.",
     kb_final_report_drive_uploading: "Enregistrement du rapport final sur Google Drive...",
     kb_final_report_drive_not_connected: "Google Drive n'est pas connecté. Connectez-le d'abord via le tableau de bord.",
     kb_final_report_drive_error: "Le rapport final n'a pas pu être enregistré sur Google Drive",
@@ -2281,7 +2283,7 @@ const T = {
     dashboard_next_title: "Commencer ici",
     dashboard_next_intro: "Cliquez sur le grand bouton. L'app choisit automatiquement la bonne étape sûre.",
     dashboard_next_button: "Démarrer l'étape suivante",
-    dashboard_next_open_report: "Ouvrir rapport final",
+    dashboard_next_open_report: "Créer rapport final",
     dashboard_show_cards: "Afficher les cartes",
     dashboard_hide_cards: "Masquer les cartes",
     dashboard_final_drive_needed: "Google Drive doit encore être connecté.",
@@ -11037,7 +11039,20 @@ function DashboardCockpit({
     return {
       text: t.dashboard_final_report,
       status: statusDone,
-      run: () => setTab("kostenbeheer", 8)
+      run: () => {
+        sessionStorage.setItem("eventtool_auto_final_report", "1");
+        try {
+          const popup = window.open("about:blank", "_blank");
+          window.__eventToolFinalReportWindow = popup;
+          if (popup && popup.document) {
+            popup.document.write("<!doctype html><title>Eindrapport</title><body style='font-family:Arial,sans-serif;padding:2rem'>Eindrapport wordt gemaakt...</body>");
+            popup.document.close();
+          }
+        } catch (e) {
+          window.__eventToolFinalReportWindow = null;
+        }
+        setTab("kostenbeheer", 8);
+      }
     };
   })();
   const beforeSteps = [{
@@ -19174,6 +19189,34 @@ function KostenbeheerTab({
     eventToolGDriveEmit();
   return file.webContentLink || file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
   };
+  const openAndUploadEindrapportPDF = async () => {
+    setBezig(true);
+    const popup = window.__eventToolFinalReportWindow || null;
+    try {
+      const doc = genereerEindrapportPDF();
+      if (!doc) {
+        if (popup && !popup.closed) popup.close();
+        return;
+      }
+      const fileName = finalReportFileName();
+      const blobUrl = URL.createObjectURL(doc.output("blob"));
+      if (popup && !popup.closed) {
+        popup.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, "_blank", "noopener");
+      }
+      await uploadFinalReportToDrive(doc, fileName);
+      showToast(t.kb_final_report_open_drive_ready);
+    } catch (e) {
+      const msg = e && e.message || String(e);
+      localStorage.setItem("eventtool_gdrive_last_error", msg);
+      eventToolGDriveEmit();
+      alert(`${t.kb_final_report_drive_error}: ${msg}`);
+    } finally {
+      window.__eventToolFinalReportWindow = null;
+      setBezig(false);
+    }
+  };
   const prepareFinalReportEmail = async () => {
     if (!finalReportRecipientsList.length) {
       alert(t.kb_final_mail_missing_recipients);
@@ -19198,6 +19241,11 @@ function KostenbeheerTab({
       setBezig(false);
     }
   };
+  React.useEffect(() => {
+    if (sessionStorage.getItem("eventtool_auto_final_report") !== "1") return;
+    sessionStorage.removeItem("eventtool_auto_final_report");
+    openAndUploadEindrapportPDF();
+  }, []);
 
   // Kasblad: eenvoudige papieren versie voor ter plekke invullen
   const downloadKasblad = () => {

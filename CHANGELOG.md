@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.25.60
+- De Beheercentrumknop `Eindrapport maken` genereert nu rechtstreeks het eindrapport, opent de PDF automatisch en bewaart dezelfde PDF in de Drive-eventmap onder `03-rapporten`.
+- De bestaande knop `Mail eindrapport voorbereiden` in Kostenbeheer blijft behouden en blijft de bestaande Gmail/Drive-link-flow gebruiken.
+- Geen wijziging aan de financiële berekening, ledger, import, correcties of eventdata.
 ## 1.25.59
 - Het Beheercentrum leest nu meer als een eenvoudige cockpit: `Start hier` staat centraal en de grote knop blijft leidend.
 - De cockpit-intro werd verduidelijkt: eerst vóór het evenement, daarna na het evenement.
@@ -8,7 +12,9 @@
 ## 1.25.58
 - `Kassa Exports` en `Kassa Bewegingen` tonen nu bovenaan duidelijk dat dit technische detailschermen zijn.
 - Beide technische kassaschermen kregen een directe knop `Terug naar Beheercentrum`, zodat de normale workflow opnieuw het vertrekpunt blijft.
-- Geen wijziging aan opslag, Google Drive, import, ledger, correcties of rapportberekening.`r`n`r`n## 1.25.57
+- Geen wijziging aan opslag, Google Drive, import, ledger, correcties of rapportberekening.
+
+## 1.25.57
 - De centrale Beheercentrum-knop blijft rood/oranje zolang er nog een workflowstap open staat.
 - Zodra de actieve fase klaar is, wordt de knop groen en glasachtiger en toont hij `Open eindrapport`.
 - Geen wijziging aan opslag, workflowacties, Google Drive, import, ledger of rapportberekening.
@@ -761,6 +767,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
