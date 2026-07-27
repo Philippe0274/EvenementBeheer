@@ -1,4 +1,10 @@
-﻿## 1.25.79
+﻿## 1.25.80
+- Nieuw evenement beter in Beheercentrum geplaatst: een aparte startkaart toont eerst het actieve event, datum, locatie en affiche-status.
+- De knop Nieuw evenement starten gebruikt dezelfde bestaande veilige snapshot/backup-flow als voordien.
+- De losse knop in de Beheercentrum-kop is vervangen door een rustige statusbadge voor het actieve evenement.
+- Geen wijzigingen aan data, event lifecycle, backup/snapshot, import, ledger, rapporten of Google Drive.
+
+## 1.25.79
 - Beheercentrum verder vereenvoudigd richting eindgebruikersflow: de dubbele globale aanbevolen-actiekaart is verwijderd.
 - De fasekaarten Voor event en Na event tonen nu zelf duidelijk 'Nu doen' of 'Voltooid' naast hun voortgang.
 - Onderliggende knoppen worden explicieter als achterliggende controleknoppen getoond; detailmodules blijven volledig bereikbaar.
