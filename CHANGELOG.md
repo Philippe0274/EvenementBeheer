@@ -1,4 +1,13 @@
-﻿# Changelog
+﻿## 1.25.73
+- Beheercentrum uitgebreid tot centrale cockpit met statuskaarten, aanbevolen volgende actie en duidelijke blokken voor vóór en na het evenement.
+- Bestaande acties hergebruikt voor nieuw evenement, eventgegevens, prijslijst, Drive, Kassa-export, kassaboekingen, kostenbeheer, rapporten, berichten en backup.
+- Geen wijzigingen aan datamodel, importcontract, ledgerlogica, rapportberekeningen of Google Drive-opslag.
+
+## 1.25.72
+- Intern controlerapport verwijderd op vraag van de gebruiker: de knop en PDF-generator zijn weggehaald.
+- Secretariaatsrapport, eindrapportmail, Google Drive-upload, kassa-import en kassaboekingen blijven ongewijzigd.
+
+# Changelog
 ## 1.25.71
 - Nieuw intern controlerapport toegevoegd naast het secretariaatsrapport.
 - Het interne rapport bundelt bestaande gegevens read-only: financiële samenvatting, kassa-imports, ledgerregels, correcties, ticketregistraties, boekenverkoop en aandachtspunten.
