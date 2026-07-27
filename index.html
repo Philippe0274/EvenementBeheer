@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.80";
+const APP_VERSION = "1.25.81";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1140,6 +1140,9 @@ const T = {
     center_next_preview: "Maak een boekingsvoorstel voor de import.",
     center_next_post: "Boek de gecontroleerde import definitief.",
     center_next_report: "Maak of open het eindrapport.",
+    center_next_after_flow: "Start de na-eventverwerking. De app haalt exports op en verwerkt telkens de eerstvolgende veilige stap.",
+    center_after_flow_button: "Na-eventverwerking starten",
+    center_final_report_mail_button: "Eindrapport en mail voorbereiden",
     center_before_title: "Voor event",
     center_before_intro: "Alles wat klaar moet staan vóór de Kassa Tool op de tablet wordt gebruikt.",
     center_after_title: "Na event",
@@ -2328,6 +2331,9 @@ const T = {
     center_next_preview: "Créez une proposition de comptabilisation pour l'import.",
     center_next_post: "Comptabilisez définitivement l'import contrôlé.",
     center_next_report: "Créez ou ouvrez le rapport final.",
+    center_next_after_flow: "Démarrez le traitement après événement. L'app charge les exports et exécute chaque étape sûre suivante.",
+    center_after_flow_button: "Démarrer le traitement après événement",
+    center_final_report_mail_button: "Préparer rapport final et e-mail",
     center_before_title: "Avant l'événement",
     center_before_intro: "Tout ce qui doit être prêt avant l'utilisation de la Kassa Tool sur la tablette.",
     center_after_title: "Après l'événement",
@@ -10161,6 +10167,7 @@ function KassaExportMonitorTab({
     label: "",
     detail: ""
   });
+  const autoFlowRef = React.useRef("");
   useEffect(() => {
     initEventToolGoogleDrive();
     const unsub = eventToolGDriveSubscribe(setDrive);
@@ -10330,6 +10337,71 @@ function KassaExportMonitorTab({
   const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
   const hideRawExportArea = !showOldExports && visibleImportBatches.length > 0;
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
+  useEffect(() => {
+    if (sessionStorage.getItem("eventtool_auto_after_event_flow") !== "1") return;
+    if (busy || exportsFound.length) return;
+    if (autoFlowRef.current === "refresh") return;
+    autoFlowRef.current = "refresh";
+    refreshExports();
+  }, [busy, exportsFound.length]);
+  useEffect(() => {
+    if (sessionStorage.getItem("eventtool_auto_after_event_flow") !== "1" || busy) return;
+    const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
+    const hasKassaLedger = ledgerRows.some(item => item && item.source === "kassa-import");
+    if (activeImportBatch) {
+      const batchId = activeImportBatch.id;
+      const batchFile = importFiles.find(file => file && (file.id === activeImportBatch.fileRecordId || file.batchId === batchId));
+      const facts = importedFacts.find(item => item && item.batchId === batchId);
+      const preview = ledgerPreviews.find(item => item && item.batchId === batchId);
+      const report = activeImportBatch.validationReport;
+      const validationFailed = report && (report.errors || report.status === "validation_failed" || activeImportBatch.status === "validation_failed" || activeImportBatch.validationStatus === "validation_failed");
+      if (!batchFile || validationFailed) {
+        sessionStorage.removeItem("eventtool_auto_after_event_flow");
+        return;
+      }
+      let key = "";
+      let run = null;
+      if (!report) {
+        key = `${batchId}:validate`;
+        run = () => onValidateImport && onValidateImport(batchId);
+      } else if (!facts) {
+        key = `${batchId}:extract`;
+        run = () => onExtractFacts && onExtractFacts(batchId);
+      } else if (!preview) {
+        key = `${batchId}:preview`;
+        run = () => onCreateLedgerPreview && onCreateLedgerPreview(batchId);
+      } else {
+        key = `${batchId}:post`;
+        run = () => onPostLedger && onPostLedger(batchId);
+      }
+      if (run && autoFlowRef.current !== key) {
+        autoFlowRef.current = key;
+        window.setTimeout(run, 140);
+      }
+      return;
+    }
+    if (hasKassaLedger) {
+      sessionStorage.removeItem("eventtool_auto_after_event_flow");
+      sessionStorage.setItem("eventtool_auto_final_report_mail", "1");
+      setTab && setTab("kostenbeheer", 8);
+      return;
+    }
+    if (activeExport) {
+      const isLatestExport = latestFileIds.has(activeExport.fileId);
+      const preImport = buildKassaPreImportChecks(activeExport, isLatestExport, data, t);
+      const importPreview = buildKassaImportPreview(activeExport, t);
+      const exportId = activeExport && activeExport.payload && activeExport.payload.export && activeExport.payload.export.exportId || "";
+      const alreadyImported = importBatches.some(batch => batch && (batch.importKey === importPreview.importKey || exportId && batch.exportId === exportId));
+      const canPrepareImport = preImport.status !== "error" && !alreadyImported && typeof onPrepareImport === "function";
+      const key = `${activeExport.fileId}:prepare`;
+      if (canPrepareImport && autoFlowRef.current !== key) {
+        autoFlowRef.current = key;
+        window.setTimeout(() => onPrepareImport(activeExport, preImport, importPreview), 140);
+      } else if (!canPrepareImport) {
+        sessionStorage.removeItem("eventtool_auto_after_event_flow");
+      }
+    }
+  }, [busy, activeExport, activeImportBatch, importBatches.length, importFiles.length, importedFacts.length, ledgerPreviews.length, data && data.finance && data.finance.ledgerTransactions && data.finance.ledgerTransactions.length]);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -11996,16 +12068,22 @@ function BeheercentrumTab({
       };
     }
     if (!bookingReady) return {
-      text: t.center_next_exports,
-      button: t.dashboard_cockpit_fetch_exports,
+      text: t.center_next_after_flow,
+      button: t.center_after_flow_button,
       status: "todo",
-      run: () => openTab("kassaExports", 6)
+      run: () => {
+        sessionStorage.setItem("eventtool_auto_after_event_flow", "1");
+        openTab("kassaExports", 6);
+      }
     };
     return {
       text: t.center_next_report,
-      button: t.dashboard_cockpit_report_button,
+      button: t.center_final_report_mail_button,
       status: "done",
-      run: () => openTab("kostenbeheer", 8)
+      run: () => {
+        sessionStorage.setItem("eventtool_auto_final_report_mail", "1");
+        openTab("kostenbeheer", 8);
+      }
     };
   })();
   const beforePhaseAction = (() => {
@@ -12044,9 +12122,12 @@ function BeheercentrumTab({
     if (activeBatch || !bookingReady) return recommendedAction;
     return {
       text: t.center_next_report,
-      button: t.dashboard_cockpit_report_button,
+      button: t.center_final_report_mail_button,
       status: "done",
-      run: () => openTab("kostenbeheer", 8)
+      run: () => {
+        sessionStorage.setItem("eventtool_auto_final_report_mail", "1");
+        openTab("kostenbeheer", 8);
+      }
     };
   })();
   const beforeEventCards = [{
@@ -20094,6 +20175,11 @@ function KostenbeheerTab({
     if (sessionStorage.getItem("eventtool_auto_final_report") !== "1") return;
     sessionStorage.removeItem("eventtool_auto_final_report");
     openAndUploadEindrapportPDF();
+  }, []);
+  React.useEffect(() => {
+    if (sessionStorage.getItem("eventtool_auto_final_report_mail") !== "1") return;
+    sessionStorage.removeItem("eventtool_auto_final_report_mail");
+    prepareFinalReportEmail();
   }, []);
 
   // Kasblad: eenvoudige papieren versie voor ter plekke invullen

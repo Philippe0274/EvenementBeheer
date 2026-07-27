@@ -1,4 +1,10 @@
-﻿## 1.25.80
+﻿## 1.25.81
+- Beheercentrum na-eventflow vereenvoudigd: de faseknop start nu de bestaande veilige keten voor Kassa-export ophalen, import voorbereiden, valideren, feiten uitpakken, ledger-preview en definitief boeken.
+- Na een geslaagde definitieve kassaboeking gaat de app automatisch door naar de bestaande flow om het eindrapport te maken/uploaden en de Gmail-mail voor te bereiden.
+- De automatisering gebruikt alleen bestaande import-, validatie-, ledger- en rapportfuncties en stopt bij blokkades of validatiefouten zodat de gebruiker kan controleren.
+- Geen wijzigingen aan het exportcontract, financiële berekeningen, Google Drive-bestandsstructuur, backup/restore of datamodel.
+
+## 1.25.80
 - Nieuw evenement beter in Beheercentrum geplaatst: een aparte startkaart toont eerst het actieve event, datum, locatie en affiche-status.
 - De knop Nieuw evenement starten gebruikt dezelfde bestaande veilige snapshot/backup-flow als voordien.
 - De losse knop in de Beheercentrum-kop is vervangen door een rustige statusbadge voor het actieve evenement.
@@ -861,6 +867,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 
