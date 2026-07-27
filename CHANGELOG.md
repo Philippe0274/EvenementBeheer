@@ -1,4 +1,9 @@
-﻿## 1.25.77
+﻿## 1.25.78
+- Beheercentrum fase 3 toegevoegd: de blokken Voor event en Na event tonen nu elk hun eigen eerstvolgende veilige actieknop.
+- Fasekaarten houden de detailknop, maar de hoofdknop voert rechtstreeks de relevante bestaande stap uit of opent het juiste bestaande scherm.
+- De workflow blijft een UI-laag: geen wijzigingen aan data, importcontract, Google Drive-opslag, ledger, rapportberekeningen of bestaande modules.
+
+## 1.25.77
 - Beheercentrum verder vereenvoudigd: de hoofdtabrij toont standaard alleen nog Beheercentrum.
 - Alle andere modules blijven bereikbaar via 'Alle modules / technische details'.
 - De twee grote faseblokken tonen nu alleen hun eigen detailkaarten; het dubbele DashboardCockpit-blok is uit Beheercentrum gehaald.

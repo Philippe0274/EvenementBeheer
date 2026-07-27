@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.77";
+const APP_VERSION = "1.25.78";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -11991,6 +11991,47 @@ function BeheercentrumTab({
       run: () => openTab("kostenbeheer", 8)
     };
   })();
+  const beforePhaseAction = (() => {
+    if (!eventComplete) return {
+      text: t.center_next_event,
+      button: t.center_event_open_details,
+      status: "attention",
+      run: () => openTab("event")
+    };
+    if (!priceCount) return {
+      text: t.center_next_pricelist,
+      button: t.dashboard_cockpit_pricelist,
+      status: "attention",
+      run: () => openTab("prijslijst", 1)
+    };
+    if (!driveConnected) return {
+      text: t.center_next_drive,
+      button: t.center_connect_drive,
+      status: "todo",
+      run: () => eventToolGDriveConnect()
+    };
+    if (!priceListPublished) return {
+      text: t.center_next_publish,
+      button: t.dashboard_cockpit_publish_button,
+      status: "attention",
+      run: () => openTab("prijslijst", 3)
+    };
+    return {
+      text: t.center_tablet_ready_help,
+      button: t.center_tablet_ready,
+      status: "done",
+      run: () => alert(t.dashboard_cockpit_tablet_load_help)
+    };
+  })();
+  const afterPhaseAction = (() => {
+    if (activeBatch || !bookingReady) return recommendedAction;
+    return {
+      text: t.center_next_report,
+      button: t.dashboard_cockpit_report_button,
+      status: "done",
+      run: () => openTab("kostenbeheer", 8)
+    };
+  })();
   const beforeEventCards = [{
     title: t.center_new_event,
     help: t.center_new_event_help,
@@ -12252,19 +12293,18 @@ function BeheercentrumTab({
     const done = items.filter(donePredicate).length;
     return `${done}/${items.length}`;
   };
-  const phaseButton = (title, intro, value, color, action) => /*#__PURE__*/React.createElement("button", {
-    type: "button",
+  const phaseButton = (title, intro, value, color, detailAction, primaryAction) => {
+    const primaryStyle = statusStyle(primaryAction.status);
+    return /*#__PURE__*/React.createElement("div", {
     className: "card",
-    onClick: action,
     style: {
       textAlign: "left",
-      minHeight: 132,
+      minHeight: 172,
       display: "grid",
       gap: "0.65rem",
       borderLeft: `8px solid ${color}`,
       background: `linear-gradient(135deg, ${color}22, #fffaf2 70%)`,
-      boxShadow: "0 12px 28px rgba(67,48,28,0.1)",
-      cursor: "pointer"
+      boxShadow: "0 12px 28px rgba(67,48,28,0.1)"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -12296,10 +12336,27 @@ function BeheercentrumTab({
     }
   }, intro), /*#__PURE__*/React.createElement("span", {
     style: {
-      color,
-      fontWeight: 900
+      color: primaryStyle.color,
+      fontWeight: 850,
+      lineHeight: 1.35
     }
-  }, t.center_open));
+  }, primaryAction.text), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.55rem",
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `btn btn-primary btn-sm workflow-glass-btn${primaryAction.status === "done" ? " workflow-glass-green" : ""}`,
+    onClick: () => primaryAction.run && primaryAction.run()
+  }, primaryAction.button || t.center_next_button), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-ghost btn-sm",
+    onClick: detailAction
+  }, t.center_details_show)));
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -12383,7 +12440,7 @@ function BeheercentrumTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
       gap: "1rem"
     }
-  }, phaseButton(t.center_before_title, t.center_before_intro, phaseSummary(beforeEventCards, item => item.value === t.center_status_complete || item.value === t.center_status_published || item.value === t.center_status_connected || item.value === t.center_available || Number(item.value) > 0), "#99AD7A", () => setCenterDetailPhase("before")), phaseButton(t.center_after_title, t.center_after_intro, phaseSummary(afterEventCards, item => item.value === t.center_status_booked || item.value === t.center_available || Number(item.value) > 0), "#DE3E3E", () => setCenterDetailPhase("after"))), /*#__PURE__*/React.createElement("div", {
+  }, phaseButton(t.center_before_title, t.center_before_intro, phaseSummary(beforeEventCards, item => item.value === t.center_status_complete || item.value === t.center_status_published || item.value === t.center_status_connected || item.value === t.center_available || Number(item.value) > 0), "#99AD7A", () => setCenterDetailPhase("before"), beforePhaseAction), phaseButton(t.center_after_title, t.center_after_intro, phaseSummary(afterEventCards, item => item.value === t.center_status_booked || item.value === t.center_available || Number(item.value) > 0), "#DE3E3E", () => setCenterDetailPhase("after"), afterPhaseAction)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "center"
