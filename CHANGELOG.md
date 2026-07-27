@@ -1,4 +1,8 @@
-﻿## 1.25.82
+﻿## 1.25.83
+- Google Drive-kaarten in Beheercentrum hersteld: Openen voert nu een echte actie uit.
+- Wanneer Drive verbonden is, opent de knop rechtstreeks de EventToolSync-map; wanneer Drive niet verbonden is, start dezelfde knop de bestaande verbind/herverbind-flow.
+- Geen wijzigingen aan Drive-contract, rapporten, import, ledger, dataopslag of technische modules.
+## 1.25.82
 - Eindrapport-mailflow veiliger gemaakt: Gmail opent pas nadat Google Drive verbonden is en het eindrapport naar Drive kan worden geüpload.
 - Als Google Drive niet verbonden is, krijgt de gebruiker nu een duidelijke melding en wordt de bestaande Google Drive-verbindingsflow gestart.
 - De bestaande rapportgenerator, Drive-upload, Gmail-link, import, ledger, backup/restore en datamodellen blijven ongewijzigd.
@@ -872,6 +876,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
