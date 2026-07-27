@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.81";
+const APP_VERSION = "1.25.82";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1013,6 +1013,7 @@ const T = {
     kb_final_mail_recipients: "Ontvangers eindrapport",
     kb_final_mail_recipients_help: "Eén of meerdere e-mailadressen, gescheiden met komma, puntkomma of nieuwe regel. Gmail opent via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Vul minstens één ontvanger in.",
+    kb_final_mail_drive_required: "Google Drive is niet verbonden. Klik op OK om Google Drive te verbinden. Start daarna opnieuw Eindrapport en mail voorbereiden.",
     kb_final_mail_attachment_hint: "Voeg het zojuist gedownloade eindrapport toe als bijlage vóór verzending.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
     kb_final_mail_special_both_nl: "Tijdens ons evenement hebben wij ook boeken en tickets verkocht. Hieronder vindt u een kort overzicht.",
@@ -2254,6 +2255,7 @@ const T = {
     kb_final_mail_recipients: "Destinataires rapport final",
     kb_final_mail_recipients_help: "Une ou plusieurs adresses e-mail, séparées par une virgule, un point-virgule ou une nouvelle ligne. Gmail s'ouvre via jflores2000@gmail.com.",
     kb_final_mail_missing_recipients: "Saisissez au moins un destinataire.",
+    kb_final_mail_drive_required: "Google Drive n'est pas connecté. Cliquez sur OK pour connecter Google Drive. Relancez ensuite Préparer rapport final et e-mail.",
     kb_final_mail_attachment_hint: "Ajoutez le rapport final qui vient d'être téléchargé comme pièce jointe avant l'envoi.",
     kb_final_mail_drive_link_label: "Klik hier om het rapport te downloaden / Cliquez ici pour télécharger le rapport",
     kb_final_mail_special_both_nl: "Tijdens ons evenement hebben wij ook boeken en tickets verkocht. Hieronder vindt u een kort overzicht.",
@@ -20134,6 +20136,16 @@ function KostenbeheerTab({
       alert(t.kb_final_mail_missing_recipients);
       return;
     }
+    if (!eventToolGDriveIsTokenValid()) {
+      sessionStorage.removeItem("eventtool_auto_final_report_mail");
+      alert(t.kb_final_mail_drive_required);
+      try {
+        eventToolGDriveConnect();
+      } catch (e) {
+        console.warn("Google Drive connect failed before final report mail:", e);
+      }
+      return;
+    }
     setBezig(true);
     let mailWindow = null;
     try {
@@ -23589,6 +23601,8 @@ FASE 2 TOEGEVOEGD
   * export
   * statistieken
 ========================================================= -->
+
+
 
 
 
