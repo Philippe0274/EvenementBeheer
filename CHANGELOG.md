@@ -1,4 +1,9 @@
-﻿## 1.25.84
+﻿## 1.25.85
+- Beheercentrum rustiger gemaakt: de verwarrende technische tellers op de fasekaarten zijn verwijderd.
+- De fasebadge Voltooid/Nu doen wordt nu bepaald door de zichtbare klaarstandregels op dezelfde kaart.
+- De dubbele centrale knop Onderliggende knoppen tonen is verwijderd; elke fasekaart behoudt haar eigen knop voor onderliggende details.
+- Geen wijzigingen aan acties, import, ledger, rapportberekeningen, Google Drive, backup/restore of datamodel.
+## 1.25.84
 - Beheercentrum verder vereenvoudigd: de twee hoofdkaarten Voor event en Na event tonen nu zelf een korte, begrijpelijke klaarstand.
 - De normale gebruiker ziet sneller wat klaar is en wat nog moet gebeuren; technische detailkaarten blijven achter Onderliggende knoppen tonen.
 - Geen wijzigingen aan import, ledger, rapportberekeningen, Google Drive-contract, backup/restore of datamodel.
@@ -880,6 +885,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.84";
+const APP_VERSION = "1.25.85";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -12556,8 +12556,8 @@ function BeheercentrumTab({
     return `${done}/${items.length}`;
   };
   const phaseButton = (title, intro, value, color, detailAction, primaryAction, statusItems = []) => {
-    const primaryStyle = statusStyle(primaryAction.status);
-    const isDone = primaryAction.status === "done";
+    const isDone = statusItems.length ? statusItems.every(item => item.done) : primaryAction.status === "done";
+    const primaryStyle = statusStyle(isDone ? "done" : primaryAction.status);
     return /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -12591,15 +12591,6 @@ function BeheercentrumTab({
       justifyContent: "flex-end"
     }
   }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      borderRadius: 999,
-      padding: "0.32rem 0.76rem",
-      fontWeight: 900,
-      color,
-      background: "rgba(255,255,255,0.66)",
-      border: `1px solid ${color}44`
-    }
-  }, value), /*#__PURE__*/React.createElement("span", {
     style: {
       borderRadius: 999,
       padding: "0.32rem 0.76rem",
@@ -12733,16 +12724,7 @@ function BeheercentrumTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
       gap: "1rem"
     }
-  }, phaseButton(t.center_before_title, t.center_before_intro, phaseSummary(beforeEventCards, item => item.value === t.center_status_complete || item.value === t.center_status_published || item.value === t.center_status_connected || item.value === t.center_available || Number(item.value) > 0), "#99AD7A", () => setCenterDetailPhase("before"), beforePhaseAction, beforeSimpleStatus), phaseButton(t.center_after_title, t.center_after_intro, phaseSummary(afterEventCards, item => item.value === t.center_status_booked || item.value === t.center_available || Number(item.value) > 0), "#DE3E3E", () => setCenterDetailPhase("after"), afterPhaseAction, afterSimpleStatus)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "center"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn btn-ghost btn-sm",
-    onClick: () => setCenterDetailPhase(value => value ? null : "all")
-  }, showCenterDetails ? t.center_details_hide : t.center_details_show)), showCenterDetails && /*#__PURE__*/React.createElement(React.Fragment, null, centerDetailPhase === "all" && /*#__PURE__*/React.createElement("div", {
+  }, phaseButton(t.center_before_title, t.center_before_intro, "", "#99AD7A", () => setCenterDetailPhase("before"), beforePhaseAction, beforeSimpleStatus), phaseButton(t.center_after_title, t.center_after_intro, "", "#DE3E3E", () => setCenterDetailPhase("after"), afterPhaseAction, afterSimpleStatus)), showCenterDetails && /*#__PURE__*/React.createElement(React.Fragment, null, centerDetailPhase === "all" && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
@@ -23673,6 +23655,7 @@ FASE 2 TOEGEVOEGD
   * export
   * statistieken
 ========================================================= -->
+
 
 
 
