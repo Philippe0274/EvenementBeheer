@@ -1,4 +1,14 @@
-﻿## 1.25.73
+﻿## 1.25.75
+- Regressie Google Drive verbinden hersteld: expliciete verbindknoppen starten geen stille reconnect meer tegelijk met de gebruikersklik.
+- Fouten bij de Google OAuth-aanvraag worden nu zichtbaar opgeslagen en gemeld in plaats van stil te falen.
+- Geen wijzigingen aan Drive-bestanden, import, ledger, rapporten of datamodel.
+
+## 1.25.74
+- Google Drive-knop in Beheercentrum hersteld: verbinden/herverbinden gaat na initialisatie meteen door in dezelfde klik.
+- Als de Google-client nog laadt, wordt dit als status bijgehouden in plaats van stil niets te doen.
+- Geen wijzigingen aan Drive-opslag, import, ledger, rapporten of datamodel.
+
+## 1.25.73
 - Beheercentrum uitgebreid tot centrale cockpit met statuskaarten, aanbevolen volgende actie en duidelijke blokken voor vóór en na het evenement.
 - Bestaande acties hergebruikt voor nieuw evenement, eventgegevens, prijslijst, Drive, Kassa-export, kassaboekingen, kostenbeheer, rapporten, berichten en backup.
 - Geen wijzigingen aan datamodel, importcontract, ledgerlogica, rapportberekeningen of Google Drive-opslag.

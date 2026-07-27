@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.73";
+const APP_VERSION = "1.25.75";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -445,7 +445,8 @@ function eventToolGDriveLoadStoredToken() {
   }
 }
 
-function initEventToolGoogleDrive() {
+function initEventToolGoogleDrive(options = {}) {
+  const skipSilentReconnect = !!(options && options.skipSilentReconnect);
   if (eventToolGDriveInitStarted && eventToolGDriveTokenClient) return;
   eventToolGDriveInitStarted = true;
   eventToolGDriveLoadStoredToken();
@@ -474,7 +475,7 @@ function initEventToolGoogleDrive() {
       eventToolGDriveEmit();
     }
   });
-  if (eventToolGDriveWantsConnection() && !eventToolGDriveIsTokenValid()) {
+  if (!skipSilentReconnect && eventToolGDriveWantsConnection() && !eventToolGDriveIsTokenValid()) {
     eventToolGDriveSilentReconnect();
   }
   eventToolGDriveEmit();
@@ -512,7 +513,11 @@ async function eventToolGDriveFetchUserInfo() {
 
 function eventToolGDriveConnect() {
   if (!eventToolGDriveTokenClient) {
-    initEventToolGoogleDrive();
+    initEventToolGoogleDrive({ skipSilentReconnect: true });
+  }
+  if (!eventToolGDriveTokenClient) {
+    localStorage.setItem("eventtool_gdrive_last_error", "Google Drive wordt nog geladen. Klik zo dadelijk opnieuw.");
+    eventToolGDriveEmit();
     return false;
   }
   if (eventToolGDriveIsTokenValid()) {
@@ -520,11 +525,21 @@ function eventToolGDriveConnect() {
     return true;
   }
   const hasSavedConnection = eventToolGDriveWantsConnection() || !!eventToolGDriveUserName;
-  eventToolGDriveTokenClient.requestAccessToken({
-    prompt: hasSavedConnection ? "" : "consent",
-    login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
-  });
-  return true;
+  try {
+    localStorage.removeItem("eventtool_gdrive_last_error");
+    eventToolGDriveTokenClient.requestAccessToken({
+      prompt: hasSavedConnection ? "" : "consent",
+      login_hint: EVENT_TOOL_GDRIVE_ACCOUNT_HINT || undefined
+    });
+    eventToolGDriveEmit();
+    return true;
+  } catch (e) {
+    const msg = e && e.message ? e.message : String(e);
+    localStorage.setItem("eventtool_gdrive_last_error", msg);
+    eventToolGDriveEmit();
+    alert(`Google Drive verbinden mislukt: ${msg}`);
+    return false;
+  }
 }
 
 function eventToolGDriveReconnect() {
