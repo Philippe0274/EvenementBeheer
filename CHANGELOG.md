@@ -1,4 +1,10 @@
-﻿## 1.25.76
+﻿## 1.25.77
+- Beheercentrum verder vereenvoudigd: de hoofdtabrij toont standaard alleen nog Beheercentrum.
+- Alle andere modules blijven bereikbaar via 'Alle modules / technische details'.
+- De twee grote faseblokken tonen nu alleen hun eigen detailkaarten; het dubbele DashboardCockpit-blok is uit Beheercentrum gehaald.
+- Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen of Google Drive-contract.
+
+## 1.25.76
 - Beheercentrum visueel vereenvoudigd: standaard blijven alleen de aanbevolen actie en twee grote faseknoppen zichtbaar.
 - Gedetailleerde statuskaarten en alle losse knoppen blijven beschikbaar achter 'Alle knoppen tonen'.
 - Bestaande acties, Google Drive, import, ledger, rapporten en datamodel blijven ongewijzigd.
