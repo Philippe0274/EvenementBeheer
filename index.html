@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.75";
+const APP_VERSION = "1.25.76";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1077,6 +1077,8 @@ const T = {
     center_intro: "De eenvoudige werkplek voor het hele evenement. Gebruik de grote knop of de kaarten; technische details blijven apart beschikbaar.",
     center_all_in_one_title: "Alles op één plaats",
     center_all_in_one_intro: "Van nieuw evenement tot finaal rapport. Gebruik deze knoppen voor de normale flow; detailtabs blijven beschikbaar voor controle.",
+    center_details_show: "Alle knoppen tonen",
+    center_details_hide: "Details verbergen",
     center_new_event: "Nieuw evenement maken",
     center_new_event_help: "Sluit het huidige event af, bewaart een snapshot en maakt een leeg nieuw event klaar.",
     center_event_core: "Eventbasis",
@@ -2256,6 +2258,8 @@ const T = {
     center_intro: "L'espace de travail simple pour tout l'événement. Utilisez le grand bouton ou les cartes; les détails techniques restent disponibles séparément.",
     center_all_in_one_title: "Tout au même endroit",
     center_all_in_one_intro: "Du nouvel événement au rapport final. Utilisez ces boutons pour le flux normal; les onglets détaillés restent disponibles pour contrôle.",
+    center_details_show: "Afficher tous les boutons",
+    center_details_hide: "Masquer les détails",
     center_new_event: "Créer nouvel événement",
     center_new_event_help: "Clôture l'événement actuel, conserve un snapshot et prépare un nouvel événement vide.",
     center_event_core: "Base événement",
@@ -11835,6 +11839,7 @@ function BeheercentrumTab({
 }) {
   const openTab = (tabName, stepNr = null) => typeof setTab === "function" && setTab(tabName, stepNr);
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
+  const [showCenterDetails, setShowCenterDetails] = useState(false);
   useEffect(() => {
     initEventToolGoogleDrive();
     return eventToolGDriveSubscribe(setDrive);
@@ -12242,6 +12247,58 @@ function BeheercentrumTab({
     }
   }, items.map(renderQuickLink)));
   const recommendedStyle = statusStyle(recommendedAction.status);
+  const phaseSummary = (items, donePredicate) => {
+    const done = items.filter(donePredicate).length;
+    return `${done}/${items.length}`;
+  };
+  const phaseButton = (title, intro, value, color, action) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "card",
+    onClick: action,
+    style: {
+      textAlign: "left",
+      minHeight: 132,
+      display: "grid",
+      gap: "0.65rem",
+      borderLeft: `8px solid ${color}`,
+      background: `linear-gradient(135deg, ${color}22, #fffaf2 70%)`,
+      boxShadow: "0 12px 28px rgba(67,48,28,0.1)",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "1rem",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "font-display",
+    style: {
+      fontSize: "1.28rem",
+      lineHeight: 1.1
+    }
+  }, title), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.32rem 0.76rem",
+      fontWeight: 900,
+      color,
+      background: "rgba(255,255,255,0.66)",
+      border: `1px solid ${color}44`
+    }
+  }, value)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: "var(--ink-soft)",
+      lineHeight: 1.35
+    }
+  }, intro), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color,
+      fontWeight: 900
+    }
+  }, t.center_open));
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -12294,12 +12351,6 @@ function BeheercentrumTab({
       color: "var(--ink-soft)"
     }
   }, t.center_all_in_one_intro)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-      gap: "0.75rem"
-    }
-  }, centerStatuses.map(renderStatusCard)), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       borderLeft: `5px solid ${recommendedAction.status === "done" ? "#99AD7A" : recommendedAction.status === "attention" ? "#e0a227" : "#DE3E3E"}`,
@@ -12325,7 +12376,28 @@ function BeheercentrumTab({
     type: "button",
     className: `btn btn-primary btn-sm workflow-glass-btn${recommendedAction.status === "done" ? " workflow-glass-green" : ""}`,
     onClick: () => recommendedAction.run && recommendedAction.run()
-  }, recommendedAction.button || t.center_next_button))), renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E"), /*#__PURE__*/React.createElement(DashboardCockpit, {
+  }, recommendedAction.button || t.center_next_button))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+      gap: "1rem"
+    }
+  }, phaseButton(t.center_before_title, t.center_before_intro, phaseSummary(beforeEventCards, item => item.value === t.center_status_complete || item.value === t.center_status_published || item.value === t.center_status_connected || item.value === t.center_available || Number(item.value) > 0), "#99AD7A", () => setShowCenterDetails(true)), phaseButton(t.center_after_title, t.center_after_intro, phaseSummary(afterEventCards, item => item.value === t.center_status_booked || item.value === t.center_available || Number(item.value) > 0), "#DE3E3E", () => setShowCenterDetails(true))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-ghost btn-sm",
+    onClick: () => setShowCenterDetails(value => !value)
+  }, showCenterDetails ? t.center_details_hide : t.center_details_show)), showCenterDetails && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+      gap: "0.75rem"
+    }
+  }, centerStatuses.map(renderStatusCard)), renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E")), /*#__PURE__*/React.createElement(DashboardCockpit, {
     data: data,
     setTab: setTab,
     onValidateImport: onValidateImport,
@@ -12333,7 +12405,7 @@ function BeheercentrumTab({
     onCreateLedgerPreview: onCreateLedgerPreview,
     onPostLedger: onPostLedger,
     t: t,
-    initialDetails: true
+    initialDetails: false
   }));
 }
 function getKassaWorkflowSteps(t) {

@@ -1,4 +1,9 @@
-﻿## 1.25.75
+﻿## 1.25.76
+- Beheercentrum visueel vereenvoudigd: standaard blijven alleen de aanbevolen actie en twee grote faseknoppen zichtbaar.
+- Gedetailleerde statuskaarten en alle losse knoppen blijven beschikbaar achter 'Alle knoppen tonen'.
+- Bestaande acties, Google Drive, import, ledger, rapporten en datamodel blijven ongewijzigd.
+
+## 1.25.75
 - Regressie Google Drive verbinden hersteld: expliciete verbindknoppen starten geen stille reconnect meer tegelijk met de gebruikersklik.
 - Fouten bij de Google OAuth-aanvraag worden nu zichtbaar opgeslagen en gemeld in plaats van stil te falen.
 - Geen wijzigingen aan Drive-bestanden, import, ledger, rapporten of datamodel.
