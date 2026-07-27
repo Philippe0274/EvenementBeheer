@@ -1,4 +1,10 @@
-﻿## 1.25.78
+﻿## 1.25.79
+- Beheercentrum verder vereenvoudigd richting eindgebruikersflow: de dubbele globale aanbevolen-actiekaart is verwijderd.
+- De fasekaarten Voor event en Na event tonen nu zelf duidelijk 'Nu doen' of 'Voltooid' naast hun voortgang.
+- Onderliggende knoppen worden explicieter als achterliggende controleknoppen getoond; detailmodules blijven volledig bereikbaar.
+- Geen wijzigingen aan data, opslag, importcontract, Google Drive, ledger, rapportberekeningen of bestaande modules.
+
+## 1.25.78
 - Beheercentrum fase 3 toegevoegd: de blokken Voor event en Na event tonen nu elk hun eigen eerstvolgende veilige actieknop.
 - Fasekaarten houden de detailknop, maar de hoofdknop voert rechtstreeks de relevante bestaande stap uit of opent het juiste bestaande scherm.
 - De workflow blijft een UI-laag: geen wijzigingen aan data, importcontract, Google Drive-opslag, ledger, rapportberekeningen of bestaande modules.

@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.78";
+const APP_VERSION = "1.25.79";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1074,11 +1074,13 @@ const T = {
     dashboard_final_report: "Kassa is verwerkt. Controleer nu eindafrekening en eindrapport.",
     dashboard_final_done: "Kassa is definitief verwerkt.",
     center_title: "Beheercentrum",
-    center_intro: "De eenvoudige werkplek voor het hele evenement. Gebruik de grote knop of de kaarten; technische details blijven apart beschikbaar.",
-    center_all_in_one_title: "Alles op één plaats",
-    center_all_in_one_intro: "Van nieuw evenement tot finaal rapport. Gebruik deze knoppen voor de normale flow; detailtabs blijven beschikbaar voor controle.",
-    center_details_show: "Alle knoppen tonen",
-    center_details_hide: "Details verbergen",
+    center_intro: "De eenvoudige werkplek voor het hele evenement. Werk normaal via Voor event en Na event; details blijven beschikbaar voor controle.",
+    center_all_in_one_title: "Normale workflow",
+    center_all_in_one_intro: "Kies de fase. De app toont meteen wat nu moet gebeuren.",
+    center_details_show: "Onderliggende knoppen tonen",
+    center_details_hide: "Onderliggende knoppen verbergen",
+    center_phase_now: "Nu doen",
+    center_phase_done: "Voltooid",
     center_new_event: "Nieuw evenement maken",
     center_new_event_help: "Sluit het huidige event af, bewaart een snapshot en maakt een leeg nieuw event klaar.",
     center_event_core: "Eventbasis",
@@ -2255,11 +2257,13 @@ const T = {
     kb_final_mail_special_tickets_fr: "Lors de notre événement, nous avons également vendu des tickets. Vous trouverez ci-dessous un bref aperçu.",
     kb_final_mail_special_follow_fr: "Ces ventes sont mentionnées séparément afin de pouvoir en assurer le suivi correctement.",
     center_title: "Centre de gestion",
-    center_intro: "L'espace de travail simple pour tout l'événement. Utilisez le grand bouton ou les cartes; les détails techniques restent disponibles séparément.",
-    center_all_in_one_title: "Tout au même endroit",
-    center_all_in_one_intro: "Du nouvel événement au rapport final. Utilisez ces boutons pour le flux normal; les onglets détaillés restent disponibles pour contrôle.",
-    center_details_show: "Afficher tous les boutons",
-    center_details_hide: "Masquer les détails",
+    center_intro: "L'espace de travail simple pour tout l'événement. Travaillez normalement via Avant l'événement et Après l'événement; les détails restent disponibles pour contrôle.",
+    center_all_in_one_title: "Flux normal",
+    center_all_in_one_intro: "Choisissez la phase. L'app montre directement ce qu'il faut faire maintenant.",
+    center_details_show: "Afficher les boutons sous-jacents",
+    center_details_hide: "Masquer les boutons sous-jacents",
+    center_phase_now: "À faire maintenant",
+    center_phase_done: "Terminé",
     center_new_event: "Créer nouvel événement",
     center_new_event_help: "Clôture l'événement actuel, conserve un snapshot et prépare un nouvel événement vide.",
     center_event_core: "Base événement",
@@ -12288,18 +12292,18 @@ function BeheercentrumTab({
       gap: "0.85rem"
     }
   }, items.map(renderQuickLink)));
-  const recommendedStyle = statusStyle(recommendedAction.status);
   const phaseSummary = (items, donePredicate) => {
     const done = items.filter(donePredicate).length;
     return `${done}/${items.length}`;
   };
   const phaseButton = (title, intro, value, color, detailAction, primaryAction) => {
     const primaryStyle = statusStyle(primaryAction.status);
+    const isDone = primaryAction.status === "done";
     return /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       textAlign: "left",
-      minHeight: 172,
+      minHeight: 180,
       display: "grid",
       gap: "0.65rem",
       borderLeft: `8px solid ${color}`,
@@ -12319,7 +12323,15 @@ function BeheercentrumTab({
       fontSize: "1.28rem",
       lineHeight: 1.1
     }
-  }, title), /*#__PURE__*/React.createElement("span", {
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.4rem",
+      alignItems: "center",
+      flexWrap: "wrap",
+      justifyContent: "flex-end"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
     style: {
       borderRadius: 999,
       padding: "0.32rem 0.76rem",
@@ -12328,7 +12340,16 @@ function BeheercentrumTab({
       background: "rgba(255,255,255,0.66)",
       border: `1px solid ${color}44`
     }
-  }, value)), /*#__PURE__*/React.createElement("p", {
+  }, value), /*#__PURE__*/React.createElement("span", {
+    style: {
+      borderRadius: 999,
+      padding: "0.32rem 0.76rem",
+      fontWeight: 900,
+      color: primaryStyle.color,
+      background: primaryStyle.background,
+      border: primaryStyle.border
+    }
+  }, isDone ? t.center_phase_done : t.center_phase_now))), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: 0,
       color: "var(--ink-soft)",
@@ -12349,7 +12370,7 @@ function BeheercentrumTab({
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: `btn btn-primary btn-sm workflow-glass-btn${primaryAction.status === "done" ? " workflow-glass-green" : ""}`,
+    className: `btn btn-primary btn-sm workflow-glass-btn${isDone ? " workflow-glass-green" : ""}`,
     onClick: () => primaryAction.run && primaryAction.run()
   }, primaryAction.button || t.center_next_button), /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -12409,32 +12430,6 @@ function BeheercentrumTab({
       color: "var(--ink-soft)"
     }
   }, t.center_all_in_one_intro)), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      borderLeft: `5px solid ${recommendedAction.status === "done" ? "#99AD7A" : recommendedAction.status === "attention" ? "#e0a227" : "#DE3E3E"}`,
-      background: "linear-gradient(135deg, #fffaf2, rgba(153,173,122,0.12))",
-      display: "flex",
-      justifyContent: "space-between",
-      gap: "1rem",
-      alignItems: "center",
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
-    style: {
-      display: "block",
-      fontSize: "1rem",
-      marginBottom: "0.25rem"
-    }
-  }, t.center_next_title), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: recommendedStyle.color,
-      fontWeight: 850
-    }
-  }, recommendedAction.text)), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: `btn btn-primary btn-sm workflow-glass-btn${recommendedAction.status === "done" ? " workflow-glass-green" : ""}`,
-    onClick: () => recommendedAction.run && recommendedAction.run()
-  }, recommendedAction.button || t.center_next_button))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -12455,7 +12450,7 @@ function BeheercentrumTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
       gap: "0.75rem"
     }
-  }, centerStatuses.map(renderStatusCard)), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), (centerDetailPhase === "after" || centerDetailPhase === "all") && renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E")));
+  }, centerStatuses.map(renderStatusCard)), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), (centerDetailPhase === "after" || centerDetailPhase === "all") && renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E"))));
 }
 function getKassaWorkflowSteps(t) {
   return [{
