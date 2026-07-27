@@ -1,4 +1,8 @@
-﻿## 1.25.83
+﻿## 1.25.84
+- Beheercentrum verder vereenvoudigd: de twee hoofdkaarten Voor event en Na event tonen nu zelf een korte, begrijpelijke klaarstand.
+- De normale gebruiker ziet sneller wat klaar is en wat nog moet gebeuren; technische detailkaarten blijven achter Onderliggende knoppen tonen.
+- Geen wijzigingen aan import, ledger, rapportberekeningen, Google Drive-contract, backup/restore of datamodel.
+## 1.25.83
 - Google Drive-kaarten in Beheercentrum hersteld: Openen voert nu een echte actie uit.
 - Wanneer Drive verbonden is, opent de knop rechtstreeks de EventToolSync-map; wanneer Drive niet verbonden is, start dezelfde knop de bestaande verbind/herverbind-flow.
 - Geen wijzigingen aan Drive-contract, rapporten, import, ledger, dataopslag of technische modules.
@@ -876,6 +880,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
