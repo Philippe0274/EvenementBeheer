@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.26.3";
+const APP_VERSION = "1.26.4";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1206,6 +1206,9 @@ const T = {
     center_publish_pricelist: "Prijslijst publiceren",
     center_tablet_ready: "Tablet klaarzetten",
     center_tablet_ready_help: "Kassa Tool op tablet verbinden, event kiezen en prijslijst laden.",
+    center_tablet_confirm_ready: "Tablet klaar bevestigen",
+    center_tablet_confirm_ready_help: "Gebruik dit alleen wanneer de Kassa Tool op de tablet de juiste prijslijst al toont. Er wordt niets opnieuw gepubliceerd.",
+    center_tablet_confirmed: "Tablet klaar bevestigd.",
     center_costs_help: "Winkelbestellingen, kastickets, zaal, kosten en terugbetalingen controleren.",
     center_backup_help_short: "Maak een volledige JSON-backup met alle data en afbeeldingen.",
     center_archive_help: "Historiek en afgesloten events alleen-lezen controleren.",
@@ -2433,6 +2436,9 @@ const T = {
     center_publish_pricelist: "Publier liste de prix",
     center_tablet_ready: "Préparer tablette",
     center_tablet_ready_help: "Connecter la Kassa Tool sur tablette, choisir l'événement et charger la liste de prix.",
+    center_tablet_confirm_ready: "Confirmer tablette prête",
+    center_tablet_confirm_ready_help: "À utiliser uniquement si la Kassa Tool sur tablette affiche déjà la bonne liste de prix. Rien n'est republié.",
+    center_tablet_confirmed: "Tablette confirmée prête.",
     center_costs_help: "Contrôler commandes magasin, tickets, salle, coûts et remboursements.",
     center_backup_help_short: "Créer une sauvegarde JSON complète avec toutes les données et images.",
     center_archive_help: "Contrôler l'historique et les événements clôturés en lecture seule.",
@@ -4706,18 +4712,8 @@ const normalizeData = raw => {
       migrationNotes: Array.isArray(raw.legacy.migrationNotes) ? raw.legacy.migrationNotes : []
     };
   }
-  const activeLifecycleEvent = Array.isArray(safe.events) ? safe.events.find(event => event && event.id === safe.activeEventId) : null;
-  const hasClosedSnapshot = Array.isArray(safe.events) && safe.events.some(event => event && event.status === "closed" && event.snapshot);
-  const activeEventLooksEmpty = activeLifecycleEvent && activeLifecycleEvent.status === "active" && !(safe.event && safe.event.naam) && !(safe.event && safe.event.datum);
-  const hasOldEventScopedWork = (safe.kassaImports && (safe.kassaImports.batches || []).length || safe.finance && (safe.finance.ledgerTransactions || []).length || safe.prijslijst && safe.prijslijst.length || localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
-  if (activeEventLooksEmpty && hasClosedSnapshot && hasOldEventScopedWork) {
-    safe.prijslijst = [];
-    safe.prijslijstCategorien = [...defaultData.prijslijstCategorien];
-    safe.kassaImports = deepClone(defaultData.kassaImports);
-    safe.finance = deepClone(defaultData.finance);
-    safe.auditTrail = [];
-    localStorage.removeItem("eventtool_gdrive_last_pricelist_publish");
-  }
+  // Normalisatie mag nooit eventdata wissen. Leegmaken gebeurt uitsluitend via expliciete gebruikersacties
+  // zoals "Nieuw evenement"; laden/upgraden moet bestaande prijslijsten en financiële data intact houden.
   return ensureEventLifecycleStructure(safe, {
     preferEventMirror: rawHasEvent || !Array.isArray(raw.events) || raw.events.length === 0
   });
@@ -12309,6 +12305,7 @@ function BeheercentrumTab({
   const openTab = (tabName, stepNr = null) => typeof setTab === "function" && setTab(tabName, stepNr);
   const [drive, setDrive] = useState(() => eventToolGDriveSnapshot());
   const [centerDetailPhase, setCenterDetailPhase] = useState(null);
+  const [workflowStatusTick, setWorkflowStatusTick] = useState(0);
   const showCenterDetails = !!centerDetailPhase;
   useEffect(() => {
     initEventToolGoogleDrive();
@@ -12358,6 +12355,14 @@ function BeheercentrumTab({
   })();
   const archiveCount = closedEventSummaries.length;
   const centerEventKey = getWorkflowEventKey(data || {});
+  const tabletReadyConfirmed = !!localStorage.getItem(`eventtool_tablet_ready_${centerEventKey}`);
+  const tabletPriceListConfirmed = !!localStorage.getItem(`eventtool_tablet_pricelist_confirmed_${centerEventKey}`);
+  const confirmTabletReady = () => {
+    localStorage.setItem(`eventtool_tablet_ready_${centerEventKey}`, "1");
+    localStorage.setItem(`eventtool_tablet_pricelist_confirmed_${centerEventKey}`, "1");
+    setWorkflowStatusTick(value => value + 1);
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("eventtool-workflow-status"));
+  };
   const centerFinalReportMailReady = !!(eventInfo.naam && eventInfo.datum && localStorage.getItem(`eventtool_final_report_mail_ready_${centerEventKey}`) === "1");
   const eventLocation = buildAddressString(eventInfo);
   const eventMailInfo = [eventInfo.reimbursementEmails ? `${t.center_event_reimbursement_mail}: ${eventInfo.reimbursementEmails}` : "", eventInfo.finalReportEmails ? `${t.center_event_final_report_mail}: ${eventInfo.finalReportEmails}` : ""].filter(Boolean).join(" · ");
@@ -12370,6 +12375,7 @@ function BeheercentrumTab({
   const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
   const eventComplete = !!(eventInfo.naam && eventInfo.datum && (eventInfo.gemeente || eventInfo.locatieNaam || eventLocation));
   const priceListPublished = !!(eventComplete && priceCount && isWorkflowPriceListPublished(data || {}));
+  const priceListReadyForWorkflow = !!(priceListPublished || tabletPriceListConfirmed || tabletReadyConfirmed);
   const driveConnected = !!(drive && drive.connected);
   const openGoogleDriveFromCenter = () => {
     if (eventToolGDriveIsTokenValid()) {
@@ -12409,8 +12415,8 @@ function BeheercentrumTab({
     action: () => openTab("event")
   }, {
     title: t.tab_prijslijst,
-    label: priceCount && priceListPublished ? t.center_status_published : priceCount ? t.center_status_not_published : t.center_status_incomplete,
-    status: priceCount && priceListPublished ? "done" : priceCount ? "attention" : "todo",
+    label: priceCount && priceListReadyForWorkflow ? t.center_status_published : priceCount ? t.center_status_not_published : t.center_status_incomplete,
+    status: priceCount && priceListReadyForWorkflow ? "done" : priceCount ? "attention" : "todo",
     detail: `${priceCount} ${t.tab_prijslijst.toLowerCase()}`,
     action: () => openTab("prijslijst", 1)
   }, {
@@ -12451,11 +12457,11 @@ function BeheercentrumTab({
       status: "todo",
       run: () => eventToolGDriveConnect()
     };
-    if (!priceListPublished) return {
-      text: t.center_next_publish,
-      button: t.dashboard_cockpit_publish_button,
+    if (!priceListReadyForWorkflow) return {
+      text: t.center_tablet_confirm_ready_help,
+      button: t.center_tablet_confirm_ready,
       status: "attention",
-      run: () => openTab("prijslijst", 3)
+      run: confirmTabletReady
     };
     if (activeBatch) {
       if (!activeBatchFile) return {
@@ -12533,11 +12539,11 @@ function BeheercentrumTab({
       status: "todo",
       run: () => eventToolGDriveConnect()
     };
-    if (!priceListPublished) return {
-      text: t.center_next_publish,
-      button: t.dashboard_cockpit_publish_button,
+    if (!priceListReadyForWorkflow) return {
+      text: t.center_tablet_confirm_ready_help,
+      button: t.center_tablet_confirm_ready,
       status: "attention",
-      run: () => openTab("prijslijst", 3)
+      run: confirmTabletReady
     };
     return {
       text: t.center_tablet_ready_help,
@@ -12607,13 +12613,13 @@ function BeheercentrumTab({
   }, {
     title: t.center_publish_pricelist,
     help: t.center_status_pricelist_help,
-    value: priceListPublished ? t.center_status_published : t.center_status_not_published,
+    value: priceListReadyForWorkflow ? t.center_status_published : t.center_status_not_published,
     action: () => openTab("prijslijst", 3)
   }, {
     title: t.center_tablet_ready,
-    help: t.center_tablet_ready_help,
-    value: priceListPublished ? t.center_available : t.center_not_ready,
-    action: () => alert(t.dashboard_cockpit_tablet_load_help)
+    help: tabletReadyConfirmed ? t.center_tablet_confirmed : t.center_tablet_confirm_ready_help,
+    value: tabletReadyConfirmed ? t.center_status_complete : t.center_not_ready,
+    action: confirmTabletReady
   }, {
     title: t.tab_business_continuity,
     help: t.center_bc_help,
@@ -12703,10 +12709,10 @@ function BeheercentrumTab({
     done: eventComplete && !!priceCount && driveConnected
   }, {
     label: t.center_publish_pricelist,
-    done: eventComplete && !!priceCount && driveConnected && priceListPublished
+    done: eventComplete && !!priceCount && driveConnected && priceListReadyForWorkflow
   }, {
     label: t.center_tablet_ready,
-    done: priceListPublished && driveConnected && !!priceCount && eventComplete
+    done: tabletReadyConfirmed && driveConnected && !!priceCount && eventComplete
   }];
   const afterSimpleStatus = [{
     label: t.dashboard_cockpit_exports,

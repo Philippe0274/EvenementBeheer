@@ -1,4 +1,9 @@
 ﻿# Changelog
+## 1.26.4
+- Hersteld: `normalizeData()` wist nooit meer prijslijst-, kassa- of ledgerdata tijdens laden of refresh; leegmaken gebeurt alleen nog via expliciete gebruikersacties.
+- Nieuw: Beheercentrum kan de tabletstatus eventgebonden bevestigen wanneer de Kassa Tool de juiste prijslijst al heeft geladen, zonder opnieuw te publiceren of data te wijzigen.
+- De Voor event-workflow gebruikt de bevestigde tabletstatus om niet onnodig opnieuw naar prijslijstpublicatie te sturen.
+- Geen wijzigingen aan Kassa Tool-contract, Drive-bestanden, tabletdata, ledgerboekingen of bestaande eventdata.
 ## 1.26.3
 - Hersteld: Beheercentrum en Dashboard bepalen de Voor event-status opnieuw vanuit het actieve lifecycle-event in plaats van alleen `data.event`.
 - Hersteld: na nieuw event kan de workflow niet meer onterecht naar 0/5 terugvallen wanneer eventgegevens in `data.events[]` zitten.
@@ -983,6 +988,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 
