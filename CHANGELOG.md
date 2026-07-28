@@ -1,4 +1,11 @@
-﻿## 1.25.97
+﻿## 1.25.98
+- Sluit event gebruikt niet langer de oude automatische Excel-backupblokkade; die melding verwees foutief naar een nieuw evenement en zorgde voor verwarring.
+- De afsluitflow bewaart nu eerst lokaal de immutable event-snapshot en probeert daarna het aparte Google Drive-archiefbestand te bewaren.
+- De bevestigingstekst voor event afsluiten is aangepast zodat duidelijk is dat Google Drive apart wordt gebruikt voor het eventarchief.
+- De bestaande Excel-backupflow bij Nieuw evenement starten blijft ongewijzigd.
+- Geen wijzigingen aan ledger, rapporten, Kassa Tool-contract, imports, exports of bestaande snapshots.
+
+## 1.25.97
 - Sluit event bewaart afgesloten events nu ook als apart JSON-archiefbestand op Google Drive wanneer Drive verbonden is.
 - Het Drive-archiefbestand komt in de eventmap onder 04-archief en bevat eventgegevens, financiële summary en volledige snapshot.
 - Als Google Drive niet verbonden is, blijft het event lokaal correct afgesloten en krijgt de gebruiker een duidelijke melding dat het Drive-archief nog niet kon worden bewaard.
@@ -946,6 +953,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
