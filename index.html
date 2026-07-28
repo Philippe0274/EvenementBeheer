@@ -156,6 +156,23 @@
       0 8px 16px rgba(43,73,34,0.18);
   }
   .workflow-glass-btn.btn-sm { min-height: 2.75rem; padding-left: 1rem; padding-right: 1rem; font-weight: 850; }
+  .workflow-runner { position: relative; overflow: hidden; border-radius: 15px; padding: 0.85rem 0.85rem 0.7rem; background: linear-gradient(135deg, #087bb5 0%, #02609d 62%, #004d84 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 22px rgba(19,79,112,0.16); }
+  .workflow-runner-track { position: relative; height: 0.78rem; margin: 0.1rem 1.5rem 0.75rem; border-radius: 999px; background: rgba(255,255,255,0.84); box-shadow: inset 0 1px 3px rgba(8,42,63,0.22); }
+  .workflow-runner-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #ff315d, #ff8a44); box-shadow: 0 0 12px rgba(255,72,94,0.52); transition: width 260ms ease; }
+  .workflow-runner-person { position: absolute; top: -1.02rem; width: 2.9rem; height: 2.5rem; transform: translateX(-50%); transition: left 260ms ease; }
+  .workflow-runner-person.active { animation: workflowRunnerPulse 1.25s ease-in-out infinite; }
+  .workflow-runner-head { position: absolute; right: 0.34rem; top: 0.08rem; width: 0.52rem; height: 0.52rem; border-radius: 999px; background: #771a1b; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  .workflow-runner-body { position: absolute; right: 0.7rem; top: 0.56rem; width: 1.38rem; height: 0.72rem; border-radius: 999px 999px 7px 7px; background: #d52f36; transform: rotate(-16deg); box-shadow: 0 1px 2px rgba(0,0,0,0.16); }
+  .workflow-runner-arm { position: absolute; right: 1.42rem; top: 0.78rem; width: 1.1rem; height: 0.14rem; border-radius: 999px; background: #771a1b; transform: rotate(-28deg); transform-origin: right center; }
+  .workflow-runner-leg-a { position: absolute; right: 1.32rem; top: 1.18rem; width: 1.35rem; height: 0.14rem; border-radius: 999px; background: #1e2445; transform: rotate(130deg); transform-origin: right center; }
+  .workflow-runner-leg-b { position: absolute; right: 0.72rem; top: 1.22rem; width: 1.2rem; height: 0.14rem; border-radius: 999px; background: #1e2445; transform: rotate(28deg); transform-origin: left center; }
+  .workflow-runner-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 0.38rem; }
+  .workflow-runner-step { min-height: 2.45rem; padding: 0.36rem 0.28rem; border-radius: 9px; text-align: center; color: rgba(255,255,255,0.88); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.12); font-size: 0.69rem; font-weight: 800; line-height: 1.15; }
+  .workflow-runner-step.done { color: #133c22; background: rgba(223,244,214,0.92); border-color: rgba(223,244,214,0.6); }
+  .workflow-runner-step.current { color: #ffffff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.46); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+  .workflow-runner-symbol { display: block; margin-bottom: 0.12rem; font-size: 0.82rem; }
+  @keyframes workflowRunnerPulse { 0%, 100% { transform: translateX(-50%) translateY(0); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); } 50% { transform: translateX(-50%) translateY(-2px); filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); } }
+  @media (max-width: 760px) { .workflow-runner-person { display: none; } .workflow-runner-track { margin-left: 0.2rem; margin-right: 0.2rem; } .workflow-runner-steps { grid-template-columns: repeat(auto-fit, minmax(94px, 1fr)); } }
   .badge { display: inline-block; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
   .badge-open { background: #ede4d3; color: var(--ink-soft); }
   .badge-bezig { background: #f4e4c5; color: var(--amber); }
@@ -365,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.92";
+const APP_VERSION = "1.25.93";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -12408,18 +12425,30 @@ function BeheercentrumTab({
   }, {
     label: t.center_publish_pricelist,
     done: priceListPublished
+  }, {
+    label: t.center_tablet_ready,
+    done: priceListPublished && driveConnected && !!priceCount && eventComplete
   }];
   const afterSimpleStatus = [{
     label: t.dashboard_cockpit_exports,
     done: batches.length > 0
   }, {
-    label: t.dashboard_cockpit_process,
+    label: t.center_auto_step_prepare,
+    done: !!activeBatch || bookingReady
+  }, {
+    label: t.center_auto_step_validate,
+    done: !!(activeBatch && activeBatch.validationReport) || bookingReady
+  }, {
+    label: t.center_auto_step_extract,
+    done: !!activeFacts || bookingReady
+  }, {
+    label: t.center_auto_step_preview,
+    done: !!activePreview || bookingReady
+  }, {
+    label: t.center_auto_step_post,
     done: bookingReady
   }, {
-    label: t.kb_final_report,
-    done: reportReady
-  }, {
-    label: t.center_final_report_mail_button,
+    label: t.center_auto_step_report,
     done: centerFinalReportMailReady
   }];  const renderNewEventStartCard = () => /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -12678,6 +12707,59 @@ function BeheercentrumTab({
     const done = items.filter(donePredicate).length;
     return `${done}/${items.length}`;
   };
+  const renderWorkflowRunner = (statusItems, color) => {
+    const total = Math.max(statusItems.length, 1);
+    const doneCount = statusItems.filter(item => item.done).length;
+    const firstOpenIndex = statusItems.findIndex(item => !item.done);
+    const isComplete = firstOpenIndex === -1;
+    const currentIndex = isComplete ? total - 1 : Math.max(firstOpenIndex, 0);
+    const runnerLeft = total <= 1 ? 100 : currentIndex / (total - 1) * 100;
+    const fillWidth = isComplete ? 100 : Math.max(8, runnerLeft);
+    return /*#__PURE__*/React.createElement("div", {
+      className: "workflow-runner",
+      style: {
+        border: `1px solid ${color}44`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "workflow-runner-track"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "workflow-runner-fill",
+      style: {
+        width: `${fillWidth}%`,
+        background: isComplete ? "linear-gradient(90deg, #84c063, #4a8a38)" : "linear-gradient(90deg, #ff315d, #ff8a44)"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      className: `workflow-runner-person${isComplete ? "" : " active"}`,
+      style: {
+        left: `${runnerLeft}%`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-head"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-body"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-arm"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-leg-a"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-leg-b"
+    }))), /*#__PURE__*/React.createElement("div", {
+      className: "workflow-runner-steps"
+    }, statusItems.map((item, index) => /*#__PURE__*/React.createElement("div", {
+      key: item.label,
+      className: `workflow-runner-step${item.done ? " done" : index === currentIndex && !isComplete ? " current" : ""}`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "workflow-runner-symbol"
+    }, item.done ? "✓" : index === currentIndex && !isComplete ? "●" : "○"), item.label))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "0.45rem",
+        color: "rgba(255,255,255,0.88)",
+        fontSize: "0.72rem",
+        fontWeight: 900,
+        textAlign: "right"
+      }
+    }, doneCount, "/", total));
+  };
   const phaseButton = (title, intro, value, color, detailAction, primaryAction, statusItems = []) => {
     const isDone = statusItems.length ? statusItems.every(item => item.done) : primaryAction.status === "done";
     const primaryStyle = statusStyle(isDone ? "done" : primaryAction.status);
@@ -12729,6 +12811,10 @@ function BeheercentrumTab({
       lineHeight: 1.35
     }
   }, intro), statusItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.1rem"
+    }
+  }, renderWorkflowRunner(statusItems, color)), statusItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: "0.38rem",

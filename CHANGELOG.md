@@ -1,4 +1,10 @@
-﻿## 1.25.92
+﻿## 1.25.93
+- Beheercentrum uitgebreid met een visuele workflow-runner per fase: Voor event en Na event tonen nu duidelijk wat klaar is, wat nu bezig is en wat nog volgt.
+- De Voor event-stappen zijn verfijnd naar Eventgegevens, Prijslijst, Google Drive, Prijslijst publiceren en Tablet klaarzetten.
+- De Na event-stappen zijn verfijnd naar Export ophalen, Import voorbereiden, Valideren, Feiten uitpakken, Ledger-preview, Definitief boeken en Eindrapport/mail.
+- De hoofdknoppen blijven de bestaande veilige volgende actie uitvoeren; onderliggende knoppen blijven optioneel voor controle.
+- Geen wijzigingen aan dataopslag, importlogica, ledgerberekeningen, rapportinhoud, mailtekst, Drive-upload, backup/restore of Kassa Tool-contract.
+## 1.25.92
 - Beheercentrum vereenvoudigd: de startweergave focust nu op de twee normale fases Voor event en Na event.
 - De grote eventkaart is uit het standaardbeeld gehaald en blijft beschikbaar via Onderliggende knoppen tonen bij Voor event.
 - De eventcontext blijft compact zichtbaar boven de workflow, zodat naam, datum en locatie duidelijk blijven zonder het scherm te vullen.
