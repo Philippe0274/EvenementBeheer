@@ -1,4 +1,10 @@
-﻿## 1.25.91
+﻿## 1.25.92
+- Beheercentrum vereenvoudigd: de startweergave focust nu op de twee normale fases Voor event en Na event.
+- De grote eventkaart is uit het standaardbeeld gehaald en blijft beschikbaar via Onderliggende knoppen tonen bij Voor event.
+- De eventcontext blijft compact zichtbaar boven de workflow, zodat naam, datum en locatie duidelijk blijven zonder het scherm te vullen.
+- Technische modules en detailtabs blijven bestaan, maar blijven onder de technische details/onderliggende knoppen voor controle en uitzonderingen.
+- Geen wijzigingen aan dataopslag, import, ledger, rapporten, mail, Google Drive, backup/restore of Kassa Tool-contract.
+## 1.25.91
 - Beheercentrum-status hersteld: de grote Na event-knop toont nu Voltooid zodra Eindrapport en mail per event effectief voorbereid zijn.
 - De Na event-klaarstand gebruikt nu dezelfde per-event rapport/mailvlag als de Kassa Exports-stappenkaart, zodat beide schermen dezelfde waarheid tonen.
 - Geen wijzigingen aan rapportinhoud, mailtekst, Drive-upload, Gmail-opening, import, ledger, backup/restore of datamodel.
