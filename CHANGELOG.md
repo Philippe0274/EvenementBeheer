@@ -1,4 +1,8 @@
-﻿## 1.25.88
+﻿## 1.25.89
+- Na-eventverwerking duidelijker gemaakt: Kassa Exports toont nu een compacte stappenkaart voor ophalen, import voorbereiden, valideren, feiten uitpakken, ledger-preview, definitief boeken en eindrapport/mail.
+- De stappenkaart leest alleen bestaande import-, feiten- en ledgerstatussen en stopt visueel bij controlepunten; er is geen nieuwe financiële logica toegevoegd.
+- Geen wijzigingen aan exportcontract, dataopslag, ledgerberekeningen, rapportberekeningen, Google Drive-structuur, backup/restore of bestaande modulefuncties.
+## 1.25.88
 - Technische modulelijst in de header rustiger gemaakt: Alle modules / technische details blijft standaard dicht, ook wanneer een detailtab actief is.
 - Detailtabs blijven volledig bereikbaar via de technische detailknop en behouden de duidelijke terugknop naar Beheercentrum.
 - Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen, Google Drive, backup/restore of bestaande modulefuncties.
@@ -897,6 +901,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 

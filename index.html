@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.88";
+const APP_VERSION = "1.25.89";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1146,6 +1146,19 @@ const T = {
     center_next_report: "Maak of open het eindrapport.",
     center_next_after_flow: "Start de na-eventverwerking. De app haalt exports op en verwerkt telkens de eerstvolgende veilige stap.",
     center_after_flow_button: "Na-eventverwerking starten",
+    center_auto_flow_title: "Na-eventverwerking",
+    center_auto_flow_intro: "De app voert de stappen na elkaar uit en stopt wanneer controle nodig is.",
+    center_auto_step_fetch: "Kassa-export ophalen",
+    center_auto_step_prepare: "Import voorbereiden",
+    center_auto_step_validate: "Valideren",
+    center_auto_step_extract: "Feiten uitpakken",
+    center_auto_step_preview: "Ledger-preview maken",
+    center_auto_step_post: "Definitief boeken",
+    center_auto_step_report: "Eindrapport en mail",
+    center_auto_status_waiting: "Wacht",
+    center_auto_status_busy: "Bezig",
+    center_auto_status_done: "Voltooid",
+    center_auto_status_blocked: "Controle nodig",
     center_final_report_mail_button: "Eindrapport en mail voorbereiden",
     center_before_title: "Voor event",
     center_before_intro: "Alles wat klaar moet staan vóór de Kassa Tool op de tablet wordt gebruikt.",
@@ -2341,6 +2354,19 @@ const T = {
     center_next_report: "Créez ou ouvrez le rapport final.",
     center_next_after_flow: "Démarrez le traitement après événement. L'app charge les exports et exécute chaque étape sûre suivante.",
     center_after_flow_button: "Démarrer le traitement après événement",
+    center_auto_flow_title: "Traitement après événement",
+    center_auto_flow_intro: "L'application exécute les étapes l'une après l'autre et s'arrête si un contrôle est nécessaire.",
+    center_auto_step_fetch: "Charger l'export caisse",
+    center_auto_step_prepare: "Préparer l'import",
+    center_auto_step_validate: "Valider",
+    center_auto_step_extract: "Extraire les faits",
+    center_auto_step_preview: "Créer l'aperçu ledger",
+    center_auto_step_post: "Comptabiliser définitivement",
+    center_auto_step_report: "Rapport final et e-mail",
+    center_auto_status_waiting: "En attente",
+    center_auto_status_busy: "En cours",
+    center_auto_status_done: "Terminé",
+    center_auto_status_blocked: "Contrôle nécessaire",
     center_final_report_mail_button: "Préparer rapport final et e-mail",
     center_before_title: "Avant l'événement",
     center_before_intro: "Tout ce qui doit être prêt avant l'utilisation de la Kassa Tool sur la tablette.",
@@ -10347,6 +10373,43 @@ function KassaExportMonitorTab({
   const hiddenImportBatchCount = importBatches.length - visibleImportBatches.length;
   const hideRawExportArea = !showOldExports && visibleImportBatches.length > 0;
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
+  const autoAfterEventActive = sessionStorage.getItem("eventtool_auto_after_event_flow") === "1";
+  const autoFinalReportPending = sessionStorage.getItem("eventtool_auto_final_report_mail") === "1";
+  const flowBatch = activeImportBatch;
+  const flowBatchId = flowBatch && flowBatch.id || "";
+  const flowBatchFile = flowBatch ? importFiles.find(file => file && (file.id === flowBatch.fileRecordId || file.batchId === flowBatchId)) : null;
+  const flowFacts = flowBatch ? importedFacts.find(item => item && item.batchId === flowBatchId) : null;
+  const flowPreview = flowBatch ? ledgerPreviews.find(item => item && item.batchId === flowBatchId) : null;
+  const flowReport = flowBatch && flowBatch.validationReport || null;
+  const flowValidationFailed = !!(flowReport && (flowReport.errors || flowReport.status === "validation_failed" || flowBatch.status === "validation_failed" || flowBatch.validationStatus === "validation_failed"));
+  const flowRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
+  const flowHasKassaLedger = flowRows.some(item => item && item.source === "kassa-import");
+  const flowIsVisible = autoAfterEventActive || autoFinalReportPending || !!flowBatch || flowHasKassaLedger;
+  const flowStatus = (done, busyNow, blocked) => blocked ? "blocked" : done ? "done" : busyNow ? "busy" : "waiting";
+  const autoFlowSteps = [{
+    label: t.center_auto_step_fetch,
+    status: flowStatus(exportsFound.length > 0 || !!flowBatch || flowHasKassaLedger, busy && !exportsFound.length, false)
+  }, {
+    label: t.center_auto_step_prepare,
+    status: flowStatus(!!flowBatch || flowHasKassaLedger, autoAfterEventActive && !!activeExport && !flowBatch, false)
+  }, {
+    label: t.center_auto_step_validate,
+    status: flowStatus(!!flowReport || flowHasKassaLedger, autoAfterEventActive && !!flowBatch && !flowReport, flowValidationFailed)
+  }, {
+    label: t.center_auto_step_extract,
+    status: flowStatus(!!flowFacts || flowHasKassaLedger, autoAfterEventActive && !!flowReport && !flowValidationFailed && !flowFacts, flowValidationFailed)
+  }, {
+    label: t.center_auto_step_preview,
+    status: flowStatus(!!flowPreview || flowHasKassaLedger, autoAfterEventActive && !!flowFacts && !flowPreview, false)
+  }, {
+    label: t.center_auto_step_post,
+    status: flowStatus(flowHasKassaLedger, autoAfterEventActive && !!flowPreview && !flowHasKassaLedger, false)
+  }, {
+    label: t.center_auto_step_report,
+    status: flowStatus(false, autoFinalReportPending, flowValidationFailed)
+  }];
+  const autoFlowStatusText = status => status === "done" ? t.center_auto_status_done : status === "busy" ? t.center_auto_status_busy : status === "blocked" ? t.center_auto_status_blocked : t.center_auto_status_waiting;
+  const autoFlowStatusColor = status => status === "done" ? "#3f6f36" : status === "busy" ? "#c98b13" : status === "blocked" ? "#DE3E3E" : "var(--ink-soft)";
   useEffect(() => {
     if (sessionStorage.getItem("eventtool_auto_after_event_flow") !== "1") return;
     if (busy || exportsFound.length) return;
@@ -10525,7 +10588,55 @@ function KassaExportMonitorTab({
       marginTop: "0.2rem",
       fontSize: "0.92rem"
     }
-  }, progress.detail)), /*#__PURE__*/React.createElement("p", {
+  }, progress.detail)), flowIsVisible && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "0.9rem",
+      border: "1px solid rgba(222,62,62,0.22)",
+      borderLeft: "5px solid #DE3E3E",
+      borderRadius: 10,
+      background: "rgba(255,255,255,0.72)",
+      padding: "0.85rem",
+      display: "grid",
+      gap: "0.65rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontSize: "1rem"
+    }
+  }, t.center_auto_flow_title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0.25rem 0 0",
+      color: "var(--ink-soft)",
+      fontSize: "0.88rem"
+    }
+  }, t.center_auto_flow_intro)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      gap: "0.45rem"
+    }
+  }, autoFlowSteps.map((step, idx) => /*#__PURE__*/React.createElement("div", {
+    key: `${idx}-${step.label}`,
+    style: {
+      border: "1px solid rgba(222,211,196,0.9)",
+      borderRadius: 8,
+      padding: "0.55rem",
+      background: step.status === "done" ? "rgba(153,173,122,0.16)" : step.status === "busy" ? "rgba(222,62,62,0.08)" : step.status === "blocked" ? "rgba(222,62,62,0.14)" : "rgba(255,255,255,0.62)",
+      minHeight: 68
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 900,
+      color: "var(--ink)",
+      marginBottom: "0.32rem"
+    }
+  }, step.status === "done" ? "✓ " : step.status === "busy" ? "… " : step.status === "blocked" ? "! " : "○ ", step.label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: autoFlowStatusColor(step.status),
+      fontWeight: 850,
+      fontSize: "0.8rem"
+    }
+  }, autoFlowStatusText(step.status)))))), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0.8rem 0 0",
       color: message && message.startsWith("✓") ? "var(--green)" : "var(--ink-soft)"
@@ -23657,6 +23768,9 @@ FASE 2 TOEGEVOEGD
   * export
   * statistieken
 ========================================================= -->
+
+
+
 
 
 
