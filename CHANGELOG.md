@@ -1,4 +1,8 @@
-﻿## 1.25.90
+﻿## 1.25.91
+- Beheercentrum-status hersteld: de grote Na event-knop toont nu Voltooid zodra Eindrapport en mail per event effectief voorbereid zijn.
+- De Na event-klaarstand gebruikt nu dezelfde per-event rapport/mailvlag als de Kassa Exports-stappenkaart, zodat beide schermen dezelfde waarheid tonen.
+- Geen wijzigingen aan rapportinhoud, mailtekst, Drive-upload, Gmail-opening, import, ledger, backup/restore of datamodel.
+## 1.25.90
 - Status van de laatste na-eventstap hersteld: Eindrapport en mail wordt nu per event als Voltooid getoond nadat het eindrapport op Google Drive staat en Gmail werd geopend.
 - De Kassa Exports-stappenkaart leest deze bestaande rapport/mailstatus mee, zodat de visuele keten overeenkomt met wat werkelijk uitgevoerd werd.
 - Geen wijzigingen aan rapportinhoud, mailtekst, import, ledger, Google Drive-upload, backup/restore of datamodel.
