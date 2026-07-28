@@ -1,4 +1,10 @@
-﻿## 1.26.2
+﻿# Changelog
+## 1.26.3
+- Hersteld: Beheercentrum en Dashboard bepalen de Voor event-status opnieuw vanuit het actieve lifecycle-event in plaats van alleen `data.event`.
+- Hersteld: na nieuw event kan de workflow niet meer onterecht naar 0/5 terugvallen wanneer eventgegevens in `data.events[]` zitten.
+- Prijslijstpublicatie naar de Kassa Tool wordt nu ook event-gebonden gemarkeerd, met behoud van de bestaande globale compatibiliteitsvlag.
+- Geen wijziging aan opgeslagen eventdata, prijslijst, Drive-export of Kassa-importcontract.
+## 1.26.2
 - Nieuw evenement start nu met een schone eventgebonden werklaag: prijslijst, publicatiestatus, Kassa-imports, kassaboekingen, auditregels en rapportstatus worden gereset.
 - Afgesloten events blijven volledig bewaard in Historiek / Archief en in hun snapshot.
 - Beheercentrum toont bij een leeg nieuw event geen oude Na event-status of oude Kassa-waarden meer.
@@ -977,6 +983,8 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
 
 
 

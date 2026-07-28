@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.26.2";
+const APP_VERSION = "1.26.3";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -4150,6 +4150,25 @@ const getActiveEvent = data => {
 const getActiveEventInfo = data => {
   const activeEvent = getActiveEvent(data);
   return normalizeEventInfo(activeEvent && activeEvent.info || data && data.event);
+};
+
+const getWorkflowEventInfo = data => {
+  const activeEvent = getActiveEvent(data);
+  const activeInfo = normalizeEventInfo(activeEvent && activeEvent.info);
+  const mirrorInfo = normalizeEventInfo(data && data.event);
+  const hasActiveInfo = !!(activeInfo.naam || activeInfo.datum || activeInfo.gemeente || activeInfo.locatieNaam || activeInfo.straat || activeInfo.locatie);
+  const hasMirrorInfo = !!(mirrorInfo.naam || mirrorInfo.datum || mirrorInfo.gemeente || mirrorInfo.locatieNaam || mirrorInfo.straat || mirrorInfo.locatie);
+  return hasActiveInfo ? activeInfo : hasMirrorInfo ? mirrorInfo : activeInfo;
+};
+
+const getWorkflowEventKey = data => {
+  const info = getWorkflowEventInfo(data);
+  return data && data.activeEventId || info.id || [info.naam, info.datum].filter(Boolean).join("_") || "default";
+};
+
+const isWorkflowPriceListPublished = data => {
+  const key = getWorkflowEventKey(data);
+  return !!(localStorage.getItem(`eventtool_gdrive_last_pricelist_publish_${key}`) || localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
 };
 
 const ensureActiveEvent = data => {
@@ -11733,7 +11752,7 @@ function DashboardCockpit({
     initEventToolGoogleDrive();
     return eventToolGDriveSubscribe(setDrive);
   }, []);
-  const cockpitEvent = data && data.event || {};
+  const cockpitEvent = getWorkflowEventInfo(data || {});
   const cockpitEventComplete = !!(cockpitEvent.naam && cockpitEvent.datum && (cockpitEvent.gemeente || cockpitEvent.locatieNaam || buildAddressString(cockpitEvent)));
   const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
   const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
@@ -11742,7 +11761,7 @@ function DashboardCockpit({
   const openBatchCount = cockpitEventComplete ? batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length : 0;
   const bookingCount = cockpitEventComplete ? ledgerRows.length : 0;
   const reportReady = bookingCount > 0;
-  const priceListPublished = !!(cockpitEventComplete && priceCount && localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
+  const priceListPublished = !!(cockpitEventComplete && priceCount && isWorkflowPriceListPublished(data || {}));
   const statusTodo = { label: t.dashboard_status_todo, color: "var(--ink-soft)", background: "rgba(80,70,60,0.08)" };
   const statusBusy = { label: t.dashboard_status_busy, color: "var(--amber)", background: "rgba(192,138,46,0.14)" };
   const statusDone = { label: t.dashboard_status_done, color: "var(--green)", background: "rgba(153,173,122,0.22)" };
@@ -12301,7 +12320,7 @@ function BeheercentrumTab({
   const importedFacts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts : [];
   const ledgerPreviews = data && data.kassaImports && Array.isArray(data.kassaImports.ledgerPreviews) ? data.kassaImports.ledgerPreviews : [];
   const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
-  const eventInfo = data && data.event || {};
+  const eventInfo = getWorkflowEventInfo(data || {});
   const activeEventRecord = getActiveEvent(data || {});
   const activeEventClosed = !!(activeEventRecord && activeEventRecord.status === "closed");
   const activeClosedEventId = activeEventRecord && activeEventRecord.id || data && data.activeEventId || "";
@@ -12338,7 +12357,7 @@ function BeheercentrumTab({
     return rows.slice(0, 5);
   })();
   const archiveCount = closedEventSummaries.length;
-  const centerEventKey = data && (data.activeEventId || data.event && data.event.id || [data.event && data.event.naam, data.event && data.event.datum].filter(Boolean).join("_")) || "default";
+  const centerEventKey = getWorkflowEventKey(data || {});
   const centerFinalReportMailReady = !!(eventInfo.naam && eventInfo.datum && localStorage.getItem(`eventtool_final_report_mail_ready_${centerEventKey}`) === "1");
   const eventLocation = buildAddressString(eventInfo);
   const eventMailInfo = [eventInfo.reimbursementEmails ? `${t.center_event_reimbursement_mail}: ${eventInfo.reimbursementEmails}` : "", eventInfo.finalReportEmails ? `${t.center_event_final_report_mail}: ${eventInfo.finalReportEmails}` : ""].filter(Boolean).join(" · ");
@@ -12350,7 +12369,7 @@ function BeheercentrumTab({
   const postedBatchCount = eventInfo.naam && eventInfo.datum ? batches.filter(batch => batch && (batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length : 0;
   const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
   const eventComplete = !!(eventInfo.naam && eventInfo.datum && (eventInfo.gemeente || eventInfo.locatieNaam || eventLocation));
-  const priceListPublished = !!(eventComplete && priceCount && localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
+  const priceListPublished = !!(eventComplete && priceCount && isWorkflowPriceListPublished(data || {}));
   const driveConnected = !!(drive && drive.connected);
   const openGoogleDriveFromCenter = () => {
     if (eventToolGDriveIsTokenValid()) {
@@ -22886,7 +22905,12 @@ function PrijslijstTab({ data, event, activeEventId, prijslijst, categorien, add
       await eventToolGDriveUploadJson(EVENT_TOOL_DRIVE_PRICELIST_FILE_NAME, payload, priceListFolder.id);
       const eventsIndexPayload = buildKassaToolEventsIndexExport(payload, eventFolderName);
       await eventToolGDriveUploadJson(EVENT_TOOL_DRIVE_EVENTS_INDEX_FILE_NAME, eventsIndexPayload);
-      localStorage.setItem("eventtool_gdrive_last_pricelist_publish", String(Date.now()));
+      const publishStamp = String(Date.now());
+      localStorage.setItem("eventtool_gdrive_last_pricelist_publish", publishStamp);
+      localStorage.setItem(`eventtool_gdrive_last_pricelist_publish_${getWorkflowEventKey({
+        activeEventId,
+        event
+      })}`, publishStamp);
       localStorage.removeItem("eventtool_gdrive_last_error");
       eventToolGDriveEmit();
       setDrivePublishMessage(t.pl_kassa_drive_publish_ok);
