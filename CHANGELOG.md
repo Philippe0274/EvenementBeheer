@@ -1,4 +1,11 @@
-﻿## 1.25.98
+﻿## 1.25.99
+- Historiek / Archief toont bij Details bekijken voortaan alleen nog of het eindresultaat positief of negatief is, met het bedrag.
+- De volledige event-snapshot blijft ongewijzigd bewaard voor de latere vergelijkingsmodule.
+- De teller Afgesloten events telt unieke afgesloten events en telt hetzelfde event niet langer dubbel via eventHistory en events.
+- Het Google Drive-archief voor een afgesloten event wordt betrouwbaarder aangemaakt doordat de uploadpayload vóór de state-update wordt opgebouwd.
+- Afgesloten events krijgen een knop Archief naar Drive bewaren zodat een ontbrekend Drive-archief opnieuw kan worden bewaard zonder data te wijzigen.
+- Geen wijzigingen aan ledger, Kassa Tool-contract, rapportberekeningen, imports of bestaande snapshots.
+## 1.25.98
 - Sluit event gebruikt niet langer de oude automatische Excel-backupblokkade; die melding verwees foutief naar een nieuw evenement en zorgde voor verwarring.
 - De afsluitflow bewaart nu eerst lokaal de immutable event-snapshot en probeert daarna het aparte Google Drive-archiefbestand te bewaren.
 - De bevestigingstekst voor event afsluiten is aangepast zodat duidelijk is dat Google Drive apart wordt gebruikt voor het eventarchief.

@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.98";
+const APP_VERSION = "1.25.99";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1122,6 +1122,7 @@ const T = {
     center_event_closed_text: "Dit event is afgesloten en staat in Historiek / Archief. Je kan nu een nieuw event starten.",
     center_archive_open: "Lijst afgesloten events",
     center_archive_count: "Afgesloten events",
+    center_archive_drive_button: "Archief naar Drive bewaren",
     confirm_sluit_event: "Dit event afsluiten?\n\nDe app bewaart lokaal een immutable snapshot in Historiek / Archief en probeert daarna automatisch een apart archiefbestand op Google Drive te bewaren.\n\nHet event wordt niet gewist. Doorgaan?",
     sluit_event_klaar: "✓ Event afgesloten en bewaard in Historiek / Archief",
     sluit_event_drive_klaar: "✓ Afgesloten event ook bewaard op Google Drive",
@@ -1681,6 +1682,10 @@ const T = {
     history_snapshot_version: "Snapshotversie",
     history_details_open: "Details bekijken",
     history_details_close: "Details sluiten",
+    history_result_title: "Eindresultaat",
+    history_result_positive: "Positief eindresultaat",
+    history_result_negative: "Negatief eindresultaat",
+    history_snapshot_kept: "De volledige snapshot blijft bewaard voor latere vergelijking.",
     history_event_info: "Eventinfo",
     history_financial_summary: "Financiële samenvatting",
     history_operational_counts: "Operationele aantallen",
@@ -2343,6 +2348,7 @@ const T = {
     center_event_closed_text: "Cet événement est clôturé et se trouve dans Historique / Archives. Vous pouvez maintenant démarrer un nouvel événement.",
     center_archive_open: "Liste des événements clôturés",
     center_archive_count: "Événements clôturés",
+    center_archive_drive_button: "Enregistrer l'archive sur Drive",
     confirm_sluit_event: "Clôturer cet événement ?\n\nL'app conserve localement un snapshot immutable dans Historique / Archives et essaie ensuite d'enregistrer automatiquement un fichier d'archive séparé sur Google Drive.\n\nL'événement n'est pas supprimé. Continuer ?",
     sluit_event_klaar: "✓ Événement clôturé et conservé dans Historique / Archives",
     sluit_event_drive_klaar: "✓ Événement clôturé également conservé sur Google Drive",
@@ -2952,6 +2958,10 @@ const T = {
     history_snapshot_version: "Version du snapshot",
     history_details_open: "Voir les détails",
     history_details_close: "Masquer les détails",
+    history_result_title: "Résultat final",
+    history_result_positive: "Résultat final positif",
+    history_result_negative: "Résultat final négatif",
+    history_snapshot_kept: "Le snapshot complet reste conservé pour une comparaison ultérieure.",
     history_event_info: "Infos événement",
     history_financial_summary: "Résumé financier",
     history_operational_counts: "Comptages opérationnels",
@@ -7794,6 +7804,63 @@ function App() {
     ...d,
     overgeslagenAandachtspunten: []
   }));
+  const buildClosedEventArchiveUpload = sourceData => {
+    const synced = syncActiveEventMirror(sourceData);
+    const active = getActiveEvent(synced);
+    const existingSnapshot = active && active.snapshot ? active.snapshot : null;
+    const snapshot = existingSnapshot || buildCurrentEventSnapshot(synced);
+    const eventInfo = snapshot.eventInfo || normalizeEventInfo(active && active.info || synced.event || {});
+    const closedAt = active && active.closedAt || snapshot.closedAt || snapshot.createdAt || new Date().toISOString();
+    const eventId = active && active.id || snapshot.eventId || synced.activeEventId || uid();
+    const safeEventName = String(eventInfo && eventInfo.naam || synced.event && synced.event.naam || "evenement").trim().replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
+    const safeEventDate = String(eventInfo && eventInfo.datum || synced.event && synced.event.datum || closedAt.slice(0, 10)).trim().replace(/[^0-9a-z]+/gi, "_").replace(/^_+|_+$/g, "") || closedAt.slice(0, 10);
+    return {
+      eventId,
+      closedAt,
+      snapshot,
+      fileName: `event-archive-${safeEventName}-${safeEventDate}.json`,
+      fallbackEvent: eventInfo || synced.event || {},
+      payload: {
+        schemaName: "be.zomerfeest.hoofdapp-event-archive",
+        schemaVersion: "1.0.0",
+        exportedAt: new Date().toISOString(),
+        exportedByAppVersion: APP_VERSION,
+        source: "hoofdapp.event-lifecycle",
+        storage: {
+          provider: "google-drive",
+          folderName: "EventToolSync",
+          direction: "hoofdapp-archive"
+        },
+        eventId,
+        closedAt,
+        event: deepClone(eventInfo),
+        summary: deepClone(active && active.summary || snapshot.summary || {}),
+        snapshot: deepClone(snapshot)
+      }
+    };
+  };
+  const uploadClosedEventArchiveToDrive = async archiveUpload => {
+    if (!archiveUpload) return false;
+    if (!eventToolGDriveIsTokenValid()) {
+      eventToolGDriveConnect();
+      throw new Error("Google Drive is niet verbonden.");
+    }
+    await eventToolGDriveArchiveClosedEvent(archiveUpload.fileName, archiveUpload.payload, archiveUpload.fallbackEvent);
+    eventToolGDriveEmit();
+    showToast(t.sluit_event_drive_klaar);
+    return true;
+  };
+  const bewaarGeslotenEventArchiefOpDrive = async () => {
+    try {
+      const archiveUpload = buildClosedEventArchiveUpload(data);
+      await uploadClosedEventArchiveToDrive(archiveUpload);
+    } catch (e) {
+      console.warn("Event archive Drive upload failed:", e);
+      localStorage.setItem("eventtool_gdrive_last_error", e && e.message ? e.message : String(e));
+      eventToolGDriveEmit();
+      showToast(t.sluit_event_drive_mislukt);
+    }
+  };
   const sluitActiefEvenement = async () => {
     const syncedCurrent = syncActiveEventMirror(data);
     const activeEvent = getActiveEvent(syncedCurrent);
@@ -7802,14 +7869,14 @@ function App() {
       return;
     }
     if (!confirm(t.confirm_sluit_event)) return;
-    let archiveUpload = null;
+    const archiveUpload = buildClosedEventArchiveUpload(syncedCurrent);
     setData(d => {
       const synced = syncActiveEventMirror(d);
       const active = getActiveEvent(synced);
       if (active && active.status === "closed") return synced;
-      const snapshot = buildCurrentEventSnapshot(synced);
-      const closedAt = snapshot.createdAt;
-      const eventId = snapshot.eventId;
+      const snapshot = archiveUpload.snapshot;
+      const closedAt = archiveUpload.closedAt;
+      const eventId = archiveUpload.eventId;
       const k = snapshot.summary || berekenKosten(synced);
       const heeftInhoud = (synced.event.naam || "").trim() || (synced.event.datum || "").trim();
       const alreadyInHistory = (synced.eventHistory || []).some(entry => entry && entry.eventId === eventId);
@@ -7846,29 +7913,6 @@ function App() {
         snapshot,
         summary: snapshot.summary
       } : event);
-      const safeEventName = String(snapshot.eventInfo && snapshot.eventInfo.naam || synced.event.naam || "evenement").trim().replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "evenement";
-      const safeEventDate = String(snapshot.eventInfo && snapshot.eventInfo.datum || synced.event.datum || closedAt.slice(0, 10)).trim().replace(/[^0-9a-z]+/gi, "_").replace(/^_+|_+$/g, "") || closedAt.slice(0, 10);
-      archiveUpload = {
-        fileName: `event-archive-${safeEventName}-${safeEventDate}.json`,
-        fallbackEvent: snapshot.eventInfo || synced.event || {},
-        payload: {
-          schemaName: "be.zomerfeest.hoofdapp-event-archive",
-          schemaVersion: "1.0.0",
-          exportedAt: new Date().toISOString(),
-          exportedByAppVersion: APP_VERSION,
-          source: "hoofdapp.event-lifecycle",
-          storage: {
-            provider: "google-drive",
-            folderName: "EventToolSync",
-            direction: "hoofdapp-archive"
-          },
-          eventId,
-          closedAt,
-          event: deepClone(snapshot.eventInfo),
-          summary: deepClone(snapshot.summary),
-          snapshot: deepClone(snapshot)
-        }
-      };
       return syncActiveEventMirror({
         ...synced,
         activeEventId: eventId,
@@ -7879,13 +7923,7 @@ function App() {
     showToast(t.sluit_event_klaar);
     if (archiveUpload) {
       try {
-        if (!eventToolGDriveIsTokenValid()) {
-          eventToolGDriveConnect();
-          throw new Error("Google Drive is niet verbonden.");
-        }
-        await eventToolGDriveArchiveClosedEvent(archiveUpload.fileName, archiveUpload.payload, archiveUpload.fallbackEvent);
-        eventToolGDriveEmit();
-        showToast(t.sluit_event_drive_klaar);
+        await uploadClosedEventArchiveToDrive(archiveUpload);
       } catch (e) {
         console.warn("Event archive Drive upload failed:", e);
         localStorage.setItem("eventtool_gdrive_last_error", e && e.message ? e.message : String(e));
@@ -8247,6 +8285,7 @@ function App() {
     onRestoreBackup: herstelBackup,
     onNewEvent: nieuwEvenement,
     onCloseEvent: sluitActiefEvenement,
+    onArchiveClosedEvent: bewaarGeslotenEventArchiefOpDrive,
     t: t
   }), tab === "event" && /*#__PURE__*/React.createElement(EventTab, {
     event: data.event,
@@ -12209,6 +12248,7 @@ function BeheercentrumTab({
   onRestoreBackup,
   onNewEvent,
   onCloseEvent,
+  onArchiveClosedEvent,
   t
 }) {
   const openTab = (tabName, stepNr = null) => typeof setTab === "function" && setTab(tabName, stepNr);
@@ -12228,7 +12268,6 @@ function BeheercentrumTab({
   const eventInfo = data && data.event || {};
   const activeEventRecord = getActiveEvent(data || {});
   const activeEventClosed = !!(activeEventRecord && activeEventRecord.status === "closed");
-  const archiveCount = count(data && data.eventHistory) + count(data && data.events && data.events.filter(event => event && event.status === "closed"));
   const closedEventSummaries = (() => {
     const seen = new Set();
     const rows = [];
@@ -12260,6 +12299,7 @@ function BeheercentrumTab({
     });
     return rows.slice(0, 5);
   })();
+  const archiveCount = closedEventSummaries.length;
   const centerEventKey = data && (data.activeEventId || data.event && data.event.id || [data.event && data.event.naam, data.event && data.event.datum].filter(Boolean).join("_")) || "default";
   const centerFinalReportMailReady = localStorage.getItem(`eventtool_final_report_mail_ready_${centerEventKey}`) === "1";
   const eventLocation = buildAddressString(eventInfo);
@@ -12561,7 +12601,7 @@ function BeheercentrumTab({
   }, {
     title: t.tab_history || "Historiek",
     help: t.center_archive_help,
-    value: count(data.eventHistory) + count(data.events && data.events.filter(event => event && event.status === "closed")),
+    value: archiveCount,
     action: () => openTab("history")
   }, {
     title: t.backup_knop,
@@ -12715,6 +12755,10 @@ function BeheercentrumTab({
     className: "btn btn-primary btn-sm workflow-glass-btn workflow-glass-green",
     onClick: () => typeof onNewEvent === "function" && onNewEvent()
   }, t.center_new_event_start), activeEventClosed && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-ghost btn-sm",
+    onClick: () => typeof onArchiveClosedEvent === "function" && onArchiveClosedEvent()
+  }, t.center_archive_drive_button), activeEventClosed && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-ghost btn-sm",
     onClick: () => openTab("history")
@@ -23583,6 +23627,54 @@ function EventHistoryTab({
     const history = item.history || {};
     const info = historyAsObject(snapshot.eventInfo || event.info || {});
     const summary = event.summary || snapshot.summary || history;
+    const saldo = historySummaryValue(summary, history, "saldo");
+    const isNegative = saldo < 0;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: "1rem",
+        padding: "1rem",
+        borderRadius: 12,
+        border: `1px solid ${isNegative ? "rgba(222,62,62,0.32)" : "rgba(153,173,122,0.42)"}`,
+        borderLeft: `7px solid ${isNegative ? "var(--accent)" : "#3a7d44"}`,
+        background: isNegative ? "linear-gradient(135deg, rgba(222,62,62,0.08), rgba(255,255,255,0.78))" : "linear-gradient(135deg, rgba(153,173,122,0.16), rgba(255,255,255,0.78))",
+        display: "grid",
+        gap: "0.65rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "1rem",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.78rem",
+        fontWeight: 900,
+        textTransform: "uppercase",
+        letterSpacing: "0.03em"
+      }
+    }, t.history_result_title), /*#__PURE__*/React.createElement("strong", {
+      className: "font-display",
+      style: {
+        display: "block",
+        marginTop: "0.2rem",
+        fontSize: "1.15rem"
+      }
+    }, isNegative ? t.history_result_negative : t.history_result_positive)), /*#__PURE__*/React.createElement("strong", {
+      style: {
+        color: isNegative ? "var(--accent)" : "#3a7d44",
+        fontSize: "1.5rem",
+        whiteSpace: "nowrap"
+      }
+    }, fmtEuro(saldo))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "var(--ink-soft)",
+        fontSize: "0.82rem"
+      }
+    }, t.history_snapshot_kept));
     const bc = historyAsObject(snapshot.businessContinuity);
     const kastickets = historyAsObject(snapshot.kastickets);
     const poster = info.affiche || info.afficheWatermark || info.flyer || info.poster || "";
