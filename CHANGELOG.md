@@ -1,4 +1,8 @@
-﻿## 1.25.87
+﻿## 1.25.88
+- Technische modulelijst in de header rustiger gemaakt: Alle modules / technische details blijft standaard dicht, ook wanneer een detailtab actief is.
+- Detailtabs blijven volledig bereikbaar via de technische detailknop en behouden de duidelijke terugknop naar Beheercentrum.
+- Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen, Google Drive, backup/restore of bestaande modulefuncties.
+## 1.25.87
 - Terugknop naar Beheercentrum nu altijd zichtbaar op technische detailtabs, ook na directe tabnavigatie of refresh.
 - Detailtabs blijven beschikbaar voor controle, maar de normale gebruiker heeft altijd één duidelijke weg terug naar het centrale Beheercentrum.
 - Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen, Google Drive, backup/restore of bestaande modulefuncties.
@@ -893,6 +897,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
