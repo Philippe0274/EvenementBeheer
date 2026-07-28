@@ -1,4 +1,9 @@
-﻿## 1.25.93
+﻿## 1.25.94
+- Hersteld dat de groene knop Voltooid in de fase Na event geen actie uitvoerde.
+- Wanneer de na-eventflow volledig klaar is, opent deze knop nu veilig de eindrapportsectie in Kostenbeheer.
+- Geen wijzigingen aan boekingen, ledger, Drive-upload, rapportinhoud, mailtekst, backup/restore of Kassa Tool-contract.
+
+## 1.25.93
 - Beheercentrum uitgebreid met een visuele workflow-runner per fase: Voor event en Na event tonen nu duidelijk wat klaar is, wat nu bezig is en wat nog volgt.
 - De Voor event-stappen zijn verfijnd naar Eventgegevens, Prijslijst, Google Drive, Prijslijst publiceren en Tablet klaarzetten.
 - De Na event-stappen zijn verfijnd naar Export ophalen, Import voorbereiden, Valideren, Feiten uitpakken, Ledger-preview, Definitief boeken en Eindrapport/mail.
@@ -921,6 +926,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
