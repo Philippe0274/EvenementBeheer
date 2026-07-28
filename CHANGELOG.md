@@ -1,4 +1,8 @@
-﻿## 1.25.86
+﻿## 1.25.87
+- Terugknop naar Beheercentrum nu altijd zichtbaar op technische detailtabs, ook na directe tabnavigatie of refresh.
+- Detailtabs blijven beschikbaar voor controle, maar de normale gebruiker heeft altijd één duidelijke weg terug naar het centrale Beheercentrum.
+- Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen, Google Drive, backup/restore of bestaande modulefuncties.
+## 1.25.86
 - Terugnavigatie vanuit Beheercentrum verduidelijkt: detailtabs tonen nu consequent een terugknop naar Beheercentrum.
 - De bestaande workflow-terugknop verwijst niet langer naar Dashboard/stappenplan maar naar het centrale Beheercentrum.
 - Geen wijzigingen aan data, opslag, import, ledger, rapportberekeningen, Google Drive, backup/restore of bestaande modulefuncties.
@@ -889,6 +893,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
