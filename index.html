@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.26.0";
+const APP_VERSION = "1.26.1";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -7943,11 +7943,16 @@ function App() {
   };
   const nieuwEvenement = () => {
     if (!confirm(t.confirm_nieuw_evenement)) return;
-    // Stap 1: automatische Excel-backup van het huidige evenement
-    try {
-      exportExcel(true);
-    } catch (e) {
-      if (!confirm(t.backup_mislukt)) return;
+    const syncedBeforeNewEvent = syncActiveEventMirror(data);
+    const activeBeforeNewEvent = getActiveEvent(syncedBeforeNewEvent);
+    const activeAlreadyClosedBeforeNewEvent = !!(activeBeforeNewEvent && activeBeforeNewEvent.status === "closed");
+    // Alleen een actief, nog niet afgesloten event krijgt de oude Excel-noodbackup.
+    if (!activeAlreadyClosedBeforeNewEvent) {
+      try {
+        exportExcel(true);
+      } catch (e) {
+        if (!confirm(t.backup_mislukt)) return;
+      }
     }
     setData(d => {
       const synced = syncActiveEventMirror(d);

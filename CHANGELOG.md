@@ -1,4 +1,8 @@
-﻿## 1.26.0
+﻿## 1.26.1
+- Nieuw evenement starten toont geen oude Excel-backupwaarschuwing meer wanneer het actieve event al via de afsluitflow is afgesloten.
+- De Excel-noodbackup blijft alleen actief voor een nog actief, niet-afgesloten event.
+- Geen wijzigingen aan snapshots, Drive-archief, ledger, rapportberekeningen, Kassa Tool-contract of opgeslagen eventdata.
+## 1.26.0
 - Beheercentrum verbergt de gewone Voor event- en Na event-workflow zodra het actieve event afgesloten is.
 - Na afsluiten toont Beheercentrum eerst alleen de afsluitkaart met Archief afsluiten en Lijst afgesloten events.
 - Nieuw evenement starten wordt pas zichtbaar nadat het afgesloten eventarchief succesvol op Google Drive is bewaard.
