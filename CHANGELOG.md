@@ -1,4 +1,18 @@
-﻿## 1.25.95
+﻿## 1.25.97
+- Sluit event bewaart afgesloten events nu ook als apart JSON-archiefbestand op Google Drive wanneer Drive verbonden is.
+- Het Drive-archiefbestand komt in de eventmap onder 04-archief en bevat eventgegevens, financiële summary en volledige snapshot.
+- Als Google Drive niet verbonden is, blijft het event lokaal correct afgesloten en krijgt de gebruiker een duidelijke melding dat het Drive-archief nog niet kon worden bewaard.
+- Geen wijzigingen aan ledgerberekeningen, rapportinhoud, Kassa Tool-contract, import/exportcontract of bestaande backup/restore.
+
+## 1.25.96
+- Beheercentrum uitgebreid met een expliciete lifecycle-stap: wanneer de workflow klaar is verschijnt Sluit event.
+- Na afsluiten worden Nieuw evenement starten en Lijst afgesloten events zichtbaar in Beheercentrum.
+- Sluit event bewaart het huidige event als gesloten met immutable snapshot in Historiek / Archief zonder data te wissen.
+- Nieuw evenement starten herkent nu wanneer een event al gesloten is en voorkomt dubbele historiekrecords.
+- Hiermee ligt de basis klaar voor een latere vergelijkingstool over afgesloten events.
+- Geen wijzigingen aan ledgerberekeningen, Kassa Tool-contract, Drive-import/export, rapportinhoud of backup/restore.
+
+## 1.25.95
 - Beheercentrum verder bevestigd als normale start- en bedieningslaag van de Hoofdapp.
 - Het technische modulemenu blijft beschikbaar, maar wordt nu explicieter als controle- en uitzonderingslaag getoond.
 - Wanneer een technische module actief is, blijft de technische groep open zodat duidelijk is waar de gebruiker zich bevindt.
@@ -932,6 +946,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 
