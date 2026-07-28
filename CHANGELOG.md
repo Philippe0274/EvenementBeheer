@@ -1,4 +1,11 @@
-﻿## 1.26.1
+﻿## 1.26.2
+- Nieuw evenement start nu met een schone eventgebonden werklaag: prijslijst, publicatiestatus, Kassa-imports, kassaboekingen, auditregels en rapportstatus worden gereset.
+- Afgesloten events blijven volledig bewaard in Historiek / Archief en in hun snapshot.
+- Beheercentrum toont bij een leeg nieuw event geen oude Na event-status of oude Kassa-waarden meer.
+- De Voor event-workflow is sequentieel gemaakt: Prijslijst, Google Drive, Publiceren en Tablet klaarzetten worden pas klaar wanneer de voorgaande eventstappen logisch klaar zijn.
+- De popuptekst voor Nieuw evenement is aangepast en verwijst niet langer foutief naar een Excel-backup na een correcte afsluitflow.
+- Geen wijzigingen aan masterdata zoals vrijwilligers, materiaal, winkels, oorsprongen, sjablonen of woordenboek.
+## 1.26.1
 - Nieuw evenement starten toont geen oude Excel-backupwaarschuwing meer wanneer het actieve event al via de afsluitflow is afgesloten.
 - De Excel-noodbackup blijft alleen actief voor een nog actief, niet-afgesloten event.
 - Geen wijzigingen aan snapshots, Drive-archief, ledger, rapportberekeningen, Kassa Tool-contract of opgeslagen eventdata.

@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.26.1";
+const APP_VERSION = "1.26.2";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -902,7 +902,7 @@ const T = {
     help_button: "Werking",
     help_close: "Sluiten",
     nieuw_evenement: "Nieuw evenement",
-    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nEr wordt eerst automatisch een Excel-backup gedownload van het huidige evenement.\n\nWORDT GEWIST:\n• Eventnaam, datum, locatie\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Materiaal-aantallen (lijst zelf blijft)\n• Bulk-zendgeschiedenis\n• Winkelbestellingen + kastickets\n\nBLIJFT BEHOUDEN:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaallijst (zonder aantallen)\n• Winkels + BTW-nummers\n• Oorsprongen + logo's\n• Sjablonen + woordenboek\n• Externe contacten\n\nDoorgaan?",
+    confirm_nieuw_evenement: "Een nieuw evenement starten?\n\nHet huidige event moet afgesloten en gearchiveerd zijn. De gegevens van het afgesloten event blijven bewaard in Historiek / Archief.\n\nWORDT LEEGGEMAAKT VOOR HET NIEUWE EVENT:\n• Eventnaam, datum, locatie\n• Prijslijst en publicatiestatus\n• Kassa-imports, kassaboekingen en rapportstatus\n• Taaktoewijzingen + statussen\n• Verantwoordelijke per taak\n• Materiaal-aantallen (lijst zelf blijft)\n• Bulk-zendgeschiedenis\n• Winkelbestellingen + kastickets\n\nBLIJFT BEHOUDEN ALS MASTERDATA:\n• Vrijwilligerslijst\n• Takenlijst (zonder toewijzingen)\n• Materiaallijst (zonder aantallen)\n• Winkels + BTW-nummers\n• Oorsprongen + logo's\n• Sjablonen + woordenboek\n• Externe contacten\n\nDoorgaan?",
     backup_mislukt: "De automatische Excel-backup is niet gelukt. Toch doorgaan met het nieuwe evenement? (Niet aanbevolen zonder backup.)",
     nieuw_evenement_klaar: "✓ Klaar voor nieuw evenement",
     tab_dashboard: "Dashboard",
@@ -2179,7 +2179,7 @@ const T = {
     help_button: "Fonctionnement",
     help_close: "Fermer",
     nieuw_evenement: "Nouvel événement",
-    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nUne sauvegarde Excel de l'événement actuel sera d'abord téléchargée automatiquement.\n\nSERA EFFACÉ :\n• Nom, date, lieu de l'événement\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Quantités de matériel (la liste reste)\n• Historique des envois groupés\n• Commandes via magasin + tickets\n\nSERA CONSERVÉ :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Liste du matériel (sans quantités)\n• Magasins + numéros de TVA\n• Sources + logos\n• Modèles + dictionnaire\n• Contacts externes\n\nContinuer ?",
+    confirm_nieuw_evenement: "Démarrer un nouvel événement ?\n\nL'événement actuel doit être clôturé et archivé. Les données de l'événement clôturé restent conservées dans Historique / Archives.\n\nSERA RÉINITIALISÉ POUR LE NOUVEL ÉVÉNEMENT :\n• Nom, date, lieu de l'événement\n• Liste de prix et statut de publication\n• Imports caisse, écritures caisse et statut du rapport\n• Assignations + statuts des tâches\n• Responsable par tâche\n• Quantités de matériel (la liste reste)\n• Historique des envois groupés\n• Commandes via magasin + tickets\n\nRESTE CONSERVÉ COMME MASTERDATA :\n• Liste des bénévoles\n• Liste des tâches (sans assignations)\n• Liste du matériel (sans quantités)\n• Magasins + numéros de TVA\n• Sources + logos\n• Modèles + dictionnaire\n• Contacts externes\n\nContinuer ?",
     backup_mislukt: "La sauvegarde Excel automatique a échoué. Continuer quand même avec le nouvel événement ? (Déconseillé sans sauvegarde.)",
     nieuw_evenement_klaar: "✓ Prêt pour le nouvel événement",
     tab_dashboard: "Tableau de bord",
@@ -4686,6 +4686,18 @@ const normalizeData = raw => {
       ...raw.legacy,
       migrationNotes: Array.isArray(raw.legacy.migrationNotes) ? raw.legacy.migrationNotes : []
     };
+  }
+  const activeLifecycleEvent = Array.isArray(safe.events) ? safe.events.find(event => event && event.id === safe.activeEventId) : null;
+  const hasClosedSnapshot = Array.isArray(safe.events) && safe.events.some(event => event && event.status === "closed" && event.snapshot);
+  const activeEventLooksEmpty = activeLifecycleEvent && activeLifecycleEvent.status === "active" && !(safe.event && safe.event.naam) && !(safe.event && safe.event.datum);
+  const hasOldEventScopedWork = (safe.kassaImports && (safe.kassaImports.batches || []).length || safe.finance && (safe.finance.ledgerTransactions || []).length || safe.prijslijst && safe.prijslijst.length || localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
+  if (activeEventLooksEmpty && hasClosedSnapshot && hasOldEventScopedWork) {
+    safe.prijslijst = [];
+    safe.prijslijstCategorien = [...defaultData.prijslijstCategorien];
+    safe.kassaImports = deepClone(defaultData.kassaImports);
+    safe.finance = deepClone(defaultData.finance);
+    safe.auditTrail = [];
+    localStorage.removeItem("eventtool_gdrive_last_pricelist_publish");
   }
   return ensureEventLifecycleStructure(safe, {
     preferEventMirror: rawHasEvent || !Array.isArray(raw.events) || raw.events.length === 0
@@ -8038,8 +8050,13 @@ function App() {
         eventHistory: [...historyEntry, ...(synced.eventHistory || [])],
         // Wissen
         event: newEvent,
+        prijslijst: [],
+        prijslijstCategorien: [...defaultData.prijslijstCategorien],
         bulkGeschiedenis: {},
-        businessContinuity: defaultData.businessContinuity,
+        businessContinuity: deepClone(defaultData.businessContinuity),
+        kassaImports: deepClone(defaultData.kassaImports),
+        finance: deepClone(defaultData.finance),
+        auditTrail: [],
         winkelbestellingen: {},
         kastickets: {},
         // Overgeslagen aandachtspunten resetten — nieuw evenement, schone lei
@@ -8077,6 +8094,9 @@ function App() {
         // Behouden: vrijwilligers, winkels, oorsprongen, sjablonen, woordenboek, externeContacten, eventHistory, voorverkoopBronnen, betaalrekeningen
       });
     });
+    localStorage.removeItem("eventtool_gdrive_last_pricelist_publish");
+    sessionStorage.removeItem("eventtool_auto_after_event_flow");
+    sessionStorage.removeItem("eventtool_auto_final_report_mail");
     showToast(t.nieuw_evenement_klaar);
   };
   const dagen = daysUntil(data.event.datum);
@@ -11713,25 +11733,27 @@ function DashboardCockpit({
     initEventToolGoogleDrive();
     return eventToolGDriveSubscribe(setDrive);
   }, []);
+  const cockpitEvent = data && data.event || {};
+  const cockpitEventComplete = !!(cockpitEvent.naam && cockpitEvent.datum && (cockpitEvent.gemeente || cockpitEvent.locatieNaam || buildAddressString(cockpitEvent)));
   const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
   const batches = data && data.kassaImports && Array.isArray(data.kassaImports.batches) ? data.kassaImports.batches : [];
   const ledgerRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
   const postedBatchIds = new Set(ledgerRows.filter(item => item && item.source === "kassa-import" && item.sourceBatchId).map(item => item.sourceBatchId));
-  const openBatchCount = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length;
-  const bookingCount = ledgerRows.length;
+  const openBatchCount = cockpitEventComplete ? batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length : 0;
+  const bookingCount = cockpitEventComplete ? ledgerRows.length : 0;
   const reportReady = bookingCount > 0;
-  const priceListPublished = !!localStorage.getItem("eventtool_gdrive_last_pricelist_publish");
+  const priceListPublished = !!(cockpitEventComplete && priceCount && localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
   const statusTodo = { label: t.dashboard_status_todo, color: "var(--ink-soft)", background: "rgba(80,70,60,0.08)" };
   const statusBusy = { label: t.dashboard_status_busy, color: "var(--amber)", background: "rgba(192,138,46,0.14)" };
   const statusDone = { label: t.dashboard_status_done, color: "var(--green)", background: "rgba(153,173,122,0.22)" };
   const importFiles = data && data.kassaImports && Array.isArray(data.kassaImports.files) ? data.kassaImports.files : [];
   const importedFacts = data && data.kassaImports && Array.isArray(data.kassaImports.importedFacts) ? data.kassaImports.importedFacts : [];
   const ledgerPreviews = data && data.kassaImports && Array.isArray(data.kassaImports.ledgerPreviews) ? data.kassaImports.ledgerPreviews : [];
-  const openBatches = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).slice().sort((a, b) => {
+  const openBatches = cockpitEventComplete ? batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).slice().sort((a, b) => {
     const aTime = new Date(a.importedAt || a.createdAt || 0).getTime() || 0;
     const bTime = new Date(b.importedAt || b.createdAt || 0).getTime() || 0;
     return bTime - aTime;
-  });
+  }) : [];
   const activeBatch = openBatches[0] || null;
   const activeBatchFacts = activeBatch ? importedFacts.find(item => item && item.batchId === activeBatch.id) : null;
   const activeBatchPreview = activeBatch ? ledgerPreviews.find(item => item && item.batchId === activeBatch.id) : null;
@@ -11801,38 +11823,38 @@ function DashboardCockpit({
   const beforeSteps = [{
     nr: 1,
     title: t.dashboard_cockpit_pricelist,
-    status: priceCount > 0 ? statusDone : statusTodo,
+    status: cockpitEventComplete && priceCount > 0 ? statusDone : statusTodo,
     action: t.dashboard_cockpit_open_pricelist,
     run: () => setTab("prijslijst", 1)
   }, {
     nr: 2,
     title: t.dashboard_cockpit_drive,
-    status: drive.connected ? statusDone : statusTodo,
+    status: cockpitEventComplete && priceCount > 0 && drive.connected ? statusDone : statusTodo,
     action: t.dashboard_cockpit_connect_drive,
     run: () => eventToolGDriveReconnect()
   }, {
     nr: 3,
     title: t.dashboard_cockpit_publish,
-    status: priceListPublished ? statusDone : priceCount > 0 && drive.connected ? statusBusy : statusTodo,
+    status: priceListPublished ? statusDone : cockpitEventComplete && priceCount > 0 && drive.connected ? statusBusy : statusTodo,
     action: t.dashboard_cockpit_publish_button,
     run: () => setTab("prijslijst", 3)
   }, {
     nr: 4,
     title: t.dashboard_cockpit_tablet_load,
-    status: batches.length || bookingCount ? statusDone : priceListPublished ? statusBusy : statusTodo,
+    status: cockpitEventComplete && (batches.length || bookingCount) ? statusDone : priceListPublished ? statusBusy : statusTodo,
     action: t.dashboard_cockpit_tablet_load_button,
     run: () => alert(t.dashboard_cockpit_tablet_load_help)
   }];
   const afterSteps = [{
     nr: 5,
     title: t.dashboard_cockpit_tablet_export,
-    status: batches.length || bookingCount ? statusDone : statusTodo,
+    status: cockpitEventComplete && (batches.length || bookingCount) ? statusDone : statusTodo,
     action: t.dashboard_cockpit_tablet_export_button,
     run: () => alert(t.dashboard_cockpit_tablet_export_help)
   }, {
     nr: 6,
     title: t.dashboard_cockpit_exports,
-    status: batches.length || bookingCount ? statusDone : statusTodo,
+    status: cockpitEventComplete && (batches.length || bookingCount) ? statusDone : statusTodo,
     action: t.dashboard_cockpit_fetch_exports,
     run: () => setTab("kassaExports", 6)
   }, {
@@ -12317,18 +12339,18 @@ function BeheercentrumTab({
   })();
   const archiveCount = closedEventSummaries.length;
   const centerEventKey = data && (data.activeEventId || data.event && data.event.id || [data.event && data.event.naam, data.event && data.event.datum].filter(Boolean).join("_")) || "default";
-  const centerFinalReportMailReady = localStorage.getItem(`eventtool_final_report_mail_ready_${centerEventKey}`) === "1";
+  const centerFinalReportMailReady = !!(eventInfo.naam && eventInfo.datum && localStorage.getItem(`eventtool_final_report_mail_ready_${centerEventKey}`) === "1");
   const eventLocation = buildAddressString(eventInfo);
   const eventMailInfo = [eventInfo.reimbursementEmails ? `${t.center_event_reimbursement_mail}: ${eventInfo.reimbursementEmails}` : "", eventInfo.finalReportEmails ? `${t.center_event_final_report_mail}: ${eventInfo.finalReportEmails}` : ""].filter(Boolean).join(" · ");
   const eventDateText = eventInfo.datum ? formatDate(eventInfo.datum, data.taal) : "—";
   const eventLocationText = eventLocation || eventInfo.gemeente || eventInfo.locatieNaam || "—";
   const eventFlyerText = eventInfo.affiche ? t.center_event_flyer_present : t.center_event_flyer_missing;
   const postedBatchIds = new Set(ledgerRows.filter(item => item && item.source === "kassa-import" && item.sourceBatchId).map(item => item.sourceBatchId));
-  const openBatchCount = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length;
-  const postedBatchCount = batches.filter(batch => batch && (batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length;
+  const openBatchCount = eventInfo.naam && eventInfo.datum ? batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length : 0;
+  const postedBatchCount = eventInfo.naam && eventInfo.datum ? batches.filter(batch => batch && (batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).length : 0;
   const priceCount = (data.prijslijst || []).filter(item => item && item.naam).length;
   const eventComplete = !!(eventInfo.naam && eventInfo.datum && (eventInfo.gemeente || eventInfo.locatieNaam || eventLocation));
-  const priceListPublished = !!localStorage.getItem("eventtool_gdrive_last_pricelist_publish");
+  const priceListPublished = !!(eventComplete && priceCount && localStorage.getItem("eventtool_gdrive_last_pricelist_publish"));
   const driveConnected = !!(drive && drive.connected);
   const openGoogleDriveFromCenter = () => {
     if (eventToolGDriveIsTokenValid()) {
@@ -12337,13 +12359,13 @@ function BeheercentrumTab({
     }
     eventToolGDriveConnect();
   };
-  const bookingReady = ledgerRows.some(item => item && item.source === "kassa-import");
+  const bookingReady = !!(eventComplete && ledgerRows.some(item => item && item.source === "kassa-import"));
   const reportReady = bookingReady;
-  const activeBatch = batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).slice().sort((a, b) => {
+  const activeBatch = eventComplete ? batches.filter(batch => batch && !(batch.ledgerStatus === "posted" || batch.status === "ledger_posted" || postedBatchIds.has(batch.id))).slice().sort((a, b) => {
     const aTime = new Date(a.importedAt || a.createdAt || 0).getTime() || 0;
     const bTime = new Date(b.importedAt || b.createdAt || 0).getTime() || 0;
     return bTime - aTime;
-  })[0] || null;
+  })[0] || null : null;
   const activeBatchFile = activeBatch ? importFiles.find(file => file && (file.id === activeBatch.fileRecordId || file.batchId === activeBatch.id)) : null;
   const activeFacts = activeBatch ? importedFacts.find(item => item && item.batchId === activeBatch.id) : null;
   const activePreview = activeBatch ? ledgerPreviews.find(item => item && item.batchId === activeBatch.id) : null;
@@ -12656,13 +12678,13 @@ function BeheercentrumTab({
     done: eventComplete
   }, {
     label: t.tab_prijslijst,
-    done: !!priceCount
+    done: eventComplete && !!priceCount
   }, {
     label: "Google Drive",
-    done: driveConnected
+    done: eventComplete && !!priceCount && driveConnected
   }, {
     label: t.center_publish_pricelist,
-    done: priceListPublished
+    done: eventComplete && !!priceCount && driveConnected && priceListPublished
   }, {
     label: t.center_tablet_ready,
     done: priceListPublished && driveConnected && !!priceCount && eventComplete
