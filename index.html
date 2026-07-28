@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.99";
+const APP_VERSION = "1.26.0";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -1120,9 +1120,10 @@ const T = {
     center_close_event_not_ready: "Het event kan pas worden afgesloten wanneer de volledige na-eventflow klaar is.",
     center_event_closed_title: "Event afgesloten",
     center_event_closed_text: "Dit event is afgesloten en staat in Historiek / Archief. Je kan nu een nieuw event starten.",
+    center_event_closed_archiving_text: "Dit event is lokaal afgesloten. Sluit nu eerst het archief af door het op Google Drive te bewaren.",
     center_archive_open: "Lijst afgesloten events",
     center_archive_count: "Afgesloten events",
-    center_archive_drive_button: "Archief naar Drive bewaren",
+    center_archive_drive_button: "Archief afsluiten",
     confirm_sluit_event: "Dit event afsluiten?\n\nDe app bewaart lokaal een immutable snapshot in Historiek / Archief en probeert daarna automatisch een apart archiefbestand op Google Drive te bewaren.\n\nHet event wordt niet gewist. Doorgaan?",
     sluit_event_klaar: "✓ Event afgesloten en bewaard in Historiek / Archief",
     sluit_event_drive_klaar: "✓ Afgesloten event ook bewaard op Google Drive",
@@ -2346,9 +2347,10 @@ const T = {
     center_close_event_not_ready: "L'événement ne peut être clôturé que lorsque tout le flux après événement est terminé.",
     center_event_closed_title: "Événement clôturé",
     center_event_closed_text: "Cet événement est clôturé et se trouve dans Historique / Archives. Vous pouvez maintenant démarrer un nouvel événement.",
+    center_event_closed_archiving_text: "Cet événement est clôturé localement. Clôturez d'abord l'archive en l'enregistrant sur Google Drive.",
     center_archive_open: "Liste des événements clôturés",
     center_archive_count: "Événements clôturés",
-    center_archive_drive_button: "Enregistrer l'archive sur Drive",
+    center_archive_drive_button: "Clôturer l'archive",
     confirm_sluit_event: "Clôturer cet événement ?\n\nL'app conserve localement un snapshot immutable dans Historique / Archives et essaie ensuite d'enregistrer automatiquement un fichier d'archive séparé sur Google Drive.\n\nL'événement n'est pas supprimé. Continuer ?",
     sluit_event_klaar: "✓ Événement clôturé et conservé dans Historique / Archives",
     sluit_event_drive_klaar: "✓ Événement clôturé également conservé sur Google Drive",
@@ -7846,6 +7848,7 @@ function App() {
       throw new Error("Google Drive is niet verbonden.");
     }
     await eventToolGDriveArchiveClosedEvent(archiveUpload.fileName, archiveUpload.payload, archiveUpload.fallbackEvent);
+    localStorage.setItem(`eventtool_closed_event_archived_${archiveUpload.eventId}`, "1");
     eventToolGDriveEmit();
     showToast(t.sluit_event_drive_klaar);
     return true;
@@ -7854,6 +7857,9 @@ function App() {
     try {
       const archiveUpload = buildClosedEventArchiveUpload(data);
       await uploadClosedEventArchiveToDrive(archiveUpload);
+      setData(d => ({
+        ...d
+      }));
     } catch (e) {
       console.warn("Event archive Drive upload failed:", e);
       localStorage.setItem("eventtool_gdrive_last_error", e && e.message ? e.message : String(e));
@@ -7924,6 +7930,9 @@ function App() {
     if (archiveUpload) {
       try {
         await uploadClosedEventArchiveToDrive(archiveUpload);
+        setData(d => ({
+          ...d
+        }));
       } catch (e) {
         console.warn("Event archive Drive upload failed:", e);
         localStorage.setItem("eventtool_gdrive_last_error", e && e.message ? e.message : String(e));
@@ -12268,6 +12277,8 @@ function BeheercentrumTab({
   const eventInfo = data && data.event || {};
   const activeEventRecord = getActiveEvent(data || {});
   const activeEventClosed = !!(activeEventRecord && activeEventRecord.status === "closed");
+  const activeClosedEventId = activeEventRecord && activeEventRecord.id || data && data.activeEventId || "";
+  const activeClosedArchiveStored = !!(activeEventClosed && activeClosedEventId && localStorage.getItem(`eventtool_closed_event_archived_${activeClosedEventId}`) === "1");
   const closedEventSummaries = (() => {
     const seen = new Set();
     const rows = [];
@@ -12703,7 +12714,7 @@ function BeheercentrumTab({
       lineHeight: 1.35,
       maxWidth: 780
     }
-  }, activeEventClosed ? t.center_event_closed_text : workflowFullyReady ? t.center_close_event_ready : t.center_close_event_not_ready)), /*#__PURE__*/React.createElement("span", {
+  }, activeEventClosed ? activeClosedArchiveStored ? t.center_event_closed_text : t.center_event_closed_archiving_text : workflowFullyReady ? t.center_close_event_ready : t.center_close_event_not_ready)), /*#__PURE__*/React.createElement("span", {
     style: {
       borderRadius: 999,
       padding: "0.32rem 0.76rem",
@@ -12750,15 +12761,15 @@ function BeheercentrumTab({
     type: "button",
     className: "btn btn-primary btn-sm workflow-glass-btn",
     onClick: () => typeof onCloseEvent === "function" && onCloseEvent()
-  }, t.center_close_event), activeEventClosed && /*#__PURE__*/React.createElement("button", {
+  }, t.center_close_event), activeEventClosed && !activeClosedArchiveStored && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary btn-sm workflow-glass-btn",
+    onClick: async () => typeof onArchiveClosedEvent === "function" && (await onArchiveClosedEvent())
+  }, t.center_archive_drive_button), activeEventClosed && activeClosedArchiveStored && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-primary btn-sm workflow-glass-btn workflow-glass-green",
     onClick: () => typeof onNewEvent === "function" && onNewEvent()
   }, t.center_new_event_start), activeEventClosed && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn btn-ghost btn-sm",
-    onClick: () => typeof onArchiveClosedEvent === "function" && onArchiveClosedEvent()
-  }, t.center_archive_drive_button), activeEventClosed && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-ghost btn-sm",
     onClick: () => openTab("history")
@@ -13278,7 +13289,7 @@ function BeheercentrumTab({
       fontWeight: 900,
       textTransform: "uppercase"
     }
-  }, t.center_event_location_label), /*#__PURE__*/React.createElement("strong", null, eventLocationText))), /*#__PURE__*/React.createElement("div", {
+  }, t.center_event_location_label), /*#__PURE__*/React.createElement("strong", null, eventLocationText))), activeEventClosed ? renderEventLifecycleCard() : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -13290,7 +13301,7 @@ function BeheercentrumTab({
       gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
       gap: "0.75rem"
     }
-  }, centerStatuses.map(renderStatusCard)), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderNewEventStartCard(), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), (centerDetailPhase === "after" || centerDetailPhase === "all") && renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E"))));
+  }, centerStatuses.map(renderStatusCard)), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderNewEventStartCard(), (centerDetailPhase === "before" || centerDetailPhase === "all") && renderPhase(t.center_before_title, t.center_before_intro, beforeEventCards, "#99AD7A"), (centerDetailPhase === "after" || centerDetailPhase === "all") && renderPhase(t.center_after_title, t.center_after_intro, afterEventCards, "#DE3E3E")))));
 }
 function getKassaWorkflowSteps(t) {
   return [{

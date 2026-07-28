@@ -1,4 +1,10 @@
-﻿## 1.25.99
+﻿## 1.26.0
+- Beheercentrum verbergt de gewone Voor event- en Na event-workflow zodra het actieve event afgesloten is.
+- Na afsluiten toont Beheercentrum eerst alleen de afsluitkaart met Archief afsluiten en Lijst afgesloten events.
+- Nieuw evenement starten wordt pas zichtbaar nadat het afgesloten eventarchief succesvol op Google Drive is bewaard.
+- De Drive-archiefstatus wordt per afgesloten event onthouden zodat de flow duidelijk blijft.
+- Geen wijzigingen aan snapshots, ledger, rapportberekeningen, Kassa Tool-contract, imports of opgeslagen eventdata.
+## 1.25.99
 - Historiek / Archief toont bij Details bekijken voortaan alleen nog of het eindresultaat positief of negatief is, met het bedrag.
 - De volledige event-snapshot blijft ongewijzigd bewaard voor de latere vergelijkingsmodule.
 - De teller Afgesloten events telt unieke afgesloten events en telt hetzelfde event niet langer dubbel via eventHistory en events.
