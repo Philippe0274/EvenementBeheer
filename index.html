@@ -365,7 +365,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.25.89";
+const APP_VERSION = "1.25.90";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -10375,6 +10375,8 @@ function KassaExportMonitorTab({
   const hasHiddenExportsOrBatches = exportsFound.length > visibleExports.length || hiddenImportBatchCount > 0;
   const autoAfterEventActive = sessionStorage.getItem("eventtool_auto_after_event_flow") === "1";
   const autoFinalReportPending = sessionStorage.getItem("eventtool_auto_final_report_mail") === "1";
+  const flowEventKey = data && (data.activeEventId || data.event && data.event.id || [data.event && data.event.naam, data.event && data.event.datum].filter(Boolean).join("_")) || "default";
+  const finalReportMailReady = localStorage.getItem(`eventtool_final_report_mail_ready_${flowEventKey}`) === "1";
   const flowBatch = activeImportBatch;
   const flowBatchId = flowBatch && flowBatch.id || "";
   const flowBatchFile = flowBatch ? importFiles.find(file => file && (file.id === flowBatch.fileRecordId || file.batchId === flowBatchId)) : null;
@@ -10384,7 +10386,7 @@ function KassaExportMonitorTab({
   const flowValidationFailed = !!(flowReport && (flowReport.errors || flowReport.status === "validation_failed" || flowBatch.status === "validation_failed" || flowBatch.validationStatus === "validation_failed"));
   const flowRows = data && data.finance && Array.isArray(data.finance.ledgerTransactions) ? data.finance.ledgerTransactions : [];
   const flowHasKassaLedger = flowRows.some(item => item && item.source === "kassa-import");
-  const flowIsVisible = autoAfterEventActive || autoFinalReportPending || !!flowBatch || flowHasKassaLedger;
+  const flowIsVisible = autoAfterEventActive || autoFinalReportPending || finalReportMailReady || !!flowBatch || flowHasKassaLedger;
   const flowStatus = (done, busyNow, blocked) => blocked ? "blocked" : done ? "done" : busyNow ? "busy" : "waiting";
   const autoFlowSteps = [{
     label: t.center_auto_step_fetch,
@@ -10406,7 +10408,7 @@ function KassaExportMonitorTab({
     status: flowStatus(flowHasKassaLedger, autoAfterEventActive && !!flowPreview && !flowHasKassaLedger, false)
   }, {
     label: t.center_auto_step_report,
-    status: flowStatus(false, autoFinalReportPending, flowValidationFailed)
+    status: flowStatus(finalReportMailReady, autoFinalReportPending, flowValidationFailed)
   }];
   const autoFlowStatusText = status => status === "done" ? t.center_auto_status_done : status === "busy" ? t.center_auto_status_busy : status === "blocked" ? t.center_auto_status_blocked : t.center_auto_status_waiting;
   const autoFlowStatusColor = status => status === "done" ? "#3f6f36" : status === "busy" ? "#c98b13" : status === "blocked" ? "#DE3E3E" : "var(--ink-soft)";
@@ -20339,6 +20341,8 @@ function KostenbeheerTab({
       } else {
         window.open(url, "_blank", "noopener");
       }
+      const finalReportEventKey = data && (data.activeEventId || data.event && data.event.id || [data.event && data.event.naam, data.event && data.event.datum].filter(Boolean).join("_")) || "default";
+      localStorage.setItem(`eventtool_final_report_mail_ready_${finalReportEventKey}`, "1");
       showToast(t.kb_final_report_drive_ready);
     } catch (e) {
       if (mailWindow && !mailWindow.closed) mailWindow.close();
@@ -23768,6 +23772,7 @@ FASE 2 TOEGEVOEGD
   * export
   * statistieken
 ========================================================= -->
+
 
 
 

@@ -1,4 +1,8 @@
-﻿## 1.25.89
+﻿## 1.25.90
+- Status van de laatste na-eventstap hersteld: Eindrapport en mail wordt nu per event als Voltooid getoond nadat het eindrapport op Google Drive staat en Gmail werd geopend.
+- De Kassa Exports-stappenkaart leest deze bestaande rapport/mailstatus mee, zodat de visuele keten overeenkomt met wat werkelijk uitgevoerd werd.
+- Geen wijzigingen aan rapportinhoud, mailtekst, import, ledger, Google Drive-upload, backup/restore of datamodel.
+## 1.25.89
 - Na-eventverwerking duidelijker gemaakt: Kassa Exports toont nu een compacte stappenkaart voor ophalen, import voorbereiden, valideren, feiten uitpakken, ledger-preview, definitief boeken en eindrapport/mail.
 - De stappenkaart leest alleen bestaande import-, feiten- en ledgerstatussen en stopt visueel bij controlepunten; er is geen nieuwe financiële logica toegevoegd.
 - Geen wijzigingen aan exportcontract, dataopslag, ledgerberekeningen, rapportberekeningen, Google Drive-structuur, backup/restore of bestaande modulefuncties.
@@ -901,6 +905,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
