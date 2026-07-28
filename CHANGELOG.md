@@ -1,4 +1,10 @@
-﻿## 1.25.94
+﻿## 1.25.95
+- Beheercentrum verder bevestigd als normale start- en bedieningslaag van de Hoofdapp.
+- Het technische modulemenu blijft beschikbaar, maar wordt nu explicieter als controle- en uitzonderingslaag getoond.
+- Wanneer een technische module actief is, blijft de technische groep open zodat duidelijk is waar de gebruiker zich bevindt.
+- Geen wijzigingen aan dataopslag, rapporten, Drive-sync, imports, ledger, backup/restore of Kassa Tool-contract.
+
+## 1.25.94
 - Hersteld dat de groene knop Voltooid in de fase Na event geen actie uitvoerde.
 - Wanneer de na-eventflow volledig klaar is, opent deze knop nu veilig de eindrapportsectie in Kostenbeheer.
 - Geen wijzigingen aan boekingen, ledger, Drive-upload, rapportinhoud, mailtekst, backup/restore of Kassa Tool-contract.
@@ -926,6 +932,7 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
 
 
 
