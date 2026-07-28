@@ -1,4 +1,14 @@
 ﻿# Changelog
+## 1.26.6
+- Rollback: Beheercentrum is uit de normale UI gehaald; alle bestaande modules staan opnieuw rechtstreeks als gewone tabs zichtbaar.
+- Oude Beheercentrum-routes vallen terug naar Dashboard zodat de app niet meer vastloopt in de workflow-/runnerlaag.
+- Terugknoppen naar Beheercentrum zijn geneutraliseerd; directe tabnavigatie is opnieuw de standaard.
+- Geen wijzigingen aan data, opslag, events, prijslijsten, Kassa Tool-contract, imports, ledger of rapportberekeningen.
+## 1.26.5
+- Hersteld: Beheercentrum toont de knop Tablet klaar bevestigen nu zichtbaar op de Voor event-kaart zodra eventgegevens aanwezig zijn.
+- Tablet klaar bevestigen markeert de bestaande tablet/prijslijststatus als klaar zonder opnieuw te publiceren, zonder artikelen aan te maken en zonder tabletdata te wijzigen.
+- De Voor event-workflow kan hiermee correct verder wanneer de Kassa Tool de prijslijst al heeft geladen maar de Hoofdapp-statusvlag ontbreekt.
+- Geen wijzigingen aan Kassa Tool-contract, Google Drive-bestanden, ledger, imports of bestaande eventdata.
 ## 1.26.4
 - Hersteld: `normalizeData()` wist nooit meer prijslijst-, kassa- of ledgerdata tijdens laden of refresh; leegmaken gebeurt alleen nog via expliciete gebruikersacties.
 - Nieuw: Beheercentrum kan de tabletstatus eventgebonden bevestigen wanneer de Kassa Tool de juiste prijslijst al heeft geladen, zonder opnieuw te publiceren of data te wijzigen.
@@ -988,6 +998,9 @@
 ## 1.0.3
 - Bugfix: service worker gebruikt nu altijd een expliciete GET-cachekey voor documentcaching.
 - Bugfix: voorkomt dat POST-requests via cache.put() in de Cache API terechtkomen.
+
+
+
 
 
 

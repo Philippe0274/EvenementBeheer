@@ -382,7 +382,7 @@ const {
 } = React;
 const STORAGE_KEY = "evenement_beheer_data_v4";
 const OLD_KEYS = ["evenement_beheer_data_v3", "evenement_beheer_data_v2", "evenement_beheer_data_v1"];
-const APP_VERSION = "1.26.4";
+const APP_VERSION = "1.26.6";
 const DATA_SCHEMA_VERSION = "2.0.0";
 const ARCHITECTURE_VERSION = "business-continuity-ledger-v1.0";
 const EVENT_LIFECYCLE_VERSION = "1.0.0";
@@ -5829,14 +5829,13 @@ function GroepverzendingenTab({
 }
 function App() {
   const [data, setData] = useState(() => normalizeData(defaultData));
-  const [tab, setTab] = useState("beheercentrum");
+  const [tab, setTab] = useState("dashboard");
   const [toonTerugKnop, setToonTerugKnop] = useState(false);
   const [workflowStep, setWorkflowStep] = useState(null);
-  // Sprong vanuit het Beheercentrum: onthoud dat we terug kunnen
   const springNaarTab = (doelTab, stepNr = null) => {
-    setToonTerugKnop(true);
-    setWorkflowStep(stepNr);
-    setTab(doelTab);
+    setToonTerugKnop(false);
+    setWorkflowStep(null);
+    setTab(doelTab === "beheercentrum" ? "dashboard" : doelTab);
   };
   // Gewone tabwissel wist de terugknop
   const wisselTab = doelTab => {
@@ -5848,10 +5847,17 @@ function App() {
   const [toast, setToast] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const t = T[data.taal] || T.nl;
+  useEffect(() => {
+    if (tab === "beheercentrum") {
+      setWorkflowStep(null);
+      setToonTerugKnop(false);
+      setTab("dashboard");
+    }
+  }, [tab]);
   const gaNaarStappenplan = () => {
     setWorkflowStep(null);
     setToonTerugKnop(false);
-    setTab("beheercentrum");
+    setTab("dashboard");
   };
   const gaNaarWorkflowStap = stepNr => {
     const step = getKassaWorkflowSteps(t).find(item => item.nr === stepNr);
@@ -5860,12 +5866,12 @@ function App() {
       alert(step.help);
       setWorkflowStep(null);
       setToonTerugKnop(false);
-      setTab("beheercentrum");
+      setTab("dashboard");
       return;
     }
     setWorkflowStep(stepNr);
-    setToonTerugKnop(true);
-    setTab(step.tab || "beheercentrum");
+    setToonTerugKnop(false);
+    setTab(step.tab || "dashboard");
   };
   const showToast = msg => {
     setToast(msg);
@@ -8117,7 +8123,7 @@ function App() {
   const dagen = daysUntil(data.event.datum);
   const showWinkelbestellingenTab = (data.materiaal || []).some(m => m.oorsprong === WINKEL_OORSPRONG);
   const showHistoryTab = (data.eventHistory || []).length > 0 || (data.events || []).some(event => event && event.status === "closed");
-  const mainTabs = [["beheercentrum", t.tab_beheercentrum]];
+  const mainTabs = [];
   const technicalTabs = [["event", t.tab_event], ["vrijwilligers", t.tab_vrijwilligers], ["taken", t.tab_taken], ["materiaal", t.tab_materiaal], ["winkelgegevens", t.tab_winkelgegevens], ["oorsprongsbeheer", t.tab_oorsprongsbeheer], ...(showWinkelbestellingenTab ? [["winkelbestellingen", t.tab_winkelbestellingen]] : []), ["kostenbeheer", t.tab_kostenbeheer], ["voorverkoop", t.tab_voorverkoop], ["prijslijst", t.tab_prijslijst], ["berichten", t.tab_berichten], ["woordenboek", t.tab_woordenboek], ["dashboard", t.tab_dashboard], ["kassaExports", t.tab_kassa_exports], ["kassabewegingen", t.tab_kassabewegingen], ["businessContinuity", t.tab_business_continuity], ["bulk", t.tab_bulk], ["groepverzendingen", t.tab_groepverzendingen], ["sjablonen", t.tab_sjablonen], ...(showHistoryTab ? [["history", t.tab_history]] : [])];
   const activeTechnicalTab = technicalTabs.some(([key]) => tab === key);
   const renderNavButton = ([k, label]) => /*#__PURE__*/React.createElement("button", {
@@ -8259,37 +8265,27 @@ function App() {
   }, "\u26A0\uFE0F"), t.reset)))), /*#__PURE__*/React.createElement("nav", {
     className: "tab-nav"
   }, mainTabs.map(renderNavButton), /*#__PURE__*/React.createElement("details", {
-    open: activeTechnicalTab,
+    open: true,
     style: {
       width: "100%",
-      borderTop: "1px solid rgba(222, 211, 196, 0.72)",
-      paddingTop: "0.45rem",
-      marginTop: "0.35rem"
+      borderTop: "0",
+      paddingTop: "0",
+      marginTop: "0"
     }
   }, /*#__PURE__*/React.createElement("summary", {
-    className: `tab-btn ${activeTechnicalTab ? "active" : ""}`,
+    className: "tab-btn",
     style: {
-      display: "inline-flex",
-      listStyle: "none",
-      cursor: "pointer"
+      display: "none"
     },
     title: t.nav_technical_hint
-  }, t.nav_technical_details), /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: "0.45rem auto 0",
-      maxWidth: 760,
-      color: "var(--ink-soft)",
-      fontSize: "0.86rem",
-      lineHeight: 1.35,
-      textAlign: "center"
-    }
-  }, t.technical_detail_intro), /*#__PURE__*/React.createElement("div", {
+  }, t.nav_technical_details), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexWrap: "wrap",
       gap: "0.32rem 0.42rem",
       justifyContent: "center",
-      marginTop: "0.5rem"
+      marginTop: "0",
+      width: "100%"
     }
   }, technicalTabs.map(renderNavButton)))))), /*#__PURE__*/React.createElement("main", {
     style: {
@@ -8298,7 +8294,7 @@ function App() {
       padding: "2rem"
     },
     className: "font-body"
-  }, activeTechnicalTab && tab !== "beheercentrum" && /*#__PURE__*/React.createElement("div", {
+  }, false && activeTechnicalTab && tab !== "beheercentrum" && /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: "1rem",
       display: "flex",
@@ -8306,7 +8302,7 @@ function App() {
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-primary btn-sm workflow-glass-btn",
-    onClick: () => wisselTab("beheercentrum")
+    onClick: () => wisselTab("dashboard")
   }, "\u2190 ", t.terug_dashboard)), workflowStep && tab !== "beheercentrum" && /*#__PURE__*/React.createElement(KassaWorkflowNav, {
     stepNr: workflowStep,
     t: t,
@@ -8323,7 +8319,7 @@ function App() {
     slaAandachtspuntOver: slaAandachtspuntOver,
     herstelAandachtspunten: herstelAandachtspunten,
     t: t
-  }), tab === "beheercentrum" && /*#__PURE__*/React.createElement(BeheercentrumTab, {
+  }), false && tab === "beheercentrum" && /*#__PURE__*/React.createElement(BeheercentrumTab, {
     data: data,
     setTab: springNaarTab,
     onValidateImport: validatePreparedKassaImport,
@@ -10093,7 +10089,7 @@ function TechnicalDetailBanner({
   }, t.technical_detail_intro)), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-primary btn-sm workflow-glass-btn",
-    onClick: () => typeof setTab === "function" && setTab("beheercentrum")
+    onClick: () => typeof setTab === "function" && setTab("dashboard")
   }, t.technical_detail_back));
 }
 
@@ -12415,8 +12411,8 @@ function BeheercentrumTab({
     action: () => openTab("event")
   }, {
     title: t.tab_prijslijst,
-    label: priceCount && priceListReadyForWorkflow ? t.center_status_published : priceCount ? t.center_status_not_published : t.center_status_incomplete,
-    status: priceCount && priceListReadyForWorkflow ? "done" : priceCount ? "attention" : "todo",
+    label: priceListReadyForWorkflow ? t.center_status_published : priceCount ? t.center_status_not_published : t.center_status_incomplete,
+    status: priceListReadyForWorkflow ? "done" : priceCount ? "attention" : "todo",
     detail: `${priceCount} ${t.tab_prijslijst.toLowerCase()}`,
     action: () => openTab("prijslijst", 1)
   }, {
@@ -12445,7 +12441,7 @@ function BeheercentrumTab({
       status: "attention",
       run: () => openTab("event")
     };
-    if (!priceCount) return {
+    if (!priceCount && !tabletReadyConfirmed) return {
       text: t.center_next_pricelist,
       button: t.dashboard_cockpit_pricelist,
       status: "attention",
@@ -12527,7 +12523,7 @@ function BeheercentrumTab({
       status: "attention",
       run: () => openTab("event")
     };
-    if (!priceCount) return {
+    if (!priceCount && !tabletReadyConfirmed) return {
       text: t.center_next_pricelist,
       button: t.dashboard_cockpit_pricelist,
       status: "attention",
@@ -12703,16 +12699,16 @@ function BeheercentrumTab({
     done: eventComplete
   }, {
     label: t.tab_prijslijst,
-    done: eventComplete && !!priceCount
+    done: eventComplete && (!!priceCount || tabletReadyConfirmed)
   }, {
     label: "Google Drive",
-    done: eventComplete && !!priceCount && driveConnected
+    done: eventComplete && (!!priceCount || tabletReadyConfirmed) && driveConnected
   }, {
     label: t.center_publish_pricelist,
-    done: eventComplete && !!priceCount && driveConnected && priceListReadyForWorkflow
+    done: eventComplete && (!!priceCount || tabletReadyConfirmed) && driveConnected && priceListReadyForWorkflow
   }, {
     label: t.center_tablet_ready,
-    done: tabletReadyConfirmed && driveConnected && !!priceCount && eventComplete
+    done: tabletReadyConfirmed && driveConnected && eventComplete
   }];
   const afterSimpleStatus = [{
     label: t.dashboard_cockpit_exports,
@@ -13146,6 +13142,7 @@ function BeheercentrumTab({
   const phaseButton = (title, intro, value, color, detailAction, primaryAction, statusItems = []) => {
     const isDone = statusItems.length ? statusItems.every(item => item.done) : primaryAction.status === "done";
     const primaryStyle = statusStyle(isDone ? "done" : primaryAction.status);
+    const showTabletConfirmButton = title === t.center_before_title && eventComplete && !tabletReadyConfirmed;
     return /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -13248,7 +13245,12 @@ function BeheercentrumTab({
     type: "button",
     className: `btn btn-primary btn-sm workflow-glass-btn${isDone ? " workflow-glass-green" : ""}`,
     onClick: () => primaryAction.run && primaryAction.run()
-  }, primaryAction.button || t.center_next_button), /*#__PURE__*/React.createElement("button", {
+  }, primaryAction.button || t.center_next_button), showTabletConfirmButton && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-primary btn-sm workflow-glass-btn workflow-glass-green",
+    onClick: confirmTabletReady,
+    title: t.center_tablet_confirm_ready_help
+  }, t.center_tablet_confirm_ready), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-ghost btn-sm",
     onClick: detailAction
